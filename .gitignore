@@ -1,0 +1,7 @@
+# Ignore all current project folders
+godot_rag/
+godot_test/
+working_notebook/
+
+.DS_Store
+.cursorrules
