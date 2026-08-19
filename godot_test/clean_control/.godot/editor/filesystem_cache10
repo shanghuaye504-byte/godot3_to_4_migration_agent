@@ -1,0 +1,6 @@
+78098b89c88a74ebe8c20117b8754620
+::res://::1787129949
+counter.gd::GDScript::2550300443465920848::1787111965::0::1::::<>Node<><>0<>0<><>::
+main.gd::GDScript::2550300443478760404::1787111965::0::1::::<>Node2D<><>0<>0<><>::
+main.tscn::PackedScene::4936721127171861460::1787111964::0::1::::<><><>0<>0<><>::uid://bclnctrlmain1::::res://main.gd<>uid://bclnctrlcntr1::::res://counter.gd
+ping.gd::GDScript::2550300443483089386::1787111965::0::1::::<>RefCounted<><>0<>0<><>::

@@ -1,6 +1,7 @@
 # Ignore all current project folders
 godot_rag/
-godot_test/
+godot_test/clean_control_log/
+godot_test/test_project/
 working_notebook/
 
 .DS_Store

@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://cclnctrlmain1"]
+
+[ext_resource type="Script" uid="uid://bclnctrlmain1" path="res://main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://bclnctrlcntr1" path="res://counter.gd" id="2_counter"]
+
+[node name="Main" type="Node2D" unique_id=1001]
+script = ExtResource("1_main")
+
+[node name="StatusLabel" type="Label" parent="." unique_id=1002]
+offset_right = 480.0
+offset_bottom = 40.0
+text = "CleanControl"
+
+[node name="Counter" type="Node" parent="." unique_id=1003]
+script = ExtResource("2_counter")
