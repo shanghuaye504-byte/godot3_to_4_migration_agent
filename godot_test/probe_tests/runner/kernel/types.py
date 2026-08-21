@@ -1,7 +1,22 @@
-"""Kernel 层共享数据结构。
+"""Kernel 的「场记单」：只有数据结构，没有执行逻辑。
 
-只含 dataclass / Enum，不含逻辑。RawResult 是 Kernel 唯一产出，也是
-Analyzer 唯一输入 —— Analyzer 之后落地时不需要认识 Kernel 内部任何其他类型。
+两张最重要的表：
+
+1. Measurement — 科学身份（README §0.1 四元组）
+   「这条观测是：哪个项目 × 哪条指令 × 冷/热缓存 × 第几次重复」
+   不含 run-id / N / step_id：那些是存档和编排用的，不是测量维度。
+
+2. RawResult — 一次快门的全部底片
+   Measurement 标签 + 实际 argv + stdout/stderr + 进程状态
+   + 跑前/跑后文件快照 + git diff + 本步用过的 hook + inputs_digest。
+   Kernel 的唯一产出，也是 Analyzer 的唯一输入。
+
+其余类型都是 RawResult 的栏目：
+  EngineProfile  用哪台 Godot（或 Fake）
+  ProcessStatus  pid / rc / signal / timeout / 墙钟
+  FsSnapshot     某一时刻工作区里每个文件的 sha1
+
+本文件不 import process/workspace；谁填写这些格子由 runner + capture 决定。
 """
 
 from __future__ import annotations
@@ -19,7 +34,13 @@ class CacheState(str, Enum):
 
 @dataclass(frozen=True)
 class Measurement:
-    """README §0.1 四元组：Measurement = (project, command, cache_state, repeat_idx)。"""
+    """一次观测的科学坐标，不是磁盘路径。
+
+    project      = group.fixture（如 phase1/CleanControl）
+    command      = YAML 的 V1/V3/V9
+    cache_state  = COLD / WARM / PRESERVE
+    repeat_idx   = 同一 step 内的第几次（0-based）
+    """
 
     project: str
     command: str
@@ -64,6 +85,17 @@ class ProcessStatus:
 
 @dataclass
 class RawResult:
+    """capture.run_measurement 的返回值：一条测量的完整原始记录。
+
+    measurement     四元组标签（Measurement）
+    step_id         编排名，便于对 YAML / 报告（如 v3-cold）
+    argv            真正交给进程的参数列表
+    process         rc / signal / timeout（ProcessStatus）
+    fs_before/after 跑命令前后的文件树
+    workspace_diff  相对 git 基线的 diff（不是 fs_before 与 fs_after 的差）
+    inputs_digest   开拍前盖的输入指纹（digest.py 算，capture 只原样带上）
+    """
+
     measurement: Measurement
     step_id: str
     argv: list

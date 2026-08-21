@@ -1,0 +1,5 @@
+SCRIPT ERROR: Parse Error: Expected ":" after "void".
+   at: GDScript::reload (res://root_bad.gd:3)
+ERROR: Failed to load script "res://dep_1.gd" with error "Compilation failed".
+ERROR: Failed to load script "res://dep_2.gd" with error "Compilation failed".
+ERROR: Failed to compile depended scripts.

@@ -1,9 +1,11 @@
 """Artifact 落盘。
 
-路径：artifacts/<run-id>/<N>/<step-id>/<cache_state>/<repeat_idx>/
+路径：artifacts/<run-id>/<N>/<group_id>/<step-id>/<cache_state>/<repeat_idx>/
 文件：metadata.json、argv.json、stdout.log、stderr.log、process-status.json、
 fs-before.json、fs-after.json、workspace.diff、cache-manifest.json、
-signatures.json、evaluation.json、cleanup.json。
+signatures.json、evaluation.json。group 级 cleanup.json 写在
+artifacts/<run-id>/<N>/<group_id>/cleanup.json。
+成功的真实实验另写 artifacts/latest/<N>.json（跨 run 的 digest 指针）。
 """
 
 from __future__ import annotations
@@ -16,9 +18,23 @@ from .types import FsSnapshot, ProcessStatus, RawResult
 
 
 def step_artifact_dir(
-    artifacts_root: Path, run_id: str, exp_id: str, step_id: str, cache_state: str, repeat_idx: int
+    artifacts_root: Path,
+    run_id: str,
+    exp_id: str,
+    group_id: str,
+    step_id: str,
+    cache_state: str,
+    repeat_idx: int,
 ) -> Path:
-    directory = Path(artifacts_root) / run_id / exp_id / step_id / str(cache_state) / str(repeat_idx)
+    directory = (
+        Path(artifacts_root)
+        / run_id
+        / exp_id
+        / group_id
+        / step_id
+        / str(cache_state)
+        / str(repeat_idx)
+    )
     directory.mkdir(parents=True, exist_ok=True)
     return directory
 
@@ -86,6 +102,35 @@ def write_evaluation(directory: Path, evaluation: dict) -> None:
 
 def write_cleanup(directory: Path, cleanup_report: dict) -> None:
     write_json(directory / "cleanup.json", cleanup_report)
+
+
+def write_latest_record(
+    artifacts_root: Path,
+    *,
+    exp_id: str,
+    run_id: str,
+    inputs_digest: str,
+    groups: list,
+    engine_profile: dict,
+) -> Path:
+    """写入 artifacts/latest/<exp_id>.json。调用方须保证非 fake 且 groups 全 OK。"""
+    path = Path(artifacts_root) / "latest" / f"{exp_id}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_json(
+        path,
+        {
+            "exp_id": exp_id,
+            "run_id": run_id,
+            "inputs_digest": inputs_digest,
+            "groups": groups,
+            "engine_profile": {
+                "build_hash": engine_profile.get("build_hash", ""),
+                "version": engine_profile.get("version", ""),
+            },
+            "fake": False,
+        },
+    )
+    return path
 
 
 def write_step_artifacts(

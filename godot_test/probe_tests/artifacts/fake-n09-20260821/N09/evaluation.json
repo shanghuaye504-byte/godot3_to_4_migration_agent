@@ -1,0 +1,123 @@
+{
+  "aggregation": "report_variance",
+  "details": {
+    "horizontal": {},
+    "vertical": {
+      "clean-control/v1-cold": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "clean-control/v2-cold": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "clean-control/v3-cold": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "clean-control/v4-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "clean-control/v5-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "clean-control/v6-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "clean-control/v7-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "np-cascade/v2-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          []
+        ],
+        "status": "OK"
+      },
+      "np-cascade/v3-cold": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          [
+            "7d3115f3fc4c35236b13702d65efa611af71573f",
+            "b7ad1cb091db9a3a473401b5292dbeae833aee99",
+            "be0168b4e94c4aaad34226ae252a1bba77ccd006",
+            "d95f2eb238600bf77153b49da3a4c848b04f1f9f"
+          ]
+        ],
+        "status": "OK"
+      },
+      "np-cascade/v3-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          [
+            "7d3115f3fc4c35236b13702d65efa611af71573f",
+            "b7ad1cb091db9a3a473401b5292dbeae833aee99",
+            "be0168b4e94c4aaad34226ae252a1bba77ccd006",
+            "d95f2eb238600bf77153b49da3a4c848b04f1f9f"
+          ]
+        ],
+        "status": "OK"
+      },
+      "np-cascade/v9-warm": {
+        "content_deterministic": true,
+        "order_deterministic": true,
+        "repeats": 1,
+        "signature_sets": [
+          [
+            "7d3115f3fc4c35236b13702d65efa611af71573f",
+            "b7ad1cb091db9a3a473401b5292dbeae833aee99",
+            "be0168b4e94c4aaad34226ae252a1bba77ccd006",
+            "d95f2eb238600bf77153b49da3a4c848b04f1f9f"
+          ]
+        ],
+        "status": "OK"
+      }
+    }
+  },
+  "status": "OK"
+}

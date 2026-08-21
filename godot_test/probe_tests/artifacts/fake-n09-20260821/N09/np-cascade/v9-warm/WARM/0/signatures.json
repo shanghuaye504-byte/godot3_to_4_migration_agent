@@ -1,0 +1,38 @@
+[
+  {
+    "raw": "SCRIPT ERROR: Parse Error: Expected \":\" after \"void\".",
+    "kind": "script_error",
+    "res_path": "",
+    "symbol": "",
+    "line_no": null,
+    "local_signature": "b7ad1cb091db9a3a473401b5292dbeae833aee99",
+    "noise_signature": "f3d9b4bc3aa62c259bab5f085f81b47ae405a1c5"
+  },
+  {
+    "raw": "ERROR: Failed to load script \"res://dep_1.gd\" with error \"Compilation failed\".",
+    "kind": "compile_error",
+    "res_path": "res://dep_1.gd",
+    "symbol": "",
+    "line_no": null,
+    "local_signature": "7d3115f3fc4c35236b13702d65efa611af71573f",
+    "noise_signature": "488efb586f108e9f7de3dbc9172f8a98a25363d9"
+  },
+  {
+    "raw": "ERROR: Failed to load script \"res://dep_2.gd\" with error \"Compilation failed\".",
+    "kind": "compile_error",
+    "res_path": "res://dep_2.gd",
+    "symbol": "",
+    "line_no": null,
+    "local_signature": "d95f2eb238600bf77153b49da3a4c848b04f1f9f",
+    "noise_signature": "488efb586f108e9f7de3dbc9172f8a98a25363d9"
+  },
+  {
+    "raw": "ERROR: Failed to compile depended scripts.",
+    "kind": "error",
+    "res_path": "",
+    "symbol": "",
+    "line_no": null,
+    "local_signature": "be0168b4e94c4aaad34226ae252a1bba77ccd006",
+    "noise_signature": "377fe87cf3379a83dcce97487cfe20e1cb233ae3"
+  }
+]

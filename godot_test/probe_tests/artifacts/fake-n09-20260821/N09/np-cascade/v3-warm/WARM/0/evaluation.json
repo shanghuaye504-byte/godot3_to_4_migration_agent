@@ -1,0 +1,16 @@
+{
+  "vertical": {
+    "content_deterministic": true,
+    "order_deterministic": true,
+    "repeats": 1,
+    "signature_sets": [
+      [
+        "7d3115f3fc4c35236b13702d65efa611af71573f",
+        "b7ad1cb091db9a3a473401b5292dbeae833aee99",
+        "be0168b4e94c4aaad34226ae252a1bba77ccd006",
+        "d95f2eb238600bf77153b49da3a4c848b04f1f9f"
+      ]
+    ],
+    "status": "OK"
+  }
+}

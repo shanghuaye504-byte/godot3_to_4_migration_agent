@@ -80,7 +80,7 @@ A 节表格由 runner 生成，勿手填。证据索引写在 `artifacts/<run-id
 单次测量路径必须含 cache 与 repeat：
 
 ```text
-artifacts/<run-id>/<N>/<step-id>/<cache_state>/<repeat_idx>/
+artifacts/<run-id>/<N>/<group_id>/<step-id>/<cache_state>/<repeat_idx>/
 ```
 
 

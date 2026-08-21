@@ -1,0 +1,11 @@
+{
+  "vertical": {
+    "content_deterministic": true,
+    "order_deterministic": true,
+    "repeats": 1,
+    "signature_sets": [
+      []
+    ],
+    "status": "OK"
+  }
+}

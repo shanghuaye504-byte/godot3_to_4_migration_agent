@@ -35,7 +35,7 @@ flowchart TD
 
 ### Kernel 职责
 
-1. 读取 N 的 YAML，校验 `depends_on` 与 `inputs_digest`（陈旧则拒绝或重跑）。
+1. 读取 N 的 YAML，校验 `depends_on` 与 `inputs_digest`。陈旧（STALE）默认拒绝重跑，须 `--force-stale`；上游 latest 缺失（MISSING）不可 force。Fake 跑不读写 `artifacts/latest/`。
 2. 从不可变 Fixture 创建独立工作区；需要时应用 `derived/` patch。
 3. COLD 步骤前删除工作区 `.godot/`；WARM 步骤前确认 V3 已成功。
 4. 用 argv 列表启动进程，不经过 shell；独立进程组；timeout 时 `killpg`。
@@ -178,7 +178,7 @@ YAML 只保存目标字节数、行数、最大单行长度。生成的 `big.gd`
 与 README §0.1 的四元组对齐，路径必须包含 cache 与 repeat，否则三次重复会互相覆盖：
 
 ```text
-artifacts/<run-id>/<N>/<step-id>/<cache_state>/<repeat_idx>/
+artifacts/<run-id>/<N>/<group_id>/<step-id>/<cache_state>/<repeat_idx>/
 ├── metadata.json          含 inputs_digest
 ├── argv.json
 ├── stdout.log
@@ -189,11 +189,13 @@ artifacts/<run-id>/<N>/<step-id>/<cache_state>/<repeat_idx>/
 ├── workspace.diff
 ├── cache-manifest.json
 ├── signatures.json        local_signature + noise_signature
-├── evaluation.json
-└── cleanup.json
+└── evaluation.json
 
+artifacts/<run-id>/<N>/<group_id>/cleanup.json
 artifacts/<run-id>/index.md
 ```
+
+路径必须含 `group_id`：同一 N 下多个 group 可以有同名 `step_id`（N09 两组都有 `v3-cold`），否则后写的会覆盖先写的日志。
 
 `inputs_digest` 是该步骤消费的 fixture hash、annotation hash、derived patch hash、上游 export JSON hash、Godot build hash 的摘要。N09 重跑且 normalization profile 变化时，下游实验必须被标记为陈旧，不得继续使用旧结论。
 

@@ -1,0 +1,12 @@
+[
+  {
+    "group_id": "clean-control",
+    "inputs_digest": "f3ab6df26c23253d9e2f53d48e21a9bd14898346",
+    "status": "OK"
+  },
+  {
+    "group_id": "np-cascade",
+    "inputs_digest": "0d6703f69069df908d108079bb3f9a58b0cae87c",
+    "status": "OK"
+  }
+]

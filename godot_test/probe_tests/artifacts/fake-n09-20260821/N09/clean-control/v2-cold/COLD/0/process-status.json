@@ -1,0 +1,10 @@
+{
+  "ended_at": "2026-08-21T09:30:11.460584+00:00",
+  "pgid": 93873,
+  "pid": 93873,
+  "returncode": 0,
+  "signal": null,
+  "started_at": "2026-08-21T09:30:11.429291+00:00",
+  "timed_out": false,
+  "wall_time_seconds": 0.03129837499000132
+}

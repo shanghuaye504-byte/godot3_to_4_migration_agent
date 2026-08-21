@@ -1,8 +1,21 @@
-"""一次测量的原始采集。
+"""一次测量的「快门」：只负责拍一条，不负责决定拍哪一条。
 
-组合 fs_before -> process.run -> fs_after -> workspace diff，产出一次
-Measurement 对应的 RawResult。是唯一把 process.py（纯进程）与
-workspace.py（文件系统/diff）组合起来的地方。
+分工（务必和 runner 对照着看）：
+
+  runner     决定：哪个 workspace、哪条 argv、是否 hook、重复第几次
+  process    只启动/杀死进程，返回 rc 和 stdout/stderr
+  workspace  提供 git diff（相对 clone 时的基线）
+  capture    唯一把「跑前快照 + 启进程 + 跑后快照 + diff」焊成 RawResult 的地方
+
+本模块不知道 YAML，不知道 group/step 顺序，不知道要不要 mark_warm。
+step_id、Measurement、inputs_digest 都是 runner 填好后传进来的。
+
+时间线（run_measurement）：
+  1. snapshot_fs(ws)          跑前文件树
+  2. process.run(argv)        真正的 Godot / Fake Godot
+  3. snapshot_fs(ws)          跑后文件树
+  4. git_diff_since_baseline  相对工作区初始 commit，不是 1 与 3 的差
+  5. 打包成 RawResult 返回    不写磁盘（写盘是 artifacts.py）
 """
 
 from __future__ import annotations
@@ -51,6 +64,16 @@ def run_measurement(
     hooks_applied: list,
     inputs_digest: str,
 ) -> RawResult:
+    """按快门一次，返回一张 RawResult。调用方必须是 runner。
+
+    入参里「标签」与「现场」分开：
+      measurement / step_id / inputs_digest / hooks_applied
+          —— runner 已经填好的场记，本函数原样写入 RawResult
+      argv / ws / timeout / env
+          —— 这次进程实际使用的现场
+
+    不在这里：拼 V1 argv、COLD 删 .godot、落 stdout.log、finally 删 workspace。
+    """
     fs_before = snapshot_fs(ws)
     status, stdout_text, stderr_text = process.run(argv, cwd=ws, env=env, timeout_seconds=timeout_seconds)
     fs_after = snapshot_fs(ws)
