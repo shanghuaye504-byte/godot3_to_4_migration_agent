@@ -1,0 +1,11 @@
+# experiments/phase2/N21.yaml
+#
+# id: N21
+# phase: phase2
+# fixture/dataset: datasets/official-demos
+# analysis.type: corpus_survey
+#
+# N21-A 转换并冻结 snapshot；N21-B 从副本做 verifier 与残余统计。二者不得共用同一已转换目录。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

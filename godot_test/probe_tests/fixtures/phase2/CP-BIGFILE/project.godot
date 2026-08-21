@@ -1,0 +1,4 @@
+config_version=4
+
+[application]
+config/name="CP_BIGFILE"

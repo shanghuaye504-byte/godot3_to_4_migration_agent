@@ -1,0 +1,17 @@
+fixture: phase1/NP-RESOURCE
+markers:
+  - id: RES-UID
+    file: sub.tscn
+    intent: 由 corrupt_uid hook 把 uid:// 改成伪造值；测 invalid UID 严重度
+    match: {kind: warning, symbol_hint: "UID"}
+    filterable: true
+    created_by_hook: corrupt_uid
+  - id: RES-SUB-SCRIPT
+    file: sub.gd
+    intent: 被引用脚本本体，应保持可解析
+    expect_silent: true
+  - id: RES-MAIN
+    file: main.tscn
+    intent: 实例化 sub.tscn；UID 伪造后可能出现资源警告
+    match: {kind: warning, path_hint: "main.tscn"}
+    filterable: true

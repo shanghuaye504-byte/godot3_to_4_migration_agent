@@ -1,0 +1,12 @@
+# quarantine / gatekeeper
+--- xattr app ---
+com.apple.provenance: 
+com.apple.quarantine: 01c3;6a81ca2e;Safari;
+--- xattr bin ---
+com.apple.quarantine: 00c3;6a81ca2e;Safari;
+--- spctl app ---
+/Users/yy_catmax/workspace/Godot Workspace/Godot.app: accepted
+source=Notarized Developer ID
+--- spctl bin ---
+/Users/yy_catmax/workspace/Godot Workspace/Godot.app/Contents/MacOS/Godot: accepted
+source=Notarized Developer ID

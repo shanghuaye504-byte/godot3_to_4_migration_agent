@@ -1,0 +1,8 @@
+# manual gate 产物目录
+#
+# 每个条目形如 <FIXTURE-NAME>@<state>/，内含：
+#   patch.diff      相对 fixtures/ 原始副本的 diff
+#   provenance.yaml Godot 版本 / build hash / 生成时间 / 人工确认记录
+#
+# 目前为空：N02 的 [editor_plugins]/[autoload] patch 与 N06 的 uid:// patch
+# 只能在真正执行该实验的 manual gate 时由 GUI 产出，无法预先编写。

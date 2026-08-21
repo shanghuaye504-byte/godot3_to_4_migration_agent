@@ -1,0 +1,11 @@
+# experiments/phase1/N06.yaml
+#
+# id: N06
+# phase: phase1
+# fixture/dataset: NP-RESOURCE
+# analysis.type: baseline_delta
+#
+# invalid UID 严重度。优先 derived/NP-RESOURCE@uid-baseline/；再 corrupt_uid。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

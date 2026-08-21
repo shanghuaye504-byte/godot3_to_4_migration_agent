@@ -1,0 +1,11 @@
+# experiments/phase1/N01.yaml
+#
+# id: N01
+# phase: phase1
+# fixture/dataset: NP-AUTOLOAD
+# analysis.type: baseline_delta
+#
+# autoload 假阳性；含 shadow_config 与 res_loader 子实验（后者 hook 注入 autoload 且排在 Config 之前）。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

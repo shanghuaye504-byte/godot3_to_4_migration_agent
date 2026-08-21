@@ -1,0 +1,26 @@
+fixture: phase2/CP-MINIMAL
+markers:
+  - id: MIN-TICKS
+    file: main.gd
+    intent: OS.get_ticks_msec()，N16 职责矩阵的 GDScript API 可改点
+    match: {kind: convert_target, symbol_hint: "get_ticks_msec"}
+    filterable: false
+  - id: MIN-INSTANCE
+    file: main.gd
+    intent: PackedScene.instance()，N16 的 scene 实例化可改点
+    match: {kind: convert_target, call_text: "load(\"res://child.tscn\").instance()"}
+    filterable: false
+  - id: MIN-SHADER
+    file: fx.shader
+    intent: 3.x shader（hint_color），N16 的 shader 可改点
+    match: {kind: convert_target, symbol_hint: "hint_color"}
+    filterable: false
+  - id: MIN-MAT
+    file: mat.tres
+    intent: 引用 fx.shader 的 3.x 材质
+    match: {kind: convert_target, path_hint: "fx.shader"}
+    filterable: false
+  - id: MIN-CHILD
+    file: child.tscn
+    intent: 被 instance() 的 3.x 场景
+    expect_silent: true

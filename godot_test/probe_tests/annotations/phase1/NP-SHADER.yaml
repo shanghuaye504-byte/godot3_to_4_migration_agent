@@ -1,0 +1,20 @@
+fixture: phase1/NP-SHADER
+markers:
+  - id: SH-BAD
+    file: bad.gdshader
+    intent: 坏 shader（vec4 缺第四分量/缺分号）；N07 真埋点
+    match: {kind: shader_error, path_hint: "bad.gdshader"}
+    filterable: false
+  - id: SH-USER
+    file: shader_user.gd
+    intent: preload 坏 shader，测错误是否抬升到 GDScript 解析期
+    match: {kind: compile_error, path_hint: "shader_user.gd"}
+    filterable: false
+  - id: SH-GOOD
+    file: good.gdshader
+    intent: 同项目内正确 shader 对照，用来区分“这个 shader 坏”与“任何 shader 都不报”
+    expect_silent: true
+  - id: SH-MAIN
+    file: main.gd
+    intent: 主场景脚本对照
+    expect_silent: true

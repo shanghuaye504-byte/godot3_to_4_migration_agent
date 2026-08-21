@@ -1,0 +1,5 @@
+# derived/NP-ADDON@plugin-enabled/provenance.yaml
+#
+# N02 GUI 启用插件这一状态的来源记录。
+# 规划字段：godot_version、build_hash、created_at、operator、confirmed。
+# 当前为占位，build hash 为空时 runner 必须退回 manual gate。

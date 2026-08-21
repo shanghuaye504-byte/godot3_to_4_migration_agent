@@ -1,0 +1,25 @@
+fixture: phase1/NP-AUTOLOAD
+markers:
+  - id: AL-USES
+    file: uses_autoload.gd
+    intent: 孤立脚本引用 autoload Config；假阳性候选
+    match: {kind: compile_error, symbol_hint: "Config"}
+    filterable: true
+  - id: AL-SHADOW
+    file: shadow_config.gd.disabled
+    intent: class_name Config 与 autoload 真冲突；启用后不得被过滤器吃掉
+    match: {kind: parse_error, symbol_hint: "Config"}
+    filterable: false
+  - id: AL-RES-LOADER
+    file: res_loader.gd.disabled
+    intent: #120225 注册顺序变种；必须由 hook 注入 [autoload] 且排在 Config 之前
+    match: {kind: compile_error, symbol_hint: "Config"}
+    filterable: false
+  - id: AL-MAIN
+    file: main.gd
+    intent: 同项目内走场景的 clean 对照（autoload 在运行时应可用）
+    expect_silent: true
+  - id: AL-CONFIG
+    file: config.gd
+    intent: autoload 本体，应保持可解析
+    expect_silent: true

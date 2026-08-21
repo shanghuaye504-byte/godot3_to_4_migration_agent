@@ -1,0 +1,8 @@
+class_name ProbeLoader
+extends ResourceFormatLoader
+
+func _get_recognized_extensions() -> PackedStringArray:
+	return PackedStringArray(["probe"])
+
+func _load(path: String, original_path: String, use_sub_threads: bool, cache_mode: int):
+	return Config.MAGIC

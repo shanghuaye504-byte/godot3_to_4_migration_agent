@@ -1,0 +1,6 @@
+# fixture .godot directory scan
+cwd=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests
+time=2026-08-21 10:55:20 +0800
+--- find -type d -name .godot ---
+--- find -type d -name .mono ---
+count .godot dirs=0

@@ -1,0 +1,11 @@
+# experiments/phase1/N07.yaml
+#
+# id: N07
+# phase: phase1
+# fixture/dataset: NP-SHADER
+# analysis.type: baseline_delta
+#
+# shader verifier 盲区。同项目 good.gdshader 为第一对照。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

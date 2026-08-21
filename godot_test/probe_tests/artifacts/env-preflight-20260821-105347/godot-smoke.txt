@@ -1,0 +1,23 @@
+# godot smoke V5-like: --headless --path --quit
+workspace=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/env-preflight-20260821-105347-CleanControl
+original_fixture=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/fixtures/phase1/CleanControl
+--- argv ---
+/usr/local/bin/godot4 --headless --path /Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/env-preflight-20260821-105347-CleanControl --quit
+--- run ---
+exit_code=0
+--- stdout ---
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+CLEAN_OK
+--- stderr ---
+--- workspace .godot created? ---
+total 32
+drwxr-xr-x@ 6 yy_catmax  staff  192 Aug 21 10:55 .
+drwxr-xr-x@ 5 yy_catmax  staff  160 Aug 21 10:55 ..
+-rw-r--r--@ 1 yy_catmax  staff   61 Aug 21 10:55 a.gd
+-rw-r--r--@ 1 yy_catmax  staff   75 Aug 21 10:55 main.gd
+-rw-r--r--@ 1 yy_catmax  staff  149 Aug 21 10:55 main.tscn
+-rw-r--r--@ 1 yy_catmax  staff  150 Aug 21 10:55 project.godot
+workspace_has_.godot=no
+--- original fixture still has no .godot? ---
+fixture_has_.godot=no

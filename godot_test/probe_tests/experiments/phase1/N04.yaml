@@ -1,0 +1,11 @@
+# experiments/phase1/N04.yaml
+#
+# id: N04
+# phase: phase1
+# fixture/dataset: NP-CASCADE
+# analysis.type: baseline_delta
+#
+# 级联放大。对照分母必须是 NP-SYNTAX/scene_bad.gd。依赖 N09 归一化。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

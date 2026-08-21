@@ -1,0 +1,27 @@
+fixture: phase1/NP-GLOBALCLASS
+markers:
+  - id: GC-USES
+    file: uses_class.gd
+    intent: 引用 class_name ProbeFoo；COLD 可能找不到，WARM 应干净
+    match: {kind: compile_error, symbol_hint: "ProbeFoo"}
+    filterable: true
+  - id: GC-DEFINES
+    file: defines.gd
+    intent: class_name ProbeFoo 定义
+    expect_silent: true
+  - id: GC-MAIN
+    file: main.gd
+    intent: 同项目内 clean 对照
+    expect_silent: true
+  - id: GC-LATE
+    file: late_class.gd
+    intent: 由 create_late_global_class hook 在 T3 后创建；不在 fixture 中
+    match: {kind: compile_error, symbol_hint: "ProbeLate"}
+    filterable: true
+    created_by_hook: create_late_global_class
+  - id: GC-USES-LATE
+    file: uses_late.gd
+    intent: 引用 ProbeLate；未 import 时报错、import 后干净
+    match: {kind: compile_error, symbol_hint: "ProbeLate"}
+    filterable: true
+    created_by_hook: create_late_global_class

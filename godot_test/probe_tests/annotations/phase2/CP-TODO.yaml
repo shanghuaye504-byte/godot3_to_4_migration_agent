@@ -1,0 +1,37 @@
+fixture: phase2/CP-TODO
+markers:
+  - id: A7-01
+    file: convert_me.gd
+    intent: move_and_slide_with_snap，预期 TODO 或无法安全自动迁移
+    match: {kind: convert_target, call_text: "move_and_slide_with_snap("}
+    filterable: false
+  - id: A2-01
+    file: convert_me.gd
+    intent: preload(...).instance()
+    match: {kind: convert_target, call_text: "preload(\"res://x.tscn\").instance()"}
+    filterable: false
+  - id: A2-02
+    file: convert_me.gd
+    intent: 变量形态 pk.instance()
+    match: {kind: convert_target, call_text: "pk.instance()"}
+    filterable: false
+  - id: A2-03
+    file: convert_me.gd
+    intent: 表达式形态 get_node(...).scene.instance()
+    match: {kind: convert_target, call_text: "get_node(\"Holder\").scene.instance()"}
+    filterable: false
+  - id: A7-02
+    file: convert_me.gd
+    intent: yield(get_tree(), "idle_frame")
+    match: {kind: convert_target, call_text: "yield(get_tree(), \"idle_frame\")"}
+    filterable: false
+  - id: A7-03
+    file: convert_me.gd
+    intent: Tween.new / interpolate_property / start
+    match: {kind: convert_target, symbol_hint: "interpolate_property"}
+    filterable: false
+  - id: A7-04
+    file: convert_me.gd
+    intent: OS.get_ticks_msec()
+    match: {kind: convert_target, call_text: "OS.get_ticks_msec()"}
+    filterable: false

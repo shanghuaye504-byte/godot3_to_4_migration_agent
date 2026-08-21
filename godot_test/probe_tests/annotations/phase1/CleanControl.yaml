@@ -1,0 +1,10 @@
+fixture: phase1/CleanControl
+markers:
+  - id: CC-MAIN
+    file: main.gd
+    intent: 无错主场景，BG-base 与 N08 无错 rc 基线
+    expect_silent: true
+  - id: CC-A
+    file: a.gd
+    intent: 无错孤立脚本，BG-base
+    expect_silent: true

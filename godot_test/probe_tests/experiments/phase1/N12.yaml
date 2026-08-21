@@ -1,0 +1,11 @@
+# experiments/phase1/N12.yaml
+#
+# id: N12
+# phase: phase1
+# fixture/dataset: NP-GLOBALCLASS + NP-RESOURCE
+# analysis.type: state_sequence
+#
+# patch 后缓存陈旧。N12-a 可引用 N03 T4-T6；N12-b 独立工作区。导出 import_trigger_policy。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

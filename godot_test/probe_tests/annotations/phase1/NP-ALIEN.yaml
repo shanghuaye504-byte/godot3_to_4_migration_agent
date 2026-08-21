@@ -1,0 +1,20 @@
+fixture: phase1/NP-ALIEN
+markers:
+  - id: ALIEN-CS
+    file: Alien.cs
+    intent: C# 脚本，环境不完整时应报 .NET runtime
+    match: {kind: infra_error, symbol_hint: ".NET"}
+    filterable: true
+  - id: ALIEN-GDEXT
+    file: probe.gdextension
+    intent: 指向不存在的 libprobe.dylib
+    match: {kind: infra_error, symbol_hint: "dynamic library"}
+    filterable: true
+  - id: ALIEN-OK
+    file: ok.gd
+    intent: 同项目内纯 GDScript clean 对照；判定环境污染的关键
+    expect_silent: true
+  - id: ALIEN-MAIN
+    file: main.gd
+    intent: 纯 GDScript 主场景对照
+    expect_silent: true

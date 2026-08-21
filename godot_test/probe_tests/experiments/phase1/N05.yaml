@@ -1,0 +1,11 @@
+# experiments/phase1/N05.yaml
+#
+# id: N05
+# phase: phase1
+# fixture/dataset: NP-WARN
+# analysis.type: baseline_delta
+#
+# warning/error 严重度。注入 fragments/np-warn-debug.ini。V8 对照引用 N10。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

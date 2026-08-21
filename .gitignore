@@ -2,6 +2,7 @@
 godot_rag/
 godot_test/clean_control_log/
 godot_test/test_project/
+godot_test/clean_control/
 working_notebook/
 
 .DS_Store

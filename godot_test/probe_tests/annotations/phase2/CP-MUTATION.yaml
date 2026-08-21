@@ -1,0 +1,53 @@
+fixture: phase2/CP-MUTATION
+purpose: N20 mutation 评测泄漏。基线是健康 4.x；变异由 hook 反向施加。埋点 ID 与 reports P2-06 对齐。
+markers:
+  - id: instantiate2instance
+    file: main.gd
+    intent: instantiate() 反向变异为 instance()
+    match: {kind: mutation_target, call: "instantiate()"}
+    filterable: false
+  - id: ticks_msec
+    file: main.gd
+    intent: Time.get_ticks_msec 反向变异为 OS.get_ticks_msec
+    match: {kind: mutation_target, call: "Time.get_ticks_msec()"}
+    filterable: false
+  - id: await2yield
+    file: main.gd
+    intent: await → yield
+    match: {kind: mutation_target, call: "await "}
+    filterable: false
+  - id: tween_api
+    file: main.gd
+    intent: create_tween / tween_property 反向变异为 3.x Tween
+    match: {kind: mutation_target, call: "create_tween()"}
+    filterable: false
+  - id: export_var
+    file: main.gd
+    intent: @export 反向变异为 export var
+    match: {kind: mutation_target, call: "@export"}
+    filterable: false
+  - id: onready
+    file: main.gd
+    intent: @onready 反向变异为 onready var
+    match: {kind: mutation_target, call: "@onready"}
+    filterable: false
+  - id: connect_api
+    file: main.gd
+    intent: done.connect(_on_done) 反向变异为 connect("done", ...)
+    match: {kind: mutation_target, call: ".connect("}
+    filterable: false
+  - id: node_rename
+    file: main.tscn
+    intent: Sprite2D 反向变异为 Sprite（3.x 节点名）
+    match: {kind: mutation_target, call: "Sprite2D"}
+    filterable: false
+  - id: move_and_slide
+    file: main.gd
+    intent: CharacterBody2D.move_and_slide 反向变异
+    match: {kind: mutation_target, call: "move_and_slide()"}
+    filterable: false
+  - id: param_order
+    file: main.gd
+    intent: add_sibling 反向变异为 3.x add_child_below_node（参数顺序不同）
+    match: {kind: mutation_target, call: "add_sibling("}
+    filterable: false

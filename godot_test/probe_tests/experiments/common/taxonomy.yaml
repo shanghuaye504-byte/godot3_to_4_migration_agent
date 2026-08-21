@@ -1,0 +1,4 @@
+# experiments/common/taxonomy.yaml
+#
+# 残余问题分类体系（converter 行为 / verifier 阶段 / 根因类别），供 N21 使用。
+# 当前为骨架，不含枚举值。

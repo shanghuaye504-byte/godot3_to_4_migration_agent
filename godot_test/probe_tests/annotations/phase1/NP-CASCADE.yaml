@@ -1,0 +1,41 @@
+fixture: phase1/NP-CASCADE
+markers:
+  - id: CAS-ROOT
+    file: root_bad.gd
+    intent: 唯一根因，与 NP-SYNTAX/scene_bad.gd 同构（func f() -> void 缺冒号）
+    match: {kind: parse_error, symbol_hint: "f"}
+    filterable: false
+  - id: CAS-DEP-1
+    file: dep_1.gd
+    intent: 直接 preload 根因；症状候选
+    match: {kind: compile_error, path_hint: "dep_1.gd"}
+    filterable: true
+  - id: CAS-DEP-2
+    file: dep_2.gd
+    intent: 直接 preload 根因；症状候选
+    match: {kind: compile_error, path_hint: "dep_2.gd"}
+    filterable: true
+  - id: CAS-DEP-3
+    file: dep_3.gd
+    intent: 直接 preload 根因；症状候选
+    match: {kind: compile_error, path_hint: "dep_3.gd"}
+    filterable: true
+  - id: CAS-DEP-4
+    file: dep_4.gd
+    intent: 直接 preload 根因；症状候选
+    match: {kind: compile_error, path_hint: "dep_4.gd"}
+    filterable: true
+  - id: CAS-DEP-5
+    file: dep_5.gd
+    intent: 直接 preload 根因；症状候选
+    match: {kind: compile_error, path_hint: "dep_5.gd"}
+    filterable: true
+  - id: CAS-LEAF
+    file: leaf.gd
+    intent: 二级依赖 dep_1；症状候选
+    match: {kind: compile_error, path_hint: "leaf.gd"}
+    filterable: true
+  - id: CAS-MAIN
+    file: main.gd
+    intent: 同项目内不 preload 坏文件的 clean 对照
+    expect_silent: true

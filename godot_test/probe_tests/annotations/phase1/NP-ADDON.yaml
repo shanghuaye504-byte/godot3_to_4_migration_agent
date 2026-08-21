@@ -1,0 +1,20 @@
+fixture: phase1/NP-ADDON
+markers:
+  - id: ADD-USES
+    file: uses_addon.gd
+    intent: 孤立脚本引用插件运行时注册的 DummySingleton；假阳性候选
+    match: {kind: compile_error, symbol_hint: "DummySingleton"}
+    filterable: true
+  - id: ADD-MAIN
+    file: main.gd
+    intent: 主场景同样引用 DummySingleton；V5 交叉验证
+    match: {kind: compile_error, symbol_hint: "DummySingleton"}
+    filterable: true
+  - id: ADD-PLUGIN
+    file: addons/dummy/plugin.gd
+    intent: EditorPlugin 在 _enable_plugin 里 add_autoload_singleton
+    expect_silent: true
+  - id: ADD-SINGLETON
+    file: addons/dummy/dummy_singleton.gd
+    intent: 插件单例本体
+    expect_silent: true

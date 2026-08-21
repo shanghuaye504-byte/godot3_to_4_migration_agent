@@ -1,0 +1,41 @@
+fixture: phase1/NP-WARN
+markers:
+  - id: WARN-UNUSED
+    file: warn.gd
+    intent: unused variable
+    match: {kind: warning, symbol_hint: "unused"}
+    filterable: true
+  - id: WARN-INT-DIV
+    file: warn.gd
+    intent: integer division
+    match: {kind: warning, symbol_hint: "integer_division"}
+    filterable: true
+  - id: WARN-NARROW
+    file: warn.gd
+    intent: narrowing conversion float→int
+    match: {kind: warning, symbol_hint: "narrowing"}
+    filterable: true
+  - id: WARN-SHADOW
+    file: warn.gd
+    intent: shadowed variable member
+    match: {kind: warning, symbol_hint: "member"}
+    filterable: true
+  - id: WARN-SIGNAL
+    file: warn.gd
+    intent: unused signal never_emitted
+    match: {kind: warning, symbol_hint: "never_emitted"}
+    filterable: true
+  - id: WARN-UNTYPED
+    file: warn.gd
+    intent: untyped declaration
+    match: {kind: warning, symbol_hint: "untyped"}
+    filterable: true
+  - id: WARN-ADDON
+    file: addons/noisy/noisy.gd
+    intent: addon 内 warning，用来测 exclude_addons
+    match: {kind: warning, path_hint: "addons/noisy/noisy.gd"}
+    filterable: true
+  - id: WARN-MAIN
+    file: main.gd
+    intent: 同项目内无 warning 的 clean 对照
+    expect_silent: true

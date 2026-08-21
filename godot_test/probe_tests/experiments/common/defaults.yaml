@@ -1,0 +1,12 @@
+# experiments/common/defaults.yaml
+#
+# 全局默认值，被每个 N 的 YAML 浅合并后可覆盖（schema.py: _merge_defaults）。
+
+engine_profile:
+  executable: ["/usr/local/bin/godot4"]
+  version: "4.7.1.stable.official.a13da4feb"
+  build_hash: ""
+  fake: false
+
+repeat: 3
+timeout_seconds: 30

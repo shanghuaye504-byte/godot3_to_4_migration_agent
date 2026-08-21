@@ -1,0 +1,13 @@
+# godot identity
+symlink=/usr/local/bin/godot4
+realpath=/Users/yy_catmax/workspace/Godot Workspace/Godot.app/Contents/MacOS/Godot
+--- --version ---
+4.7.1.stable.official.a13da4feb
+rc=0
+--- file ---
+/Users/yy_catmax/workspace/Godot Workspace/Godot.app/Contents/MacOS/Godot: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64]
+/Users/yy_catmax/workspace/Godot Workspace/Godot.app/Contents/MacOS/Godot (for architecture x86_64):	Mach-O 64-bit executable x86_64
+/Users/yy_catmax/workspace/Godot Workspace/Godot.app/Contents/MacOS/Godot (for architecture arm64):	Mach-O 64-bit executable arm64
+--- host ---
+uname_m=arm64
+proc_translated=0

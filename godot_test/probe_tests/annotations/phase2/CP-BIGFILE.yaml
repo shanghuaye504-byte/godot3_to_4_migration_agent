@@ -1,0 +1,19 @@
+fixture: phase2/CP-BIGFILE
+markers:
+  - id: BIG-SMALL
+    file: small.gd
+    intent: 低于阈值的可转换对照（OS.get_ticks_msec、instance）
+    match: {kind: convert_target, symbol_hint: "instance"}
+    filterable: false
+  - id: BIG-FILE
+    file: big.gd
+    intent: 由 generate_big_file hook 按固定间隔插入可转换模式后生成；测静默跳过 vs 明确跳过
+    created_by_hook: generate_big_file
+    match: {kind: convert_target, symbol_hint: "instance"}
+    filterable: false
+  - id: BIG-LONGLINE
+    file: longline.gd
+    intent: 由 generate_big_file hook 生成的超长单行；测 max_line_size
+    created_by_hook: generate_big_file
+    match: {kind: convert_target, symbol_hint: "instance"}
+    filterable: false

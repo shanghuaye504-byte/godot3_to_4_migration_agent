@@ -1,0 +1,11 @@
+# experiments/phase2/N19.yaml
+#
+# id: N19
+# phase: phase2
+# fixture/dataset: datasets/official-demos converted-snapshots
+# analysis.type: corpus_survey
+#
+# 消费 N21-A 冻结快照测 COLD/WARM import。不修改官方源。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

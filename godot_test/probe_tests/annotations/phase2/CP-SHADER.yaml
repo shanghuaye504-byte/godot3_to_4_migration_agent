@@ -1,0 +1,21 @@
+fixture: phase2/CP-SHADER
+markers:
+  - id: SHC-FILE
+    file: old.shader
+    intent: 3.x .shader 文件应改名为 .gdshader
+    match: {kind: convert_target, path_hint: "old.shader"}
+    filterable: false
+  - id: SHC-HINT
+    file: old.shader
+    intent: hint_albedo 应升级为 4.x 语法
+    match: {kind: convert_target, symbol_hint: "hint_albedo"}
+    filterable: false
+  - id: SHC-MAT
+    file: mat.tres
+    intent: ShaderMaterial 对 old.shader 的引用应同步更新
+    match: {kind: convert_target, path_hint: "old.shader"}
+    filterable: false
+  - id: SHC-SCENE
+    file: main.tscn
+    intent: 主场景挂载 mat.tres，使 V3 能加载 shader
+    expect_silent: true

@@ -1,0 +1,11 @@
+# experiments/phase2/N18.yaml
+#
+# id: N18
+# phase: phase2
+# fixture/dataset: CP-SHADER
+# analysis.type: transform_diff
+#
+# shader 转换正确性与报告可信度。转换后另开副本跑 V3 / N07 检测路径。
+#
+# 本文件将包含严格有序的 steps、cache_state、command、repeat、hooks、exports。
+# 当前为骨架，不含可执行步骤。

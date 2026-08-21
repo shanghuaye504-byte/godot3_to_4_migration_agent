@@ -1,0 +1,25 @@
+fixture: phase1/NP-SYNTAX
+markers:
+  - id: SYN-ORPHAN-PARSE
+    file: orphan_bad_parse.gd
+    intent: 孤立文件的 parse error（func broken(:）
+    match: {kind: parse_error, symbol_hint: "broken"}
+    filterable: false
+  - id: SYN-ORPHAN-COMPILE
+    file: orphan_bad_compile.gd
+    intent: 孤立文件的 compile error（NoSuchClassXYZ）
+    match: {kind: compile_error, symbol_hint: "NoSuchClassXYZ"}
+    filterable: false
+  - id: SYN-SCENE-BAD
+    file: scene_bad.gd
+    intent: 与 NP-CASCADE/root_bad.gd 同构的 parse error（func f() -> void 缺冒号）；N04 放大倍数分母
+    match: {kind: parse_error, symbol_hint: "f"}
+    filterable: false
+  - id: SYN-OK
+    file: ok.gd
+    intent: 同项目内 clean 对照
+    expect_silent: true
+  - id: SYN-MAIN
+    file: main.gd
+    intent: 无错主场景；N08 用来证明 V5 启动成功不能覆盖孤立错误
+    expect_silent: true
