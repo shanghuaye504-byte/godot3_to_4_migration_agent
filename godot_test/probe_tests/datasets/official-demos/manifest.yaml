@@ -1,5 +1,0 @@
-# datasets/official-demos/manifest.yaml
-#
-# 官方 3.5/3.6 Demo 清单。每个 Demo 规划字段：id、名称、源版本、tag/commit、
-# source URL、文件树 hash、文件数、总大小、对应 4.x Demo（弱参考）。
-# 源码放 sources/，N21-A 产物放 converted-snapshots/。当前为骨架，不含具体 Demo 条目。

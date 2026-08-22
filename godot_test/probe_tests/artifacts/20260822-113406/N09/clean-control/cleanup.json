@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-113406-N09-phase1-CleanControl",
+  "fixture": "phase1/CleanControl",
+  "fixture_clean": true,
+  "fixture_digest_before": "b6b536f72483d82711282d32bb492e30375e45f85ab4c86aba75565b60d5a957",
+  "fixture_digest_after": "b6b536f72483d82711282d32bb492e30375e45f85ab4c86aba75565b60d5a957",
+  "probe_files_in_fixture": false
+}

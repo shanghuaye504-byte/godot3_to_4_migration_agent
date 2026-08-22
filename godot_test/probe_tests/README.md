@@ -15,7 +15,7 @@
 
 ---
 
-#  第 0 层 · 测量定义
+# 第 0 层 · 测量定义
 
 ## 0.1 一次测量 = 四元组，不是“跑一条命令”
 
@@ -42,16 +42,18 @@ repeat_idx ∈ {1..R}
 共 8 条。旧编号 V9（哨兵）并入 **V1**；旧编号 V10（逐文件循环 V2）删除。后续实验凡写 V1，均指哨兵项目级校验。
 
 
-| ID | 命令 | 语义定位 |
-|---|---|---|
-| **V1** | `$GODOT --headless --path $P --check-only --script res://__probe_sentinel.gd --quit`，哨兵内 preload 全部脚本 | 项目级编译校验。godot-proposals #1758 的 workaround；已验证有效。哨兵**不常驻 fixture**，由 `probe.sentinel` 在步骤开始时生成、步骤结束时删除（契约见 ARCHITECTURE.md §5）。不带 `--script` 的裸 `--check-only` 已确认是 no-op，不再占用指令编号 |
-| **V2** | `$GODOT --headless --path $P --script res://X.gd --check-only --quit` | 单文件 check（官方文档唯一支持的用法） |
-| **V3** | `$GODOT --headless --path $P --editor --import --quit` | 全项目导入 + class cache 重建 |
-| **V4** | `$GODOT --headless --path $P --import --quit` | 不带 `--editor` 能否 import |
-| **V5** | `$GODOT --headless --path $P --quit` | 真实运行时（autoload 会注册）→ **交叉验证信号源** |
-| **V6** | `$GODOT --headless --path $P --quit-after 2` | 更硬的防挂死 |
-| **V7** | V1/V2/V3 + `--verbose` | 是否给出结构化/依赖顺序信息 |
-| **V8** | V1/V2 + `--debug` | **预期挂死或 signal 11 崩溃** |
+| ID     | 命令                                                                                                                                                              | 语义定位                                                                                                                                                                               |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **V1** | `$GODOT --headless --path $P --check-only --script res://__probe_sentinel.gd --quit`，哨兵内 preload 全部脚本，哨兵脚本必须按照相对路径引入，必须要排序后引入，避免每次产生log的顺序不同。哨兵生效本身就是一个去噪的里程碑。 | 项目级编译校验。godot-proposals #1758 的 workaround；已验证有效。哨兵**不常驻 fixture**，由 `probe.sentinel` 在步骤开始时生成、步骤结束时删除（契约见 ARCHITECTURE.md §5）。不带 `--script` 的裸 `--check-only` 已确认是 no-op，不再占用指令编号 |
+| **V2** | `$GODOT --headless --path $P --script res://X.gd --check-only --quit`                                                                                           | 单文件 check（官方文档唯一支持的用法）                                                                                                                                                             |
+| **V3** | `$GODOT --headless --path $P --editor --import --quit`                                                                                                          | 全项目导入 + class cache 重建                                                                                                                                                             |
+| **V4** | `$GODOT --headless --path $P --import --quit`                                                                                                                   | 不带 `--editor` 能否 import                                                                                                                                                            |
+| **V5** | `$GODOT --headless --path $P --quit`                                                                                                                            | 真实运行时（autoload 会注册）→ **交叉验证信号源**                                                                                                                                                   |
+| **V6** | `$GODOT --headless --path $P --quit-after 2`                                                                                                                    | 更硬的防挂死                                                                                                                                                                             |
+| **V7** | V1/V2/V3 + `--verbose`                                                                                                                                          | 是否给出结构化/依赖顺序信息                                                                                                                                                                     |
+| **V8** | V1/V2 + `--debug`                                                                                                                                               | **预期挂死或 signal 11 崩溃**                                                                                                                                                             |
+
+
 
 
 ## 0.3 `PROJECT_CHECK`
@@ -145,23 +147,23 @@ BG(cmd, state) = {
 
 推论：**CleanControl 不需要为了"特征覆盖"变复杂**。它只承担 BG-base 与 N08 无错 rc 基线这两个职责，保持极简即可。
 
-
-
 ## 0.5 通用记录契约
 
 下面这些要求对**每一条实验、每一个步骤、每一次重复**都成立。卡片不再重复抄录，只写自己额外需要的东西（见 §0.5.5）。
 
 ### 0.5.1 每一次测量都必须落盘
 
-| 类别 | 必须记录 |
-| --- | --- |
+
+| 类别   | 必须记录                                                                    |
+| ---- | ----------------------------------------------------------------------- |
 | 输入身份 | 项目或数据集版本、fixture 名与文件树 hash、埋点表 hash、derived patch hash、`inputs_digest` |
-| 环境身份 | Godot 二进制路径、版本、build hash、平台、`env_overrides` |
-| 调用本身 | 完整 argv（列表形式，不经过 shell）、`cwd`、缓存状态、重复编号、本步骤应用的辅助操作列表 |
-| 输出 | stdout、stderr（分别落盘，不合流） |
-| 进程 | exit code、终止 signal、是否 timeout、wall time |
-| 副作用 | 步骤前后文件快照、`workspace.diff`、cache manifest |
-| 收尾 | 工作区是否成功删除、原 fixture 是否仍然 clean |
+| 环境身份 | Godot 二进制路径、版本、build hash、平台、`env_overrides`                            |
+| 调用本身 | 完整 argv（列表形式，不经过 shell）、`cwd`、缓存状态、重复编号、本步骤应用的辅助操作列表                    |
+| 输出   | stdout、stderr（分别落盘，不合流）                                                 |
+| 进程   | exit code、终止 signal、是否 timeout、wall time                                |
+| 副作用  | 步骤前后文件快照、`workspace.diff`、cache manifest                                |
+| 收尾   | 工作区是否成功删除、原 fixture 是否仍然 clean                                          |
+
 
 落盘路径形状与文件名以 [ARCHITECTURE.md](ARCHITECTURE.md) §6 为准：路径必须包含 `group_id / step_id / cache_state / repeat_idx`，否则重复运行会互相覆盖。判定文件不进 artifacts。
 
@@ -172,6 +174,8 @@ BG(cmd, state) = {
 ```text
 immutable fixture → copy 出临时 workspace →（可选）应用 derived patch → 有序步骤 → artifacts → 删除 workspace
 ```
+
+
 
 ### 0.5.3 每个实验结束必须通过的清理检查
 
@@ -189,6 +193,8 @@ immutable fixture → copy 出临时 workspace →（可选）应用 derived pat
 - 默认 `repeat: 3`；仅 N09 自身为 5；纯能力探测步骤与一次性前置步骤为 1。
 - 卡片里的「依赖」是硬依赖：上游未完成或上游 `inputs_digest` 已过期（STALE）时，下游必须标记为 **BLOCKED**，不得静默跳过、不得沿用旧结论。
 - 结论状态只能是 `CONFIRMED` / `NOT_REPRODUCED` / `INCONCLUSIVE` / `BLOCKED` / `NEEDS_MANUAL_REVIEW`（见第 9 层）。
+
+
 
 ### 0.5.5 卡片只写增量
 
@@ -215,39 +221,39 @@ immutable fixture → copy 出临时 workspace →（可选）应用 derived pat
 
 Fixture 是不可变实验材料，一个 fixture 可以服务多个实验。**每个 fixture 具体跑哪些指令、在哪个缓存态下跑几次，全部写在对应实验卡片的步骤表里**，此处不再重复。
 
-
 ### A 组：Verifier 噪声 fixture（第一阶段）
 
 
-| Fixture | 承载的噪声/能力 | 服务的实验 | 本轮 |
-| --- | --- | --- | --- |
-| **CleanControl** | 背景集 BG-base、无错时的 rc 基线 | N09、N08 | 执行 |
-| **NP-SYNTAX** | 真错误时的 rc、启动成功不等于脚本正确、错误文本格式、同构单根错误分母 | N08、N04 | 执行 |
-| **NP-GLOBALCLASS** | `class_name` 全局类缓存冷假阳性、新增 `class_name` 后的 import 触发 | N03 | 执行 |
-| **NP-AUTOLOAD** | autoload 符号假阳性，以及与之对照的真冲突 | N01 | 执行 |
-| **NP-ADDON** | 插件运行时注册的单例假阳性 | N02（并作 N08 的 V8 复现备选） | 执行 |
-| **NP-CASCADE** | 一个根因放大成多条 error；多错误输出顺序稳定性 | N04、N09 | 执行 |
-| **NP-WARN** | warning 与 error 的严重度混淆、`exclude_addons` | N05 | 执行 |
-| **NP-RESOURCE** | 伪造 UID 的严重度、资源引用变更后的缓存陈旧 | N06 | 执行 |
-| **NP-SHADER** | shader 错误是盲区还是可抬升到解析期 | N07 | 执行 |
-| **NP-ALIEN** | C#/GDExtension 环境不匹配 | 原 N13 | **不执行**，见 §2.3 |
+| Fixture            | 承载的噪声/能力                                            | 服务的实验                 | 本轮             |
+| ------------------ | --------------------------------------------------- | --------------------- | -------------- |
+| **CleanControl**   | 背景集 BG-base、无错时的 rc 基线                              | N09、N08               | 执行             |
+| **NP-SYNTAX**      | 真错误时的 rc、启动成功不等于脚本正确、错误文本格式、同构单根错误分母                | N08、N04               | 执行             |
+| **NP-GLOBALCLASS** | `class_name` 全局类缓存冷假阳性、新增 `class_name` 后的 import 触发 | N03                   | 执行             |
+| **NP-AUTOLOAD**    | autoload 符号假阳性，以及与之对照的真冲突                           | N01                   | 执行             |
+| **NP-ADDON**       | 插件运行时注册的单例假阳性                                       | N02（并作 N08 的 V8 复现备选） | 执行             |
+| **NP-CASCADE**     | 一个根因放大成多条 error；多错误输出顺序稳定性                          | N04、N09               | 执行             |
+| **NP-WARN**        | warning 与 error 的严重度混淆、`exclude_addons`             | N05                   | 执行             |
+| **NP-RESOURCE**    | 伪造 UID 的严重度、资源引用变更后的缓存陈旧                            | N06                   | 执行             |
+| **NP-SHADER**      | shader 错误是盲区还是可抬升到解析期                               | N07                   | 执行             |
+| **NP-ALIEN**       | C#/GDExtension 环境不匹配                                | 原 N13                 | **不执行**，见 §2.3 |
+
+
 
 
 ### B 组：Converter fixture（第二阶段）
 
 
-| Fixture / 数据集 | 承载的能力 | 服务的实验 | 本轮 |
-| --- | --- | --- | --- |
-| **CP-MINIMAL** | converter 与 upgrade tool 的 CLI 能力门、职责矩阵 | N15 | 执行 |
-| **官方 3.5/3.6 Demo 数据集** | 自动迁移残余问题分布、import 成本、TODO 与 shader 残余 | N21 | 执行 |
-| **CP-BIGFILE** | converter 跳过大文件 / hang | 原 N11 | **不执行**，见 §2.3 |
-| **CP-TODO** | `TODOConverter3To4` 与 `instance()` 覆盖率 | 原 N17 | **不执行**，见 §2.3 |
-| **CP-SHADER** | `.shader` → `.gdshader` 转换正确性 | 原 N18 | **不执行**，见 §2.3 |
-| **CP-MUTATION** | 哪些变异算子会被 converter 自动复原 | 原 N20 | **不执行**，见 §2.3 |
+| Fixture / 数据集           | 承载的能力                                   | 服务的实验 | 本轮             |
+| ----------------------- | --------------------------------------- | ----- | -------------- |
+| **CP-MINIMAL**          | converter 与 upgrade tool 的 CLI 能力门、职责矩阵 | N15   | 执行             |
+| **官方 3.5/3.6 Demo 数据集** | 自动迁移残余问题分布、import 成本、TODO 与 shader 残余   | N21   | 执行             |
+| **CP-BIGFILE**          | converter 跳过大文件 / hang                  | 原 N11 | **不执行**，见 §2.3 |
+| **CP-TODO**             | `TODOConverter3To4` 与 `instance()` 覆盖率  | 原 N17 | **不执行**，见 §2.3 |
+| **CP-SHADER**           | `.shader` → `.gdshader` 转换正确性           | 原 N18 | **不执行**，见 §2.3 |
+| **CP-MUTATION**         | 哪些变异算子会被 converter 自动复原                 | 原 N20 | **不执行**，见 §2.3 |
 
 
-标注为“不执行”的 fixture **保留在 `fixtures/` 里，不要删**，随时可以在时间允许时重新启用；本轮不为它们写实验脚本。
-
+标注为“不执行”的 fixture **保留在** `fixtures/` **里，不要删**，随时可以在时间允许时重新启用；本轮不为它们写实验脚本。
 
 ## 1.2 重要架构调整：项目是 Fixture，N 才是实验
 
@@ -277,22 +283,20 @@ N            = 独立、有序、可重复、可恢复的实验定义
 
 裁剪原则只有一条：**这条实验的结论会不会改变 verifier 的判定准确性（假阳性、假阴性、成功判定）或改变代码量？** 会改的留下，不会改的删掉并写出先验结论。
 
-
-
 ## 2.1 第一阶段：Godot 4.7.1 Verifier 噪声排查（9 条）
 
 
-| 执行序 | 编号 | 主题 | Fixture | 产出 |
-| --- | --- | --- | --- | --- |
-| P1-1 | N09 | 非确定性与归一化 | CleanControl、NP-CASCADE | 两级 signature 字段规格、`repeat` 默认值 |
-| P1-2 | N08 | exit code 可信度、启动成功语义、`--debug` 存活性 | CleanControl、NP-SYNTAX、NP-AUTOLOAD | `exit_code_policy.json`、指令能力记录 |
-| P1-3 | N03 | `class_name` 冷缓存假阳性 + 新增 `class_name` 的 import 触发 | NP-GLOBALCLASS | `import_trigger_policy`（脚本侧） |
-| P1-4 | N01 | autoload 假阳性 | NP-AUTOLOAD | autoload 过滤策略 |
-| P1-5 | N02 | addon 单例假阳性 | NP-ADDON | 符号白名单的实现成本裁决 |
-| P1-6 | N04 | 级联错误淹没根因 | NP-CASCADE、NP-SYNTAX | 放大倍数、根因↔症状配对表 |
-| P1-7 | N05 | warning 与 error 严重度混淆 | NP-WARN | 严重度采集策略 |
-| P1-8 | N06 | invalid UID 严重度 + 资源引用变更的 import 触发 | NP-RESOURCE | `import_trigger_policy`（资源侧） |
-| P1-9 | N07 | shader verifier 盲区 | NP-SHADER | 验证边界声明 |
+| 执行序  | 编号  | 主题                                                | Fixture                            | 产出                             |
+| ---- | --- | ------------------------------------------------- | ---------------------------------- | ------------------------------ |
+| P1-1 | N09 | 非确定性与归一化                                          | CleanControl、NP-CASCADE            | 两级 signature 字段规格、`repeat` 默认值 |
+| P1-2 | N08 | exit code 可信度、启动成功语义、`--debug` 存活性                | CleanControl、NP-SYNTAX、NP-AUTOLOAD | `exit_code_policy.json`、指令能力记录 |
+| P1-3 | N03 | `class_name` 冷缓存假阳性 + 新增 `class_name` 的 import 触发 | NP-GLOBALCLASS                     | `import_trigger_policy`（脚本侧）   |
+| P1-4 | N01 | autoload 假阳性                                      | NP-AUTOLOAD                        | autoload 过滤策略                  |
+| P1-5 | N02 | addon 单例假阳性                                       | NP-ADDON                           | 符号白名单的实现成本裁决                   |
+| P1-6 | N04 | 级联错误淹没根因                                          | NP-CASCADE、NP-SYNTAX               | 放大倍数、根因↔症状配对表                  |
+| P1-7 | N05 | warning 与 error 严重度混淆                             | NP-WARN                            | 严重度采集策略                        |
+| P1-8 | N06 | invalid UID 严重度 + 资源引用变更的 import 触发               | NP-RESOURCE                        | `import_trigger_policy`（资源侧）   |
+| P1-9 | N07 | shader verifier 盲区                                | NP-SHADER                          | 验证边界声明                         |
 
 
 
@@ -300,10 +304,10 @@ N            = 独立、有序、可重复、可恢复的实验定义
 ## 2.2 第二阶段：Converter 和官方 Demo 自动迁移评测（2 条）
 
 
-| 执行序 | 编号 | 主题 | Fixture/数据集 | 产出 |
-| --- | --- | --- | --- | --- |
-| P2-1 | N15 | converter 与 ProjectUpgradeTool 的 CLI 能力门与职责矩阵 | CP-MINIMAL | `converter-capabilities.json` |
-| P2-2 | N21 | 官方 3.5/3.6 Demo 自动迁移残余问题分布（含 import 成本、TODO、shader 残余） | 官方 Demo 数据集 | 残余分布、支持边界 |
+| 执行序  | 编号  | 主题                                                     | Fixture/数据集 | 产出                            |
+| ---- | --- | ------------------------------------------------------ | ----------- | ----------------------------- |
+| P2-1 | N15 | converter 与 ProjectUpgradeTool 的 CLI 能力门与职责矩阵          | CP-MINIMAL  | `converter-capabilities.json` |
+| P2-2 | N21 | 官方 3.5/3.6 Demo 自动迁移残余问题分布（含 import 成本、TODO、shader 残余） | 官方 Demo 数据集 | 残余分布、支持边界                     |
 
 
 
@@ -313,20 +317,20 @@ N            = 独立、有序、可重复、可恢复的实验定义
 “合并”表示能力不丢、只是不再单独占一张卡片；“删除”表示本轮不做，并直接采用下表的先验结论。
 
 
-| 原编号 | 原主题 | 处置 | 去向或先验结论 |
-| --- | --- | --- | --- |
-| N10 | `--debug` 挂死 / signal 11 崩溃 | 合并 | 降级为 **N08 的一步 V8 存活性观测**（外层 `timeout 30` + killpg）。它同时填上 N08 交叉表的 `被 timeout kill` 行，并给 N05 一个明确前提：warning 通道不能走 `--debug` |
-| N12-a | 新增 `class_name` 后必须重跑 import | 合并 | 本来就是 **N03 的 T4—T6**，不再单独跑 |
-| N12-b | `.tscn` 的 `ext_resource` 变更后缓存陈旧 | 合并 | 并入 **N06**：同一个 NP-RESOURCE 工作区、同一份正确基线，省掉一次 manual gate。`import_trigger_policy` 由 N03 + N06 共同产出 |
-| N16 | ProjectUpgradeTool 的 CLI 与职责边界 | 合并 | 并入 **N15**：两者都是 `--help` 能力门 + 最小项目调用 + diff，共用一次采集 |
-| N19 | 自动迁移后 `--import` 耗时 | 合并 | 并入 **N21**：wall time 本来每次测量都记（§0.5.1），耗时只是对 N21 日志的一次聚合，不需要独立实验 |
-| N17 | `TODOConverter3To4` 与 `instance()` 覆盖率 | 合并 | 并入 **N21**：TODO 与 `instance()` 残余已经是 N21 分类体系里的桶，真实 Demo 的统计比合成 fixture 更有代表性 |
-| N18 | shader 转换正确性与报告可信度 | 合并 | 并入 **N21** 的 shader 桶；verifier 侧的可见性由 N07 负责。判定口径不变：**以文件 diff 为准，不信 converter 的 stdout** |
-| N11 | converter 跳过大文件 / hang | 删除 | 改为 **N21 的一次文件大小预扫描**（记录每个 Demo 的最大 `.gd` 字节数与最长行）。数据集里没有超阈值文件时该问题不成立；真出现时才启用 CP-BIGFILE。无论如何，**converter 调用一律包 timeout + killpg** |
-| N13 | C#/GDExtension 环境污染 | 删除 | 先验结论：入队阶段扫描 `*.csproj` / `*.gdextension` / `*.gdnlib`，命中即**硬拒收并给出理由**。既然不服务这类仓库，"是否污染纯 GDScript 解析结果"就不影响 verifier 准确性 |
-| N14 | 并发 import 是否污染 `.godot/` | 删除 | 先验结论：**workspace 级串行锁无条件实现**。实验只能给锁"找理由"，不改变要写的代码。对外表述改为"用于避免重复工作与控制进程资源"，不宣称修复已证实的数据损坏 |
-| N20 | mutation 是否被 converter 自动复原 | 删除 | 移出探针实验，改为**基准集构造流水线的强制一步**：每个变体先过一次 converter，被复原的直接剔除或单列为 L0 组。这样评测泄漏在源头被堵住，不需要专门实验 |
-| N01 的子实验 | #120225 `ResourceFormatLoader` 注册顺序 | 删除 | 埋点 `AL-RES-LOADER` 保留在 fixture 里但本轮不启用：注册顺序变种的缓解手段与主 FP 完全相同（`[autoload]` 符号白名单，或强制 warm-up），跑它不会改变任何一行代码 |
+| 原编号      | 原主题                                    | 处置  | 去向或先验结论                                                                                                                            |
+| -------- | -------------------------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| N10      | `--debug` 挂死 / signal 11 崩溃            | 合并  | 降级为 **N08 的一步 V8 存活性观测**（外层 `timeout 30` + killpg）。它同时填上 N08 交叉表的 `被 timeout kill` 行，并给 N05 一个明确前提：warning 通道不能走 `--debug`         |
+| N12-a    | 新增 `class_name` 后必须重跑 import           | 合并  | 本来就是 **N03 的 T4—T6**，不再单独跑                                                                                                         |
+| N12-b    | `.tscn` 的 `ext_resource` 变更后缓存陈旧       | 合并  | 并入 **N06**：同一个 NP-RESOURCE 工作区、同一份正确基线，省掉一次 manual gate。`import_trigger_policy` 由 N03 + N06 共同产出                                   |
+| N16      | ProjectUpgradeTool 的 CLI 与职责边界         | 合并  | 并入 **N15**：两者都是 `--help` 能力门 + 最小项目调用 + diff，共用一次采集                                                                                |
+| N19      | 自动迁移后 `--import` 耗时                    | 合并  | 并入 **N21**：wall time 本来每次测量都记（§0.5.1），耗时只是对 N21 日志的一次聚合，不需要独立实验                                                                    |
+| N17      | `TODOConverter3To4` 与 `instance()` 覆盖率 | 合并  | 并入 **N21**：TODO 与 `instance()` 残余已经是 N21 分类体系里的桶，真实 Demo 的统计比合成 fixture 更有代表性                                                      |
+| N18      | shader 转换正确性与报告可信度                     | 合并  | 并入 **N21** 的 shader 桶；verifier 侧的可见性由 N07 负责。判定口径不变：**以文件 diff 为准，不信 converter 的 stdout**                                          |
+| N11      | converter 跳过大文件 / hang                 | 删除  | 改为 **N21 的一次文件大小预扫描**（记录每个 Demo 的最大 `.gd` 字节数与最长行）。数据集里没有超阈值文件时该问题不成立；真出现时才启用 CP-BIGFILE。无论如何，**converter 调用一律包 timeout + killpg** |
+| N13      | C#/GDExtension 环境污染                    | 删除  | 先验结论：入队阶段扫描 `*.csproj` / `*.gdextension` / `*.gdnlib`，命中即**硬拒收并给出理由**。既然不服务这类仓库，"是否污染纯 GDScript 解析结果"就不影响 verifier 准确性             |
+| N14      | 并发 import 是否污染 `.godot/`               | 删除  | 先验结论：**workspace 级串行锁无条件实现**。实验只能给锁"找理由"，不改变要写的代码。对外表述改为"用于避免重复工作与控制进程资源"，不宣称修复已证实的数据损坏                                            |
+| N20      | mutation 是否被 converter 自动复原            | 删除  | 移出探针实验，改为**基准集构造流水线的强制一步**：每个变体先过一次 converter，被复原的直接剔除或单列为 L0 组。这样评测泄漏在源头被堵住，不需要专门实验                                               |
+| N01 的子实验 | #120225 `ResourceFormatLoader` 注册顺序    | 删除  | 埋点 `AL-RES-LOADER` 保留在 fixture 里但本轮不启用：注册顺序变种的缓解手段与主 FP 完全相同（`[autoload]` 符号白名单，或强制 warm-up），跑它不会改变任何一行代码                          |
 
 
 原 3.1 条目中仍然重要的两条已就近写进卡片：**B9**（启动成功能否证明脚本全部正确）进 N08 判据，**E1/E2/A8**（converter 与 upgrade tool 的 CLI 是否存在及职责边界）进 N15 目的。**B3**（裸 `--check-only` 是 no-op，项目级扫描用哨兵 V1）已在 §0.2 的 V1 行说明。
@@ -357,8 +361,6 @@ N            = 独立、有序、可重复、可恢复的实验定义
 
 卡片按执行顺序排列。步骤表读法：**一行 = 一个步骤**，从上到下严格有序，不可并行、不可重排；`重复` 是该步骤的 `repeat` 次数；`—` 表示该步骤不启动 Godot（前置操作或纯离线分析）。
 
-
-
 ## P1-1 · N09 · 非确定性与归一化
 
 - **目的**：找出输出里哪些字段是非确定的，据此定死两级 signature 的字段抹除规格。这是第一阶段所有判定的地基，必须最先跑。
@@ -368,19 +370,23 @@ N            = 独立、有序、可重复、可恢复的实验定义
 - **产出**：`signature-policy`（两级 signature 各自抹掉哪些字段）、全局 `repeat: 3` 默认值、BG 是否漂移的结论
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | V1 | CleanControl 全项目哨兵 | COLD | 5 | 冷态背景行集合是否逐次一致 |
-| 2 | V1 | CleanControl 全项目哨兵 | WARM | 5 | 暖态背景行集合是否逐次一致 |
-| 3 | V2 | CleanControl `main.gd` | WARM | 5 | 单文件通道的背景噪声 |
-| 4 | V3 | CleanControl 整个项目 | COLD | 5 | import 通道的背景噪声与耗时字段 |
-| 5 | V5 | CleanControl 整个项目 | WARM | 5 | 运行时通道的背景噪声 |
-| 6 | V2 | NP-CASCADE `dep_1.gd` | WARM | 5 | 有错场景下单文件输出是否逐次一致 |
-| 7 | V3 | NP-CASCADE 整个项目 | COLD | 5 | import 通道遇多错误时是否稳定 |
-| 8 | V1 | NP-CASCADE 全项目哨兵 | WARM | 5 | 多条 error 的**内容与顺序**是否逐次一致 |
-| 9 | — | 步骤 1—8 已落盘的日志 | — | — | 横向 diff：同一条指令下 CleanControl 与 NP-CASCADE 的行级差异，找出“随项目而变”的字段 |
+
+| 步   | 命令  | 作用对象                   | 缓存态  | 重复  | 这一步要回答什么                                                    |
+| --- | --- | ---------------------- | ---- | --- | ----------------------------------------------------------- |
+| 1   | V1  | CleanControl 全项目哨兵     | COLD | 5   | 冷态背景行集合是否逐次一致                                               |
+| 2   | V1  | CleanControl 全项目哨兵     | WARM | 5   | 暖态背景行集合是否逐次一致                                               |
+| 3   | V2  | CleanControl `main.gd` | WARM | 5   | 单文件通道的背景噪声                                                  |
+| 4   | V3  | CleanControl 整个项目      | COLD | 5   | import 通道的背景噪声与耗时字段                                         |
+| 5   | V5  | CleanControl 整个项目      | WARM | 5   | 运行时通道的背景噪声                                                  |
+| 6   | V2  | NP-CASCADE `dep_1.gd`  | WARM | 5   | 有错场景下单文件输出是否逐次一致                                            |
+| 7   | V3  | NP-CASCADE 整个项目        | COLD | 5   | import 通道遇多错误时是否稳定                                          |
+| 8   | V1  | NP-CASCADE 全项目哨兵       | WARM | 5   | 多条 error 的**内容与顺序**是否逐次一致                                   |
+| 9   | —   | 步骤 1—8 已落盘的日志          | —    | —   | 横向 diff：同一条指令下 CleanControl 与 NP-CASCADE 的行级差异，找出“随项目而变”的字段 |
+
+
 
 
 ### 判据
@@ -392,11 +398,9 @@ N            = 独立、有序、可重复、可恢复的实验定义
 
 **为什么横向不可省**：绝对路径、`res://` 路径、符号名、行号在纵向重复中**完全稳定**，纵向永远发现不了它们；只有横向能暴露“这个字段随项目而变”。横向**不新增任何运行**，两个项目的日志本来都要采，它是纯离线分析。
 
-
 ### 决策影响
 
 直接定死 §0.4.1 两级 signature 的**字段规格**：**纵向发现的字段两级都抹**（行号、绝对路径、内存地址、耗时数值）；**横向发现的字段** `local_signature` **保留、**`noise_signature` **抹掉**（`res://` 路径、符号名）。其中**行号必须排除**——patch 会移动行号，含行号的 signature 会让“同一个错误”看起来像新错误，Agent 的震荡检测直接失效。并且 `VerifyReport` 的 error 集合必须是**排序后的 set**，不是 list。
-
 
 ### 额外记录
 
@@ -405,10 +409,10 @@ N            = 独立、有序、可重复、可恢复的实验定义
 - 被判为非确定的字段清单，以及每个字段的归属：两级都抹 / 只抹 `noise_signature`。
 
 
+
 ### 执行要点
 
 `N09.py` 是第一阶段最先执行的 N，两个 fixture 各自一个 group（`group_id` 必须落进 artifact 路径，两组会出现同名 `step_id`）。步骤 9 不启动 Godot，交给 `analyzer/stability.py` 离线做。**N04 复用本实验 NP-CASCADE 的原始日志**，不需要为 N04 重跑；若本实验重跑且 normalization profile 变化，下游全部实验标记为 STALE。
-
 
 ---
 
@@ -423,38 +427,45 @@ N            = 独立、有序、可重复、可恢复的实验定义
 - **产出**：`exit_code_policy.json`、指令能力记录（V4/V6/V7）、`--debug` 是否禁入正式 verifier 的结论
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | V1 | CleanControl 全项目哨兵 | WARM | 3 | 无错时 rc 是否为 0 |
-| 2 | V2 | NP-SYNTAX `orphan_bad_parse.gd` | WARM | 3 | 单文件真错时 rc 是否 ≠ 0 |
-| 3 | V1 | NP-SYNTAX 全项目哨兵 | WARM | 3 | 项目级真错时 rc 是否 ≠ 0 |
-| 4 | V3 | NP-SYNTAX 整个项目 | COLD | 3 | import 通道遇真错时的 rc |
-| 5 | V4 | NP-SYNTAX 整个项目 | COLD | 3 | 不带 `--editor` 能否 import，rc 语义是否相同 |
-| 6 | V5 | NP-SYNTAX 整个项目 | WARM | 3 | **B9**：项目里有坏脚本时还能不能启动成功、rc 是否为 0 |
-| 7 | V6 | NP-SYNTAX 整个项目 | WARM | 3 | `--quit-after 2` 是否改变 rc 与防挂死行为 |
-| 8 | V7 | NP-SYNTAX，V1 + `--verbose` | WARM | 3 | verbose 是否给出依赖顺序等结构化信息，rc 是否变化 |
-| 9 | V2 | NP-AUTOLOAD `uses_autoload.gd` | COLD | 3 | 只有假阳性、没有真错误时 rc 会不会被污染成 ≠ 0 |
-| 10 | V8 | NP-SYNTAX `orphan_bad_parse.gd`，外层 `timeout 30` | WARM | 1 | `--debug` 是否掉进交互式 debugger 永久挂住，或 signal 11 崩溃 |
+
+| 步   | 命令  | 作用对象                                            | 缓存态  | 重复  | 这一步要回答什么                                       |
+| --- | --- | ----------------------------------------------- | ---- | --- | ---------------------------------------------- |
+| 1   | V1  | CleanControl 全项目哨兵                              | WARM | 3   | 无错时 rc 是否为 0                                   |
+| 2   | V2  | NP-SYNTAX `orphan_bad_parse.gd`                 | WARM | 3   | 单文件真错时 rc 是否 ≠ 0                               |
+| 3   | V1  | NP-SYNTAX 全项目哨兵                                 | WARM | 3   | 项目级真错时 rc 是否 ≠ 0                               |
+| 4   | V3  | NP-SYNTAX 整个项目                                  | COLD | 3   | import 通道遇真错时的 rc                              |
+| 5   | V4  | NP-SYNTAX 整个项目                                  | COLD | 3   | 不带 `--editor` 能否 import，rc 语义是否相同              |
+| 6   | V5  | NP-SYNTAX 整个项目                                  | WARM | 3   | **B9**：项目里有坏脚本时还能不能启动成功、rc 是否为 0               |
+| 7   | V6  | NP-SYNTAX 整个项目                                  | WARM | 3   | `--quit-after 2` 是否改变 rc 与防挂死行为                |
+| 8   | V7  | NP-SYNTAX，V1 + `--verbose`                      | WARM | 3   | verbose 是否给出依赖顺序等结构化信息，rc 是否变化                 |
+| 9   | V2  | NP-AUTOLOAD `uses_autoload.gd`                  | COLD | 3   | 只有假阳性、没有真错误时 rc 会不会被污染成 ≠ 0                    |
+| 10  | V8  | NP-SYNTAX `orphan_bad_parse.gd`，外层 `timeout 30` | WARM | 1   | `--debug` 是否掉进交互式 debugger 永久挂住，或 signal 11 崩溃 |
+
+
 
 
 ### 判据
 
 填下面这张交叉表，**只要出现“有错但 rc = 0”→ rc 不可信**：
 
-| 场景             | 项目              | 有真错误 | 期望 rc   | 实测 rc |
-| -------------- | --------------- | ---- | ------- | ----- |
-| 干净             | CleanControl    | 否    | 0       | ?     |
-| 单文件真错          | NP-SYNTAX V2    | 是    | ≠0      | ?     |
-| 项目级真错          | NP-SYNTAX V1 | 是    | ≠0      | ?     |
-| 纯假阳性           | NP-AUTOLOAD V2  | 否    | 0       | ?     |
-| 被 timeout kill | V8 步骤     | —    | 124/137 | ?     |
+
+| 场景             | 项目             | 有真错误 | 期望 rc   | 实测 rc |
+| -------------- | -------------- | ---- | ------- | ----- |
+| 干净             | CleanControl   | 否    | 0       | ?     |
+| 单文件真错          | NP-SYNTAX V2   | 是    | ≠0      | ?     |
+| 项目级真错          | NP-SYNTAX V1   | 是    | ≠0      | ?     |
+| 纯假阳性           | NP-AUTOLOAD V2 | 否    | 0       | ?     |
+| 被 timeout kill | V8 步骤          | —    | 124/137 | ?     |
+
 
 另外两条判据：
 
 - **B9**：若步骤 6 在有坏脚本的项目上仍能启动成功且 rc = 0 → “启动成功”**不能**证明脚本全部正确，V5 只能当交叉验证信号源，不能当验证器主通道。
 - **V8 存活性**：wall time ≥ timeout（挂死），或 rc = 134/139，或 stderr 含 `handle_crash: Program crashed with signal 11` → 任一成立即判定 `--debug` 不可用。
+
 
 
 ### 决策影响
@@ -468,7 +479,6 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 ② V8 一旦证实挂死或崩溃 → `--debug` **永久禁入正式 verifier**，只作一次性探针；进程管理必须 `subprocess` + `start_new_session=True` + `os.killpg(SIGKILL)`（Godot 会 fork/spawn 子进程，单杀 pid 无效）。
 ③ 顺带意味着 **warning 通道不能靠** `--debug`，N05 的项目设置注入成为唯一出路。
 
-
 ### 额外记录
 
 - 每一步的 rc、signal、是否 timeout 都要回填交叉表，缺一格不算完成。
@@ -476,10 +486,10 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - 步骤 9 只采集 rc；该行“有真错误＝否”的标签由 **N01** 确认后回填，本实验不预判。
 
 
+
 ### 执行要点
 
 `N08.py` 按 fixture 分 group，步骤不能按项目矩阵批量展开。步骤 10 用独立工作区，`repeat: 1`，必须独立进程组 + 30 秒 timeout，无论进程状态如何都在 finally 里杀进程组。若 V8 在 NP-SYNTAX 上未复现，允许在 NP-ADDON（#111515 的原环境）上补跑一次；两次都未复现则记 `NOT_REPRODUCED`，不再追加尝试。原 N10 已并入本卡片，不再单独执行。
-
 
 ---
 
@@ -494,22 +504,27 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - **产出**：`import_trigger_policy` 的脚本侧两项（`class_name_added`、`gd_file_added`）
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| T1 | V2 | `uses_class.gd` | COLD | 3 | 冷缓存下是否报 `Identifier not found: ProbeFoo` |
-| T2 | V3 | 整个项目 | COLD→WARM | 1 | 重建 class cache、建立 WARM 基线，不参与判定 |
-| T3 | V2 | `uses_class.gd` | WARM | 3 | import 之后是否干净 |
-| T4 | V2 | `uses_late.gd`（脚本新建 `late_class.gd` + `uses_late.gd`，**不 import**） | PRESERVE | 3 | 新增带新 `class_name` 的文件后，不 import 会不会报错 |
-| T5 | V3 | 整个项目 | PRESERVE→WARM | 1 | 补 import |
-| T6 | V2 | `uses_late.gd` | WARM | 3 | 补 import 之后是否干净 |
+
+| 步   | 命令  | 作用对象                                                               | 缓存态           | 重复  | 这一步要回答什么                                 |
+| --- | --- | ------------------------------------------------------------------ | ------------- | --- | ---------------------------------------- |
+| T1  | V2  | `uses_class.gd`                                                    | COLD          | 3   | 冷缓存下是否报 `Identifier not found: ProbeFoo` |
+| T2  | V3  | 整个项目                                                               | COLD→WARM     | 1   | 重建 class cache、建立 WARM 基线，不参与判定          |
+| T3  | V2  | `uses_class.gd`                                                    | WARM          | 3   | import 之后是否干净                            |
+| T4  | V2  | `uses_late.gd`（脚本新建 `late_class.gd` + `uses_late.gd`，**不 import**） | PRESERVE      | 3   | 新增带新 `class_name` 的文件后，不 import 会不会报错    |
+| T5  | V3  | 整个项目                                                               | PRESERVE→WARM | 1   | 补 import                                 |
+| T6  | V2  | `uses_late.gd`                                                     | WARM          | 3   | 补 import 之后是否干净                          |
+
+
 
 
 ### 判据
 
 - T1 报 `Identifier not found: ProbeFoo` 而 T3 干净 → **冷缓存假阳性确认**；
 - T4 报错而 T6 干净 → **patch 后缓存陈旧确认**（原 N12-a 的全部内容）。
+
 
 
 ### 决策影响
@@ -520,15 +535,14 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - T4 干净 → import 只需一次，迭代成本被 check 主导 → 迭代速度提升一个量级，Agent 可以放心多轮试错。
 
 
+
 ### 额外记录
 
 每一步都快照 `.godot/global_script_class_cache.cfg` 的内容与 hash，这是判断“缓存是否真的被重建”的唯一硬证据。
 
-
 ### 执行要点
 
 `N03.py` 把 T1—T6 写成不可并行、不可重排的有序步骤。`late_class.gd` 与 `uses_late.gd` 由脚本自己在 T3 之后创建（一次性操作，不进 `util`），T4/T5 用 `PRESERVE` 保住 T2 建立的缓存（这两步的判定前提就是“缓存没被清”）。T6 完成后删除工作区，不在 fixture 里留下 late 文件。原 N12-a 不再单独执行，其结论就是 T4—T6。
-
 
 ---
 
@@ -543,18 +557,22 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - **产出**：autoload 过滤策略（是否需要解析 `project.godot` 的 `[autoload]` 段建白名单）
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | V2 | `uses_autoload.gd` | COLD | 3 | 冷缓存下是否报 `Identifier not found: Config` |
-| 2 | V3 | 整个项目 | COLD→WARM | 1 | 建立 WARM 基线，不参与判定 |
-| 3 | V5 | 整个项目 | WARM | 3 | 运行时是否正常打印 `Config.ping() called`（证明符号真实存在） |
-| 4 | V2 | `uses_autoload.gd` | WARM | 3 | WARM 下是否仍然报错 → 能否用强制 warm-up 规避 |
-| 5 | V1 | 全项目哨兵 | WARM | 3 | 项目级扫描会不会把这个 FP 放大 |
-| 6 | — | `rename_file` 启用 `shadow_config.gd.disabled`（埋点 `AL-SHADOW`） | — | — | 造出与 FP 文案相似的**真错误** |
-| 7 | V2 | `shadow_config.gd` | WARM | 3 | `Class "Config" hides an autoload singleton` 是否出现 |
-| 8 | V5 | 整个项目 | WARM | 3 | 真错误是否同样在运行时暴露（与步骤 3 对比） |
+
+| 步   | 命令  | 作用对象                                                         | 缓存态       | 重复  | 这一步要回答什么                                          |
+| --- | --- | ------------------------------------------------------------ | --------- | --- | ------------------------------------------------- |
+| 1   | V2  | `uses_autoload.gd`                                           | COLD      | 3   | 冷缓存下是否报 `Identifier not found: Config`            |
+| 2   | V3  | 整个项目                                                         | COLD→WARM | 1   | 建立 WARM 基线，不参与判定                                  |
+| 3   | V5  | 整个项目                                                         | WARM      | 3   | 运行时是否正常打印 `Config.ping() called`（证明符号真实存在）        |
+| 4   | V2  | `uses_autoload.gd`                                           | WARM      | 3   | WARM 下是否仍然报错 → 能否用强制 warm-up 规避                   |
+| 5   | V1  | 全项目哨兵                                                        | WARM      | 3   | 项目级扫描会不会把这个 FP 放大                                 |
+| 6   | —   | `rename_file` 启用 `shadow_config.gd.disabled`（埋点 `AL-SHADOW`） | —         | —   | 造出与 FP 文案相似的**真错误**                               |
+| 7   | V2  | `shadow_config.gd`                                           | WARM      | 3   | `Class "Config" hides an autoload singleton` 是否出现 |
+| 8   | V5  | 整个项目                                                         | WARM      | 3   | 真错误是否同样在运行时暴露（与步骤 3 对比）                           |
+
+
 
 
 ### 判据
@@ -562,7 +580,6 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 **FP 成立** ⟺ 步骤 1 或 4 的输出含 `Identifier not found: Config`，**且**步骤 3 正常打印 `Config.ping() called`（证明符号真实存在）。
 
 步骤 6—8 不是可选装饰：#78587 里**两种文案都出现过**，`Compile Error: Identifier not found: singleton` 是**假阳性本体**，`Parse Error: Class "singleton" hides an autoload singleton` 是报告者故意加 `class_name` 造出来的**真错误**。必须分别确认哪条是噪声（`AL-USES`，`filterable: true`）、哪条不能过滤（`AL-SHADOW`，`filterable: false`），否则过滤器会把真错误一起吃掉。
-
 
 ### 决策影响
 
@@ -572,7 +589,6 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 
 三种结果对应三套不同代码量，所以这条必须早于 N02 定下来。
 
-
 ### 额外记录
 
 - 两个埋点各自命中的**精确文案**（原文照抄，不要概括），这是过滤器白名单的输入。
@@ -580,10 +596,10 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - COLD 与 WARM 的差异结论要单独成条：报告者暗示与 `.godot` 缓存有关，若 WARM 下 FP 消失，N01 就退化成“verify 前必须 warm-up”一句话。
 
 
+
 ### 执行要点
 
 `N01.py` 使用 NP-AUTOLOAD 的独立副本。埋点 `AL-RES-LOADER`（`res_loader.gd.disabled`，#120225 注册顺序变种）**本轮不启用**，理由见 §2.3；两个 `.disabled` 文件在任何情况下都不得同时启用。所有改名与配置注入只发生在临时工作区。
-
 
 ---
 
@@ -598,15 +614,19 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - **产出**：符号白名单的实现成本裁决
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 0 | — | 应用 `derived/NP-ADDON@plugin-enabled/patch.diff`（先校验 build hash），不可用则退回 manual gate：GUI 打开项目、启用一次插件、把新 diff 冻结回 `derived/` | — | — | **本实验的核心事实**：启用插件后 `project.godot` 到底被写了什么 |
-| 1 | V5 | 整个项目 | WARM | 3 | 运行时单例是否注册成功（证明符号真实存在） |
-| 2 | V2 | `uses_addon.gd` | WARM | 3 | check-only 是否报 `DummySingleton` 找不到 |
-| 3 | V2 | `uses_addon.gd` | COLD | 3 | 冷态是否加剧（与 N01 的 COLD/WARM 结论对照） |
-| 4 | V1 | 全项目哨兵 | WARM | 3 | 项目级扫描是否放大该 FP |
+
+| 步   | 命令  | 作用对象                                                                                                                      | 缓存态  | 重复  | 这一步要回答什么                                   |
+| --- | --- | ------------------------------------------------------------------------------------------------------------------------- | ---- | --- | ------------------------------------------ |
+| 0   | —   | 应用 `derived/NP-ADDON@plugin-enabled/patch.diff`（先校验 build hash），不可用则退回 manual gate：GUI 打开项目、启用一次插件、把新 diff 冻结回 `derived/` | —    | —   | **本实验的核心事实**：启用插件后 `project.godot` 到底被写了什么 |
+| 1   | V5  | 整个项目                                                                                                                      | WARM | 3   | 运行时单例是否注册成功（证明符号真实存在）                      |
+| 2   | V2  | `uses_addon.gd`                                                                                                           | WARM | 3   | check-only 是否报 `DummySingleton` 找不到        |
+| 3   | V2  | `uses_addon.gd`                                                                                                           | COLD | 3   | 冷态是否加剧（与 N01 的 COLD/WARM 结论对照）             |
+| 4   | V1  | 全项目哨兵                                                                                                                     | WARM | 3   | 项目级扫描是否放大该 FP                              |
+
+
 
 
 ### 判据（这是决策分叉点）
@@ -615,10 +635,10 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - 若**没出现**（纯运行时注册）→ 过滤器必须去**扫描 addon 源码里的** `add_autoload_singleton` **调用**才能建白名单，这是显著更贵、更不可靠的实现 → 建议直接判定为**不过滤、走 escalate**，并在报告里写明理由。
 
 
+
 ### 决策影响
 
 决定“符号白名单”这个模块是 20 行、200 行还是不做。这是本阶段唯一一条**直接换算成代码量**的结论。
-
 
 ### 额外记录
 
@@ -626,10 +646,10 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - 插件启用状态从哪来：derived patch 还是 manual gate；derived patch 的 `provenance.yaml` build hash 是否与当前二进制一致。
 
 
+
 ### 执行要点
 
 `N02.py` 先把 NP-ADDON 复制到临时工作区，优先消费 `derived/NP-ADDON@plugin-enabled/`。若 GUI 写入了二进制或不可移植内容（判定细则见 ARCHITECTURE.md §7），derived patch 方案作废，永久退回 manual gate。**N02 不跑 V8**——`--debug` 已由 N08 一次性裁决。实验结束后删除整个工作区，原始 NP-ADDON 必须保持“插件未启用”的干净状态。
-
 
 ---
 
@@ -644,17 +664,19 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - **产出**：放大倍数、根因↔症状文案配对表、`VerifyReport.root_cause_errors` 的必要性
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | — | 复用 N09 步骤 7、8 的 NP-CASCADE V3 / V1 日志 | — | — | 分子：一个根因在项目级扫描下产生多少条 error |
-| 2 | V2 | NP-SYNTAX `scene_bad.gd` | WARM | 3 | 分母：同构单根错误在单文件通道下产生多少条 |
-| 3 | V2 | NP-CASCADE `dep_1.gd` | WARM | 3 | 直接依赖被单独 check 时报的是根因还是症状 |
-| 4 | V2 | NP-CASCADE `leaf.gd` | WARM | 3 | 二级依赖被单独 check 时报什么（传递性有多远） |
+
+| 步   | 命令  | 作用对象                                  | 缓存态  | 重复  | 这一步要回答什么                   |
+| --- | --- | ------------------------------------- | ---- | --- | -------------------------- |
+| 1   | —   | 复用 N09 步骤 7、8 的 NP-CASCADE V3 / V1 日志 | —    | —   | 分子：一个根因在项目级扫描下产生多少条 error  |
+| 2   | V2  | NP-SYNTAX `scene_bad.gd`              | WARM | 3   | 分母：同构单根错误在单文件通道下产生多少条      |
+| 3   | V2  | NP-CASCADE `dep_1.gd`                 | WARM | 3   | 直接依赖被单独 check 时报的是根因还是症状   |
+| 4   | V2  | NP-CASCADE `leaf.gd`                  | WARM | 3   | 二级依赖被单独 check 时报什么（传递性有多远） |
+
 
 **放大倍数 = NP-CASCADE 项目级 error 行数 /** `scene_bad.gd` **单文件 error 行数**。`dep_2`—`dep_5` 不再逐个跑：`dep_1` 与 `leaf` 已经覆盖“直接依赖 / 二级依赖”两种形态，放大倍数由项目级输出算，不靠逐文件累加。
-
 
 ### 判据
 
@@ -662,13 +684,11 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 
 判定规则草案：`at:` 位置指向**引擎内部路径**（`modules/gdscript/*.cpp`）的行 = 症状；指向 `res://` 的行 = 根因候选。
 
-
 ### 决策影响
 
 ① 放大倍数决定 error triage 的必要性和收益（若是 1:7，说明不做 triage，Agent 有 86% 的注意力浪费在症状上）；
 ② **症状 error 不得计入 error-signature 重试计数器**，否则一个根因就会把熔断阈值打满，把好仓库误标 `needs-human`；
 ③ 决定 `VerifyReport` 需要一个 `root_cause_errors` 字段，而不是一个扁平列表。
-
 
 ### 额外记录
 
@@ -677,10 +697,10 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - 必须先扣掉**哨兵 preload 坏文件产生的人造级联边**（`__probe_` 前缀），否则放大倍数被高估。
 
 
+
 ### 执行要点
 
 `N04.py` 只有步骤 2—4 需要启动 Godot；步骤 1 是对 N09 artifacts 的离线分析，因此 N04 必须排在 N09 之后，脚本启动时校验 `artifacts/latest/N09.json` 存在且未过期（规则见 §0.5.4）。脚本里显式记录 `scene_bad.gd` 的单根错误结果为外部对照（同构错误分母，不得用 `orphan_bad_parse.gd` 替代）。
-
 
 ---
 
@@ -695,17 +715,21 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - **产出**：严重度采集策略
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | V2 | `warn.gd`（默认设置） | WARM | 3 | 默认设置下单文件通道有没有 warning |
-| 2 | V1 | 全项目哨兵（默认设置） | WARM | 3 | 默认设置下项目级扫描有没有 warning |
-| 3 | V3 | 整个项目（默认设置） | COLD | 3 | import 通道有没有 warning |
-| 4 | — | `append_project_settings` 注入 `experiments/common/fragments/np-warn-debug.ini`（`gdscript/warnings/enable=true` + `exclude_addons=true`） | — | — | 打开 warning 开关 |
-| 5 | V2 | `warn.gd`（启用 warning） | WARM | 3 | 是否以 `WARNING:` 前缀出现在 **stderr** 里 |
-| 6 | V1 | 全项目哨兵（启用 warning） | WARM | 3 | 项目级扫描下的 warning 数量与前缀 |
-| 7 | V3 | 整个项目（启用 warning） | COLD | 3 | `exclude_addons` 是否真的屏蔽了 `addons/noisy/noisy.gd` 的 warning |
+
+| 步   | 命令  | 作用对象                                                                                                                                   | 缓存态  | 重复  | 这一步要回答什么                                                   |
+| --- | --- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | --- | ---------------------------------------------------------- |
+| 1   | V2  | `warn.gd`（默认设置）                                                                                                                        | WARM | 3   | 默认设置下单文件通道有没有 warning                                      |
+| 2   | V1  | 全项目哨兵（默认设置）                                                                                                                            | WARM | 3   | 默认设置下项目级扫描有没有 warning                                      |
+| 3   | V3  | 整个项目（默认设置）                                                                                                                             | COLD | 3   | import 通道有没有 warning                                       |
+| 4   | —   | `append_project_settings` 注入 `experiments/common/fragments/np-warn-debug.ini`（`gdscript/warnings/enable=true` + `exclude_addons=true`） | —    | —   | 打开 warning 开关                                              |
+| 5   | V2  | `warn.gd`（启用 warning）                                                                                                                  | WARM | 3   | 是否以 `WARNING:` 前缀出现在 **stderr** 里                          |
+| 6   | V1  | 全项目哨兵（启用 warning）                                                                                                                      | WARM | 3   | 项目级扫描下的 warning 数量与前缀                                      |
+| 7   | V3  | 整个项目（启用 warning）                                                                                                                       | COLD | 3   | `exclude_addons` 是否真的屏蔽了 `addons/noisy/noisy.gd` 的 warning |
+
+
 
 
 ### 判据
@@ -715,21 +739,19 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 3. `exclude_addons` 是否真的屏蔽了 addon 内的 warning。
 
 
+
 ### 决策影响
 
 ① 若项目设置注入成功 → 在**不触发挂死**的前提下拿到第二档信号，可以喂给 Agent-as-Judge 做“改坏了吗”的辅助证据（例如 patch 后新增 `UNUSED_PARAMETER` 说明可能删错了逻辑）——这是一个**免费的语义保真信号**；
 ② 无论如何，`severity != ERROR` **的行绝不进 reward 和终止条件**，否则 Agent 永远修不完（N06 同理）。
 
-
 ### 额外记录
 
 每一组实际注入的设置片段内容，以及每条 warning 行的严重度前缀原文。
 
-
 ### 执行要点
 
 `N05.py` 分两个 group：默认配置组（步骤 1—3）与启用 warning 组（步骤 5—7），配置注入只发生在后者的工作区。原方案里的 V8 对照**删除**：N08 已经裁定 `--debug` 不可用，warning 只能走项目设置这一条路。
-
 
 ---
 
@@ -744,22 +766,26 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - **产出**：严重度策略、`import_trigger_policy` 的资源侧两项（`scene_ext_resource_changed`、`uid_changed`）
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | — | 应用 `derived/NP-RESOURCE@uid-baseline/patch.diff`（校验 build hash），不可用则 manual gate：GUI 打开并保存，把 diff 冻结回 `derived/` | — | — | 先有**正确**的 UID 基线，才有资格伪造 |
-| 2 | V3 | 整个项目 | COLD→WARM | 1 | 正确基线下 import 是否干净，并建立 WARM |
-| 3 | V1 | 全项目哨兵 | WARM | 3 | 正确基线的输出（本实验的第一优先对照物） |
-| 4 | — | `corrupt_uid` 把 `.uid` / `.tscn` 里的 `uid://` 改成伪造值 | — | — | — |
-| 5 | V2 | `sub.gd` | WARM | 3 | 单文件通道能不能看见 UID 问题 |
-| 6 | V1 | 全项目哨兵 | WARM | 3 | `invalid UID` 以什么严重度前缀出现 |
-| 7 | V3 | 整个项目 | WARM | 3 | import 能否自愈伪造的 UID |
-| 8 | V1 | 全项目哨兵 | WARM | 3 | 补 import 之后噪声是否消失 |
-| 9 | — | 把 `main.tscn` 的 `ext_resource` 指向另一个路径（原 N12-b 的触发物） | — | — | — |
-| 10 | V1 | 全项目哨兵（**不 import**） | WARM | 3 | 资源引用变更后不 import 会不会报错 |
-| 11 | V3 | 整个项目 | WARM | 1 | 补 import |
-| 12 | V1 | 全项目哨兵 | WARM | 3 | 补 import 之后是否干净 |
+
+| 步   | 命令  | 作用对象                                                                                                             | 缓存态       | 重复  | 这一步要回答什么                   |
+| --- | --- | ---------------------------------------------------------------------------------------------------------------- | --------- | --- | -------------------------- |
+| 1   | —   | 应用 `derived/NP-RESOURCE@uid-baseline/patch.diff`（校验 build hash），不可用则 manual gate：GUI 打开并保存，把 diff 冻结回 `derived/` | —         | —   | 先有**正确**的 UID 基线，才有资格伪造    |
+| 2   | V3  | 整个项目                                                                                                             | COLD→WARM | 1   | 正确基线下 import 是否干净，并建立 WARM |
+| 3   | V1  | 全项目哨兵                                                                                                            | WARM      | 3   | 正确基线的输出（本实验的第一优先对照物）       |
+| 4   | —   | `corrupt_uid` 把 `.uid` / `.tscn` 里的 `uid://` 改成伪造值                                                               | —         | —   | —                          |
+| 5   | V2  | `sub.gd`                                                                                                         | WARM      | 3   | 单文件通道能不能看见 UID 问题          |
+| 6   | V1  | 全项目哨兵                                                                                                            | WARM      | 3   | `invalid UID` 以什么严重度前缀出现   |
+| 7   | V3  | 整个项目                                                                                                             | WARM      | 3   | import 能否自愈伪造的 UID         |
+| 8   | V1  | 全项目哨兵                                                                                                            | WARM      | 3   | 补 import 之后噪声是否消失          |
+| 9   | —   | 把 `main.tscn` 的 `ext_resource` 指向另一个路径（原 N12-b 的触发物）                                                             | —         | —   | —                          |
+| 10  | V1  | 全项目哨兵（**不 import**）                                                                                              | WARM      | 3   | 资源引用变更后不 import 会不会报错      |
+| 11  | V3  | 整个项目                                                                                                             | WARM      | 1   | 补 import                   |
+| 12  | V1  | 全项目哨兵                                                                                                            | WARM      | 3   | 补 import 之后是否干净            |
+
+
 
 
 ### 判据
@@ -767,6 +793,7 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 - 步骤 6 出现 `invalid UID` 且严重度为 WARNING → SEV-MISMATCH 风险确认；若它以 `ERROR:` 前缀出现 → **更糟**，说明无法靠前缀区分严重度，必须靠消息文案白名单；
 - 步骤 7、8 若能让噪声消失 → 入队前的 UID 规范化（`--import` 重建）是有效解；
 - 步骤 10 报错而步骤 12 干净 → **资源引用变更后必须重跑 import**（原 N12-b 确认）。
+
 
 
 ### 决策影响
@@ -787,6 +814,7 @@ import_trigger_policy:
 ```
 
 
+
 ### 额外记录
 
 - 步骤 1 建立的正确 UID 基线 diff；
@@ -794,10 +822,10 @@ import_trigger_policy:
 - `ext_resource` 变更前后的 `main.tscn` 内容。
 
 
+
 ### 执行要点
 
 `N06.py` 全程一个工作区、严格按序：正确基线 → 伪造 UID → 观察 → 补 import → 改资源引用 → 观察 → 补 import。**禁止在 fixture 里保存错误 UID**，实验结束直接删除工作区。原 N12-b 不再单独执行。
-
 
 ---
 
@@ -812,15 +840,19 @@ import_trigger_policy:
 - **产出**：验证边界声明；是否把哨兵扩展到 shader
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | V2 | `shader_user.gd` | COLD | 3 | `preload` 能否把 shader 错误“抬”到 GDScript 解析期 |
-| 2 | V3 | 整个项目 | COLD | 3 | import 阶段是否报 shader 错误 |
-| 3 | V2 | `shader_user.gd` | WARM | 3 | 暖态下是否仍然可见 |
-| 4 | V5 | 整个项目 | WARM | 3 | 场景启动阶段是否报（`main.tscn` 上挂着坏材质） |
-| 5 | V1 | 全项目哨兵 | WARM | 3 | 默认哨兵（只 preload `*.gd`）的覆盖范围到哪 |
+
+| 步   | 命令  | 作用对象             | 缓存态  | 重复  | 这一步要回答什么                                 |
+| --- | --- | ---------------- | ---- | --- | ---------------------------------------- |
+| 1   | V2  | `shader_user.gd` | COLD | 3   | `preload` 能否把 shader 错误“抬”到 GDScript 解析期 |
+| 2   | V3  | 整个项目             | COLD | 3   | import 阶段是否报 shader 错误                   |
+| 3   | V2  | `shader_user.gd` | WARM | 3   | 暖态下是否仍然可见                                |
+| 4   | V5  | 整个项目             | WARM | 3   | 场景启动阶段是否报（`main.tscn` 上挂着坏材质）            |
+| 5   | V1  | 全项目哨兵            | WARM | 3   | 默认哨兵（只 preload `*.gd`）的覆盖范围到哪            |
+
+
 
 
 ### 判据（三种结果，价值递减）
@@ -831,21 +863,17 @@ import_trigger_policy:
 
 每一步都必须与 `good.gdshader` 侧的输出对比，否则无法区分“坏 shader 不报”和“所有 shader 都不报”。
 
-
 ### 决策影响
 
 直接决定**验证边界声明**。“我知道我的客观信号覆盖不到哪类错误，所以那类直接升级人工”比“我全都能修”可信得多。若命中结果 3，则是一个可以写进 README 的巧思。
-
 
 ### 额外记录
 
 每一步标注信号来源：脚本解析 / 资源 import / 场景启动。同一条错误在不同阶段的文案往往不同，这三类必须分开存。
 
-
 ### 执行要点
 
 `N07.py` 若确认 V2 的 preload 方案成立，本实验只输出 capability，**不直接改写其他 fixture**；是否把哨兵 preload 扩展到 `.gdshader` 由 `probe.sentinel` 的参数统一控制，不在各实验脚本里各写一份（契约见 ARCHITECTURE.md §5）。
-
 
 ---
 
@@ -864,21 +892,24 @@ import_trigger_policy:
 - **产出**：`converter-capabilities.json` + “工具 → 文件类型 / 变更类型”职责矩阵
 
 
+
 ### 步骤
 
-| 步 | 命令 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | `--help` | 不涉及项目 | — | 1 | `convert` / `3to4` / `upgrade` 相关入口是否存在；记完整 help、版本、build hash |
-| 2 | `--validate-conversion-3to4` | CP-MINIMAL 副本 A | — | 1 | 能否对最小 `config_version=4` 项目调用成功 |
-| 3 | `--convert-3to4` | CP-MINIMAL 副本 B | — | 1 | 是否真的改了文件（以 diff 为准，不看 stdout） |
-| 4 | upgrade tool（若步骤 1 发现入口） | CP-MINIMAL 副本 C | — | 1 | 它改哪些文件类型：GDScript、UID、`.tscn`、`.tres`、资源路径、import cache |
-| 5 | V3 | CP-MINIMAL 副本 D | COLD | 1 | 用 `--import` 近似替代 upgrade tool 时的边界在哪 |
+
+| 步   | 命令                           | 作用对象            | 缓存态  | 重复  | 这一步要回答什么                                                       |
+| --- | ---------------------------- | --------------- | ---- | --- | -------------------------------------------------------------- |
+| 1   | `--help`                     | 不涉及项目           | —    | 1   | `convert` / `3to4` / `upgrade` 相关入口是否存在；记完整 help、版本、build hash |
+| 2   | `--validate-conversion-3to4` | CP-MINIMAL 副本 A | —    | 1   | 能否对最小 `config_version=4` 项目调用成功                                |
+| 3   | `--convert-3to4`             | CP-MINIMAL 副本 B | —    | 1   | 是否真的改了文件（以 diff 为准，不看 stdout）                                  |
+| 4   | upgrade tool（若步骤 1 发现入口）     | CP-MINIMAL 副本 C | —    | 1   | 它改哪些文件类型：GDScript、UID、`.tscn`、`.tres`、资源路径、import cache        |
+| 5   | V3                           | CP-MINIMAL 副本 D | COLD | 1   | 用 `--import` 近似替代 upgrade tool 时的边界在哪                          |
+
+
 
 
 ### 判据
 
 help 中存在**并且**能对最小项目成功调用，才算能力门通过；**不能只根据源码里存在对应代码就判定 CLI 可用**。步骤 2—5 必须各用一个独立副本，同一工作区连续执行会让文件变更无法归因。
-
 
 ### 决策影响
 
@@ -886,15 +917,14 @@ help 中存在**并且**能对最小项目成功调用，才算能力门通过�
 - upgrade tool 有 CLI → 第二阶段流水线是 `converter → upgrade tool → verifier`；无 CLI → 以 `--import` 近似替代，并在报告里声明 UID / 资源重保存的边界。
 
 
+
 ### 额外记录
 
 完整 `--help` 原文、版本字符串、build hash；每一组的完整文件 diff（职责矩阵的唯一依据）。
 
-
 ### 执行要点
 
 `N15.py` 不修改任何原始项目，每步 `repeat=1`，判定交给 `analyzer/capability.py`。它把结论导出到 `artifacts/latest/N15.json`（含 `converter-capabilities`），**N21 启动时必须读它**；能力门失败时 N21 标记为 `BLOCKED`，不得静默跳过。原 N16 已并入本卡片。
-
 
 ---
 
@@ -909,29 +939,31 @@ help 中存在**并且**能对最小项目成功调用，才算能力门通过�
 - **产出**：残余问题分布、支持边界、import 成本
 
 
+
 ### 步骤
 
-| 步 | 阶段 | 作用对象 | 缓存态 | 重复 | 这一步要回答什么 |
-| --- | --- | --- | --- | --- | --- |
-| A0 | 预扫描 | Demo manifest | — | 1 | 文件树 hash、文件数、资源规模，**以及最大 `.gd` 字节数与最长单行**（原 N11 的大文件问题在这里判定成立与否） |
-| A1 | converter | 每个 Demo 一个独立转换工作区 | — | 1 | converter 改了什么：完整 diff、stdout、TODO 数、明确跳过与静默跳过的文件 |
-| A2 | upgrade tool 或 V3 | 同一转换工作区 | COLD | 1 | 按 N15 的结论选路，把项目带到可 import 状态 |
-| A3 | 冻结快照 | 转换结果 | — | — | 冻结为**只读** converted snapshot，后续实验只消费副本 |
-| B1 | V1 | snapshot 副本 | COLD | 3 | 残余问题全集 + cold import 成本 |
-| B2 | V1 | snapshot 副本 | WARM | 3 | 残余问题是否与 COLD 一致 + warm 成本（原 N19） |
-| B3 | V5 | snapshot 副本 | WARM | 3 | 启动阶段才暴露的残余 |
-| B4 | 离线分类 | A1—B3 的全部日志与 diff | — | — | 按下面的分类体系逐条归类；统计 `TODOConverter3To4` 与 `instance()` 残余（原 N17）、shader 残余（原 N18）、import 耗时聚合（原 N19） |
+
+| 步   | 阶段                | 作用对象              | 缓存态  | 重复  | 这一步要回答什么                                                                                         |
+| --- | ----------------- | ----------------- | ---- | --- | ------------------------------------------------------------------------------------------------ |
+| A0  | 预扫描               | Demo manifest     | —    | 1   | 文件树 hash、文件数、资源规模，**以及最大** `.gd` **字节数与最长单行**（原 N11 的大文件问题在这里判定成立与否）                             |
+| A1  | converter         | 每个 Demo 一个独立转换工作区 | —    | 1   | converter 改了什么：完整 diff、stdout、TODO 数、明确跳过与静默跳过的文件                                                |
+| A2  | upgrade tool 或 V3 | 同一转换工作区           | COLD | 1   | 按 N15 的结论选路，把项目带到可 import 状态                                                                     |
+| A3  | 冻结快照              | 转换结果              | —    | —   | 冻结为**只读** converted snapshot，后续实验只消费副本                                                           |
+| B1  | V1                | snapshot 副本       | COLD | 3   | 残余问题全集 + cold import 成本                                                                          |
+| B2  | V1                | snapshot 副本       | WARM | 3   | 残余问题是否与 COLD 一致 + warm 成本（原 N19）                                                                 |
+| B3  | V5                | snapshot 副本       | WARM | 3   | 启动阶段才暴露的残余                                                                                       |
+| B4  | 离线分类              | A1—B3 的全部日志与 diff | —    | —   | 按下面的分类体系逐条归类；统计 `TODOConverter3To4` 与 `instance()` 残余（原 N17）、shader 残余（原 N18）、import 耗时聚合（原 N19） |
+
+
 
 
 ### 判据
 
 所有残余问题必须归类；无法自动判断的进入 `UNCLASSIFIED_NEEDS_REVIEW`，**不能静默丢弃**。converter 的 stdout 不作为 checkpoint：**报告成功但文件未变化**本身就是一条要记录的结论，一切以文件 diff 与后续 verifier 结果为准。
 
-
 ### 决策影响
 
 得到真实的残余错误分布、RAG 语料权重、Agent 修复优先级、预估成本与支持边界。若 import 成本（B1/B2 的 wall time）成为迭代主导项，则需要条件性 import、预热 cache 快照或 workspace 级 cache 复用。
-
 
 ### 额外记录
 
@@ -940,12 +972,14 @@ help 中存在**并且**能对最小项目成功调用，才算能力门通过�
 - A1 的 converter 调用必须记录是否 timeout、是否被 killpg。
 
 
+
 ### 执行要点
 
 `N21.py` 以 Demo manifest 为输入，每个 Demo 创建独立转换工作区。**A3 冻结之后不得再在同一目录上运行任何会修改文件的步骤**；B1—B3 各自消费只读快照的副本。converter 调用一律包 timeout 与进程组清理。
 
-
 ### 分类体系
+
+
 
 #### A. Converter 行为
 
@@ -961,6 +995,7 @@ help 中存在**并且**能对最小项目成功调用，才算能力门通过�
 - 产生破坏性文件修改。
 
 
+
 #### B. Verifier 阶段
 
 - parse error；
@@ -973,6 +1008,7 @@ help 中存在**并且**能对最小项目成功调用，才算能力门通过�
 - verifier false positive；
 - verifier false negative；
 - infrastructure failure。
+
 
 
 #### C. 根因类别
@@ -995,6 +1031,7 @@ help 中存在**并且**能对最小项目成功调用，才算能力门通过�
 - converter 缺陷；
 - 4.0→4.7 版本漂移；
 - 其他待人工确认。
+
 
 
 #### D. 每条残余记录字段
@@ -1033,19 +1070,19 @@ needs_human
 第 4、5 层的卡片已经按执行顺序排列，本层只回答“谁挡着谁”。P1-0 / P2-0 是环境与 fixture 校验，不是 N。依赖未完成或上游 `inputs_digest` 过期时，下游标记为 **BLOCKED**，不得静默跳过（§0.5.4）。
 
 
-| 执行序 | N | 硬依赖 | 该实验产出的决策 | 影响哪些下游 |
-| --- | --- | --- | --- | --- |
-| P1-1 | N09 | — | 两级 signature 字段规格；`repeat: 3` 默认值；BG 是否漂移 | 第一阶段全部；N04 直接复用其日志 |
-| P1-2 | N08 | N09 | exit code 可否当 success；V5 仅作交叉验证；`--debug` 禁入 | 所有实验的成功判定；N05 的采集路径 |
-| P1-3 | N03 | N09, N08 | COLD/WARM 是否有效；新增 `class_name` 是否必须 import | N01；N06 的资源侧对照；条件性 import |
-| P1-4 | N01 | N09, N08, N03 | autoload FP 是否存在；WARM 能否规避；是否要 `[autoload]` 白名单 | N02 的过滤策略；N08 交叉表“纯假阳性”行回填 |
-| P1-5 | N02 | N01 | addon 单例是否写入 `[autoload]`；是否与 N01 同根 | 符号白名单的实现成本 |
-| P1-6 | N04 | N09, N08 | 级联放大倍数；症状是否计入重试计数 | `VerifyReport.root_cause_errors` |
-| P1-7 | N05 | N08, N09 | warning 如何采集；是否进 reward / 终止条件 | 正式 verifier 的严重度策略 |
-| P1-8 | N06 | N09, N08, N03 | invalid UID 严重度；资源变更是否必须 import | 入队前 UID 规范化；`import_trigger_policy` 收尾 |
-| P1-9 | N07 | N09, N08 | shader 是盲区还是可抬升 | 验证边界声明；哨兵是否扩展 |
-| P2-1 | N15 | — | converter / upgrade tool 的 CLI 是否存在 | N21；失败则 N21 BLOCKED |
-| P2-2 | N21 | N15 + 第一阶段全部策略 | 残余问题分布、支持边界、import 成本 | RAG 语料 / Agent 优先级 / 人工升级边界 |
+| 执行序  | N   | 硬依赖            | 该实验产出的决策                                        | 影响哪些下游                                 |
+| ---- | --- | -------------- | ----------------------------------------------- | -------------------------------------- |
+| P1-1 | N09 | —              | 两级 signature 字段规格；`repeat: 3` 默认值；BG 是否漂移       | 第一阶段全部；N04 直接复用其日志                     |
+| P1-2 | N08 | N09            | exit code 可否当 success；V5 仅作交叉验证；`--debug` 禁入    | 所有实验的成功判定；N05 的采集路径                    |
+| P1-3 | N03 | N09, N08       | COLD/WARM 是否有效；新增 `class_name` 是否必须 import      | N01；N06 的资源侧对照；条件性 import              |
+| P1-4 | N01 | N09, N08, N03  | autoload FP 是否存在；WARM 能否规避；是否要 `[autoload]` 白名单 | N02 的过滤策略；N08 交叉表“纯假阳性”行回填             |
+| P1-5 | N02 | N01            | addon 单例是否写入 `[autoload]`；是否与 N01 同根            | 符号白名单的实现成本                             |
+| P1-6 | N04 | N09, N08       | 级联放大倍数；症状是否计入重试计数                               | `VerifyReport.root_cause_errors`       |
+| P1-7 | N05 | N08, N09       | warning 如何采集；是否进 reward / 终止条件                  | 正式 verifier 的严重度策略                     |
+| P1-8 | N06 | N09, N08, N03  | invalid UID 严重度；资源变更是否必须 import                 | 入队前 UID 规范化；`import_trigger_policy` 收尾 |
+| P1-9 | N07 | N09, N08       | shader 是盲区还是可抬升                                 | 验证边界声明；哨兵是否扩展                          |
+| P2-1 | N15 | —              | converter / upgrade tool 的 CLI 是否存在             | N21；失败则 N21 BLOCKED                    |
+| P2-2 | N21 | N15 + 第一阶段全部策略 | 残余问题分布、支持边界、import 成本                           | RAG 语料 / Agent 优先级 / 人工升级边界            |
 
 
 ```mermaid
@@ -1067,6 +1104,8 @@ flowchart TD
   N06 --> N21
   N07 --> N21
 ```
+
+
 
 ---
 
@@ -1123,28 +1162,17 @@ GUI 产物在 `derived/`，见 [ARCHITECTURE.md](ARCHITECTURE.md) §7。
 
 # 第 9 层 · 最终报告结构
 
+人写结论与规程化中间结果都在 `reports/`，不再使用单数 `report/`：
+
 ```text
-report/
-├── environment.md
-├── command-capabilities.md
-├── phase1/
-│   ├── confirmed-noise.md
-│   ├── not-reproduced.md
-│   ├── verifier-blind-spots.md
-│   ├── exit-code-policy.md
-│   ├── import-trigger-policy.md
-│   └── signature-policy.md
-├── phase2/
-│   ├── converter-capabilities.md
-│   ├── demo-migration-summary.md
-│   ├── residual-distribution.csv
-│   ├── residual-distribution.md
-│   └── unsupported-boundaries.md
-└── evidence/
-    └── artifact-index.md
+reports/
+├── README.md                         人写实验报告（结论）
+└── <run-id>/<N>/<analyzer-name>/     analyzer 中间结果
 ```
 
-`demo-migration-summary.md` 同时承载 import 成本（原 N19）、`TODOConverter3To4` 与 `instance()` 残余（原 N17）、shader 残余（原 N18）三节，不再单开文件。
+例如 N09 的稳定性分析写在 `reports/<run-id>/N09/stability/`。同一份 artifacts 可以被多个 analyzer 各写各的子目录，互不覆盖。
+
+人写报告里，import 成本（原 N19）、`TODOConverter3To4` 与 `instance()` 残余（原 N17）、shader 残余（原 N18）三节仍归在 N21 的结论下，不再单开文件。填写规则见 [reports/README.md](reports/README.md)。
 
 每个结论只能处于以下状态之一：
 
@@ -1180,10 +1208,11 @@ report/
 5. **N08 紧随其后**，用于裁决 exit code；`--debug` 的存活性作为它的一步一次性观测，不再单独占一条实验。
 6. **指令集仍为 V1—V8**：V1 即哨兵项目级校验；旧 V9/V10 编号删除。V8 只在 N08 里被观测一次，之后永久禁入。
 7. **全部实验共同的记录与清理要求集中在 §0.5**，卡片只写增量；每张卡片的指令写成有序步骤表，缓存态与重复次数各占一列，不留需要二次解读的写法。
-8. **`import_trigger_policy` 由 N03（脚本侧）与 N06（资源侧）合并产出**，原 N12 不再单独存在。
+8. `import_trigger_policy` **由 N03（脚本侧）与 N06（资源侧）合并产出**，原 N12 不再单独存在。
 9. **所有 GUI、UID、插件和文件修改只发生在临时工作区**；可重复的 GUI 产物冻结为 derived patch。
 10. **官方 3.5/3.6 Demo 的转换结果先冻结为只读快照**，再分别用于残余统计与耗时聚合；converter 的 stdout 永远不作为 checkpoint，一切以文件 diff 为准。
 11. **最终指标必须同时覆盖解析/编译正确性、converter 残余和语义级待办**；“解析清零”不能等同于“迁移完成”。
 12. **采集与判定彻底分开**：实验脚本只跑命令、只落盘；判定由 `analyzer/` 下的独立脚本事后做，两者互不调用。
-13. **V1 哨兵由 `probe.sentinel` 步骤级注入** `__probe_sentinel.gd`**，不常驻 fixture。**
+13. **V1 哨兵由** `probe.sentinel` **步骤级注入** `__probe_sentinel.gd`**，不常驻 fixture。**
 14. **Signature 分两级**：`local_signature` 做项目内身份，`noise_signature` 只用于 BG 减法；real/clean 是归类桶不是事先标注。
+

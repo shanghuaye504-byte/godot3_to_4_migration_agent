@@ -12,50 +12,64 @@
 
 # 0. 标签
 
-| 状态 | 含义 |
-| --- | --- |
-| `NOT_STARTED` / `RUNNING` | 尚未开始 / 正在执行 |
-| `CONFIRMED` | 现象稳定复现，证据充分 |
-| `PARTIAL` | 只确认了实验中的一部分现象 |
-| `NOT_REPRODUCED` | 按计划执行后未复现 |
-| `INCONCLUSIVE` | 结果不稳定或证据不足 |
-| `BLOCKED` | 因环境、工具或上游依赖无法执行 |
+
+| 状态                        | 含义              |
+| ------------------------- | --------------- |
+| `NOT_STARTED` / `RUNNING` | 尚未开始 / 正在执行     |
+| `CONFIRMED`               | 现象稳定复现，证据充分     |
+| `PARTIAL`                 | 只确认了实验中的一部分现象   |
+| `NOT_REPRODUCED`          | 按计划执行后未复现       |
+| `INCONCLUSIVE`            | 结果不稳定或证据不足      |
+| `BLOCKED`                 | 因环境、工具或上游依赖无法执行 |
+
 
 可信度：`HIGH`（多次重复一致 + 对照正常 + 缓存态明确）、`MEDIUM`（日志完整但重复不足或依赖人工判断）、`LOW`（单次观察或无可靠对照）、`NONE`（尚无结论）。
 
 ---
 
+
+
 # 1. 环境
+
+
 
 ## 1.1 元数据
 
-| 字段 | 实测值 |
-| --- | --- |
-| 报告版本 | `0.2.0` |
-| 最后更新 | `2026-08-22 00:05 +0800` |
-| 执行人员 | `yy_catmax`（git: `shanghuaye504-byte <shanghuaye504@gmail.com>`） |
-| 操作系统 / 架构 | `macOS 26.3.1`（Darwin 25.3.0）/ `arm64`，`sysctl.proc_translated=0` |
-| Python | `3.13.9`（`/Users/yy_catmax/miniconda3/bin/python`） |
-| Godot 可执行文件 | `/usr/local/bin/godot4` → `Godot.app/Contents/MacOS/Godot` |
+
+| 字段                    | 实测值                                                                                                  |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| 报告版本                  | `0.2.0`                                                                                              |
+| 最后更新                  | `2026-08-22 00:05 +0800`                                                                             |
+| 执行人员                  | `yy_catmax`（git: `shanghuaye504-byte <shanghuaye504@gmail.com>`）                                     |
+| 操作系统 / 架构             | `macOS 26.3.1`（Darwin 25.3.0）/ `arm64`，`sysctl.proc_translated=0`                                    |
+| Python                | `3.13.9`（`/Users/yy_catmax/miniconda3/bin/python`）                                                   |
+| Godot 可执行文件           | `/usr/local/bin/godot4` → `Godot.app/Contents/MacOS/Godot`                                           |
 | Godot 版本 / build hash | `4.7.1.stable.official.a13da4feb` / `a13da4feb`（二进制 sha1 `9fab64a7acbe2af2690e3ac7c3249b40363b76bb`） |
-| 构建来源 | 官方构建（Developer ID `Prehensile Tales B.V.`，Gatekeeper `Notarized Developer ID`） |
-| 环境预检 Run ID | `env-preflight-20260821-180807`（旧预检 `env-preflight-20260821-105347` 保留为历史） |
+| 构建来源                  | 官方构建（Developer ID `Prehensile Tales B.V.`，Gatekeeper `Notarized Developer ID`）                       |
+| 环境预检 Run ID           | `env-preflight-20260821-180807`（旧预检 `env-preflight-20260821-105347` 保留为历史）                           |
+
+
+
 
 ## 1.2 环境校验
 
 证据目录：`artifacts/env-preflight-20260821-180807/`。
 
-| 检查项 | 结果 | 状态 |
-| --- | --- | --- |
-| Godot 版本与 headless 冒烟 | `4.7.1.stable.official.a13da4feb`；CleanControl 副本 `--headless --quit` 退出码 0，stdout 含 `CLEAN_OK` | `CONFIRMED` |
-| 二进制架构 | universal（`x86_64`+`arm64`），未走 Rosetta | `CONFIRMED` |
-| macOS quarantine 不阻止执行 | 带 `com.apple.quarantine` 但 `spctl` 为 `accepted`；`--version` 与冒烟均 exit 0 | `CONFIRMED` |
-| Fixture git 状态 clean | 99 个文件已入库，`git status` / `git diff` 空 | `CONFIRMED` |
-| Fixture 中无 `.godot/` | 计数 1：`CleanControl/.godot/` 已被跟踪入库，不是冒烟写回的 | `PARTIAL` |
-| artifacts 位于 fixture 外 | `artifacts/` 与 `fixtures/` 为兄弟目录 | `CONFIRMED` |
-| 采集侧支持进程组终止 | 旧 `runner/kernel/process.py` 已验证 `start_new_session=True` + `killpg`，Fake hang 测得 `timed_out=True`、signal 9、无残留 pid | `CONFIRMED`（**架构改为 `experiments/util` 后必须重跑同一检查**） |
+
+| 检查项                    | 结果                                                                                                                  | 状态                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Godot 版本与 headless 冒烟  | `4.7.1.stable.official.a13da4feb`；CleanControl 副本 `--headless --quit` 退出码 0，stdout 含 `CLEAN_OK`                     | `CONFIRMED`                                            |
+| 二进制架构                  | universal（`x86_64`+`arm64`），未走 Rosetta                                                                              | `CONFIRMED`                                            |
+| macOS quarantine 不阻止执行 | 带 `com.apple.quarantine` 但 `spctl` 为 `accepted`；`--version` 与冒烟均 exit 0                                             | `CONFIRMED`                                            |
+| Fixture git 状态 clean   | 99 个文件已入库，`git status` / `git diff` 空                                                                               | `CONFIRMED`                                            |
+| Fixture 中无 `.godot/`   | 计数 1：`CleanControl/.godot/` 已被跟踪入库，不是冒烟写回的                                                                          | `PARTIAL`                                              |
+| artifacts 位于 fixture 外 | `artifacts/` 与 `fixtures/` 为兄弟目录                                                                                    | `CONFIRMED`                                            |
+| 采集侧支持进程组终止             | 旧 `runner/kernel/process.py` 已验证 `start_new_session=True` + `killpg`，Fake hang 测得 `timed_out=True`、signal 9、无残留 pid | `CONFIRMED`（**架构改为** `experiments/util` **后必须重跑同一检查**） |
+
 
 ---
+
+
 
 # 2. 看板
 
@@ -63,26 +77,34 @@
 
 ## 2.1 第一阶段（9 条）
 
-| 执行序 | 实验 | 主题 | 状态 | 核心结论 | 可信度 |
-| --- | --- | --- | --- | --- | --- |
-| P1-1 | N09 | 非确定性与归一化 | `NOT_STARTED` | `待填写` | `NONE` |
+
+| 执行序  | 实验  | 主题                           | 状态            | 核心结论  | 可信度    |
+| ---- | --- | ---------------------------- | ------------- | ----- | ------ |
+| P1-1 | N09 | 非确定性与归一化                     | `NOT_STARTED` | `待填写` | `NONE` |
 | P1-2 | N08 | exit code、启动语义、`--debug` 存活性 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-3 | N03 | `class_name` 冷缓存与 import 触发 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-4 | N01 | autoload 假阳性 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-5 | N02 | addon 单例假阳性 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-6 | N04 | 级联错误与根因放大 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-7 | N05 | warning 与 error 严重度 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-8 | N06 | invalid UID 严重度与资源引用变更 | `NOT_STARTED` | `待填写` | `NONE` |
-| P1-9 | N07 | shader verifier 盲区 | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-3 | N03 | `class_name` 冷缓存与 import 触发  | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-4 | N01 | autoload 假阳性                 | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-5 | N02 | addon 单例假阳性                  | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-6 | N04 | 级联错误与根因放大                    | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-7 | N05 | warning 与 error 严重度          | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-8 | N06 | invalid UID 严重度与资源引用变更       | `NOT_STARTED` | `待填写` | `NONE` |
+| P1-9 | N07 | shader verifier 盲区           | `NOT_STARTED` | `待填写` | `NONE` |
+
+
+
 
 ## 2.2 第二阶段（2 条）
 
-| 执行序 | 实验 | 主题 | 状态 | 核心结论 | 可信度 |
-| --- | --- | --- | --- | --- | --- |
+
+| 执行序  | 实验  | 主题                           | 状态            | 核心结论  | 可信度    |
+| ---- | --- | ---------------------------- | ------------- | ----- | ------ |
 | P2-1 | N15 | converter 与 upgrade tool 能力门 | `NOT_STARTED` | `待填写` | `NONE` |
-| P2-2 | N21 | 官方 Demo 自动迁移残余分布 | `NOT_STARTED` | `待填写` | `NONE` |
+| P2-2 | N21 | 官方 Demo 自动迁移残余分布             | `NOT_STARTED` | `待填写` | `NONE` |
+
 
 ---
+
+
 
 # 3. 第一阶段结论
 
@@ -90,37 +112,45 @@
 
 ---
 
+
+
 ## P1-1 · N09 非确定性与归一化
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/n09-20260821/N09/` → `reports/n09-20260821/N09/stability/`
 
-| 判据 | 实测 |
-| --- | --- |
-| 重复间行集合是否一致（内容确定性） | `待填写` |
-| 重复间输出顺序是否一致 | `待填写` |
-| 出现哪些动态字段（绝对路径 / 行号 / 内存地址 / 随机 ID / 耗时数字） | `待填写` |
-| 横向（CleanControl vs NP-CASCADE）暴露哪些随项目而变的字段 | `待填写` |
-| CleanControl 背景是否漂移（BG-DRIFT） | `待填写` |
 
-**结论**：`待填写`
+| 判据                                         | 实测                                                                                                                          |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| 重复间行集合是否一致（内容确定性）                          | `完全一致`                                                                                                                      |
+| 重复间输出顺序是否一致                                | `完全一致`                                                                                                                      |
+| 出现哪些动态字段（绝对路径 / 行号 / 内存地址 / 随机 ID / 耗时数字）  | `无绝对路径，无随机地址，无时间数字，但是需要注意的是有行号，这个行号信息在修改代码后会动态变化，不能作为新增错误的判据，但是行号信息要传给llm作为信号。确认报错中的地址全是相对的，无随机字段，只有报错的代码行号是一个需要注意后期去噪的字段。` |
+| 横向（CleanControl vs NP-CASCADE）暴露哪些随项目而变的字段 | `无任何随项目变化的字段，只有具体报错的代码文件名不同。确认无横向漂移，同一错误在不同的项目下的签名是一致的：但是引用的具体gd代码文件名不同。`                                                   |
+| CleanControl 背景是否漂移（BG-DRIFT）              | `已确认无漂移，每次产出的5个repeat报错的信息和顺序完全一致。`                                                                                         |
+
+
+**结论**：`confirmed`
 
 **决策**：两级 signature 的字段规格 → 写进 §5 `signature`。纵向发现的字段两级都抹；横向发现的字段 `local` 留、`noise` 抹；行号必须排除；error 集合按排序后的 set 比较。后续实验重复次数：`待填写`（默认 3）。
 
 ---
 
+
+
 ## P1-2 · N08 exit code、启动语义与 `--debug` 存活性
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N08/` → `reports/<run-id>/N08/exitcode/`
 
-| 判据 | 实测 |
-| --- | --- |
-| 干净项目 rc（期望 0） | `待填写` |
-| 单文件真错 rc（期望 ≠0） | `待填写` |
-| 项目级真错 rc（期望 ≠0） | `待填写` |
-| 纯假阳性 rc（期望 0，标签待 N01 确认） | `待填写` |
-| V8 结局：挂死 / signal 11 / 正常退出，以及是否有残留子进程 | `待填写` |
-| 有坏脚本时 V5 能否启动成功（B9） | `待填写` |
+
+| 判据                                       | 实测    |
+| ---------------------------------------- | ----- |
+| 干净项目 rc（期望 0）                            | `待填写` |
+| 单文件真错 rc（期望 ≠0）                          | `待填写` |
+| 项目级真错 rc（期望 ≠0）                          | `待填写` |
+| 纯假阳性 rc（期望 0，标签待 N01 确认）                 | `待填写` |
+| V8 结局：挂死 / signal 11 / 正常退出，以及是否有残留子进程   | `待填写` |
+| 有坏脚本时 V5 能否启动成功（B9）                      | `待填写` |
 | V4 不带 `--editor` 能否 import；V6/V7 是否改变 rc | `待填写` |
+
 
 **结论**：`待填写`（关键判断是“是否存在有错但 rc=0”）
 
@@ -128,17 +158,21 @@
 
 ---
 
+
+
 ## P1-3 · N03 `class_name` 冷缓存与 import 触发
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N03/` → `reports/<run-id>/N03/sequence/`
 
-| 判据 | 实测 |
-| --- | --- |
+
+| 判据                                           | 实测    |
+| -------------------------------------------- | ----- |
 | T1（COLD）是否报 `Identifier not found: ProbeFoo` | `待填写` |
-| T3（import 后）是否干净 → 冷缓存假阳性 | `待填写` |
-| T4（新增 `class_name`，不 import）是否报错 | `待填写` |
-| T6（补 import 后）是否干净 → 缓存陈旧 | `待填写` |
-| `global_script_class_cache.cfg` 在各步是否真的被重建 | `待填写` |
+| T3（import 后）是否干净 → 冷缓存假阳性                    | `待填写` |
+| T4（新增 `class_name`，不 import）是否报错             | `待填写` |
+| T6（补 import 后）是否干净 → 缓存陈旧                    | `待填写` |
+| `global_script_class_cache.cfg` 在各步是否真的被重建   | `待填写` |
+
 
 **结论**：`待填写`
 
@@ -146,17 +180,21 @@
 
 ---
 
+
+
 ## P1-4 · N01 autoload 假阳性
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N01/` → `reports/<run-id>/N01/delta/`
 
-| 判据 | 实测 |
-| --- | --- |
+
+| 判据                                                         | 实测    |
+| ---------------------------------------------------------- | ----- |
 | COLD 下 V2 是否报 `Identifier not found: Config`（埋点 `AL-USES`） | `待填写` |
-| WARM 下是否仍报 | `待填写` |
-| V5 是否打印 `Config.ping() called`（证明符号真实存在） | `待填写` |
-| V1 项目级扫描是否放大该 FP | `待填写` |
-| 真错误埋点 `AL-SHADOW` 的精确文案（不得被过滤） | `待填写` |
+| WARM 下是否仍报                                                 | `待填写` |
+| V5 是否打印 `Config.ping() called`（证明符号真实存在）                   | `待填写` |
+| V1 项目级扫描是否放大该 FP                                           | `待填写` |
+| 真错误埋点 `AL-SHADOW` 的精确文案（不得被过滤）                             | `待填写` |
+
 
 **结论**：`待填写`（三选一：FP 在 COLD+WARM 都存在 / 只在 COLD / 不复现）
 
@@ -164,17 +202,21 @@
 
 ---
 
+
+
 ## P1-5 · N02 addon 单例假阳性
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N02/` → `reports/<run-id>/N02/delta/`
 
-| 判据 | 实测 |
-| --- | --- |
+
+| 判据                                                            | 实测    |
+| ------------------------------------------------------------- | ----- |
 | 启用插件后 `DummySingleton` 是否出现在 `project.godot` 的 `[autoload]` 段 | `待填写` |
-| V2 是否报单例找不到 | `待填写` |
-| V5 是否证明单例在运行时注册成功 | `待填写` |
-| 与 N01 是否同根同源（同一条过滤规则能否通吃） | `待填写` |
-| 插件启用状态来自 derived patch 还是 manual gate | `待填写` |
+| V2 是否报单例找不到                                                   | `待填写` |
+| V5 是否证明单例在运行时注册成功                                             | `待填写` |
+| 与 N01 是否同根同源（同一条过滤规则能否通吃）                                     | `待填写` |
+| 插件启用状态来自 derived patch 还是 manual gate                         | `待填写` |
+
 
 **结论**：`待填写`
 
@@ -182,18 +224,22 @@
 
 ---
 
+
+
 ## P1-6 · N04 级联错误与根因放大
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N04/` + 复用 `artifacts/n09-20260821/N09/` → `reports/<run-id>/N04/cascade/`
 
-| 判据 | 实测 |
-| --- | --- |
-| NP-CASCADE 项目级原始 error 行数（已扣除哨兵人造级联边） | `待填写` |
-| 同构单根分母：`scene_bad.gd` 单文件 error 行数 | `待填写` |
-| 放大倍数 | `待填写` |
-| 去重后 signature 数 / 根因候选数 / 症状数 | `待填写` |
-| 「`at:` 指向引擎内部路径 = 症状」这条规则是否成立 | `待填写` |
+
+| 判据                                           | 实测    |
+| -------------------------------------------- | ----- |
+| NP-CASCADE 项目级原始 error 行数（已扣除哨兵人造级联边）        | `待填写` |
+| 同构单根分母：`scene_bad.gd` 单文件 error 行数           | `待填写` |
+| 放大倍数                                         | `待填写` |
+| 去重后 signature 数 / 根因候选数 / 症状数                | `待填写` |
+| 「`at:` 指向引擎内部路径 = 症状」这条规则是否成立                | `待填写` |
 | 直接依赖（`dep_1`）与二级依赖（`leaf`）被单独 check 时报根因还是症状 | `待填写` |
+
 
 **结论**：`待填写`
 
@@ -201,16 +247,20 @@
 
 ---
 
+
+
 ## P1-7 · N05 warning 与 error 严重度
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N05/` → `reports/<run-id>/N05/delta/`
 
-| 判据 | 实测 |
-| --- | --- |
-| 默认设置下 warning 是否根本不出现 | `待填写` |
+
+| 判据                                                              | 实测    |
+| --------------------------------------------------------------- | ----- |
+| 默认设置下 warning 是否根本不出现                                           | `待填写` |
 | 注入 `gdscript/warnings/enable=true` 后是否以 `WARNING:` 前缀出现在 stderr | `待填写` |
-| `exclude_addons=true` 是否真的屏蔽了 addon 内 warning | `待填写` |
-| CleanControl 背景里本来有多少 WARNING | `待填写` |
+| `exclude_addons=true` 是否真的屏蔽了 addon 内 warning                   | `待填写` |
+| CleanControl 背景里本来有多少 WARNING                                   | `待填写` |
+
 
 **结论**：`待填写`
 
@@ -218,17 +268,21 @@
 
 ---
 
+
+
 ## P1-8 · N06 invalid UID 严重度与资源引用变更
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N06/` → `reports/<run-id>/N06/sequence/`、`.../delta/`
 
-| 判据 | 实测 |
-| --- | --- |
+
+| 判据                                           | 实测    |
+| -------------------------------------------- | ----- |
 | `invalid UID` 的严重度前缀（`WARNING:` 还是 `ERROR:`） | `待填写` |
-| V3 重新 import 能否自愈伪造的 UID | `待填写` |
-| `ext_resource` 指向变更后不 import 是否报错 | `待填写` |
-| 补 import 之后是否干净 | `待填写` |
-| 正确 UID 基线来自 derived patch 还是 manual gate | `待填写` |
+| V3 重新 import 能否自愈伪造的 UID                     | `待填写` |
+| `ext_resource` 指向变更后不 import 是否报错            | `待填写` |
+| 补 import 之后是否干净                              | `待填写` |
+| 正确 UID 基线来自 derived patch 还是 manual gate     | `待填写` |
+
 
 **结论**：`待填写`
 
@@ -236,17 +290,21 @@
 
 ---
 
+
+
 ## P1-9 · N07 shader verifier 盲区
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N07/` → `reports/<run-id>/N07/delta/`
 
-| 判据 | 实测 |
-| --- | --- |
-| V2（`preload` shader 的脚本）是否报错 | `待填写` |
-| V3 import 阶段是否报错 | `待填写` |
-| V5 场景启动阶段是否报错 | `待填写` |
-| 默认 V1 哨兵（只 preload `*.gd`）能否覆盖 | `待填写` |
+
+| 判据                                       | 实测    |
+| ---------------------------------------- | ----- |
+| V2（`preload` shader 的脚本）是否报错             | `待填写` |
+| V3 import 阶段是否报错                         | `待填写` |
+| V5 场景启动阶段是否报错                            | `待填写` |
+| 默认 V1 哨兵（只 preload `*.gd`）能否覆盖           | `待填写` |
 | `good.gdshader` 侧是否静默（排除“所有 shader 都不报”） | `待填写` |
+
 
 **结论**：`待填写`（三选一，价值递减：全部静默 → 盲区 / import 阶段可见 → 免费信号 / V2 可抬升 → 哨兵可扩展）
 
@@ -254,21 +312,27 @@
 
 ---
 
+
+
 # 4. 第二阶段结论
 
 ---
+
+
 
 ## P2-1 · N15 converter 与 upgrade tool 能力门
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N15/` → `reports/<run-id>/N15/capability/`
 
-| 判据 | 实测 |
-| --- | --- |
-| `--validate-conversion-3to4` 是否存在且可对最小项目调用 | `待填写` |
-| `--convert-3to4` 是否存在且**真的改了文件**（以 diff 为准） | `待填写` |
-| 是否接受 `max_file_kb` / `max_line_size` 参数 | `待填写` |
-| ProjectUpgradeTool 是否有 headless CLI 入口 | `待填写` |
+
+| 判据                                                                                                | 实测    |
+| ------------------------------------------------------------------------------------------------- | ----- |
+| `--validate-conversion-3to4` 是否存在且可对最小项目调用                                                        | `待填写` |
+| `--convert-3to4` 是否存在且**真的改了文件**（以 diff 为准）                                                       | `待填写` |
+| 是否接受 `max_file_kb` / `max_line_size` 参数                                                           | `待填写` |
+| ProjectUpgradeTool 是否有 headless CLI 入口                                                            | `待填写` |
 | 职责矩阵：converter / upgrade tool / `--import` 各改哪类文件（GDScript、`.tscn`、`.tres`、UID、资源路径、import cache） | `待填写` |
+
 
 **结论**：`待填写`
 
@@ -276,30 +340,36 @@
 
 ---
 
+
+
 ## P2-2 · N21 官方 Demo 自动迁移残余分布
 
 `NOT_STARTED` · 可信度 `NONE` · 证据 `artifacts/<run-id>/N21/` → `reports/<run-id>/N21/corpus/`
 
 完整分布表（converter 行为分布、根因类别分布、严重度分布、可处理性分布、代表案例）由 `analyzer/corpus.py` 写在上面的 `reports/` 目录里，**不抄进本文**。这里只留摘要与判断。
 
-| 判据 | 实测 |
-| --- | --- |
+
+| 判据                                              | 实测    |
+| ----------------------------------------------- | ----- |
 | Demo 总数 / converter 成功完成数 / 转换后直接通过 verifier 的数 | `待填写` |
-| 每个 Demo 的根因簇数：均值 / 中位 / P95 | `待填写` |
-| Top 3 残余根因类别 | `待填写` |
-| `TODOConverter3To4` 总数，以及是否机器可解析 | `待填写` |
-| shader 残余：`.shader` 是否正确转为 `.gdshader`、引用是否同步 | `待填写` |
-| converter 报告成功但文件未变化的案例数 | `待填写` |
-| 最大 `.gd` 字节数与最长单行（判断大文件跳过问题是否成立） | `待填写` |
-| COLD / WARM import 耗时（按 Demo 规模归一化） | `待填写` |
-| `UNCLASSIFIED_NEEDS_REVIEW` 条数 | `待填写` |
-| 3.x→4.0 残余与 4.0→4.7 漂移的比例 | `待填写` |
+| 每个 Demo 的根因簇数：均值 / 中位 / P95                     | `待填写` |
+| Top 3 残余根因类别                                    | `待填写` |
+| `TODOConverter3To4` 总数，以及是否机器可解析                | `待填写` |
+| shader 残余：`.shader` 是否正确转为 `.gdshader`、引用是否同步   | `待填写` |
+| converter 报告成功但文件未变化的案例数                        | `待填写` |
+| 最大 `.gd` 字节数与最长单行（判断大文件跳过问题是否成立）                | `待填写` |
+| COLD / WARM import 耗时（按 Demo 规模归一化）             | `待填写` |
+| `UNCLASSIFIED_NEEDS_REVIEW` 条数                  | `待填写` |
+| 3.x→4.0 残余与 4.0→4.7 漂移的比例                       | `待填写` |
+
 
 **结论**：`待填写`
 
 **决策**：支持边界（自动 / 有条件 / 必须人工 / 明确不支持）→ §6.3；RAG 语料优先级与 Agent 优先处理的错误类型；import 是否为迭代主导成本（决定是否需要 cache 快照复用）。
 
 ---
+
+
 
 # 5. 生产 verifier 配置
 
@@ -364,23 +434,31 @@ pipeline:                                   # N15
 
 ---
 
+
+
 # 6. 最终结论
 
 > 所有相关实验结束后填写。每条必须引用实验编号与证据路径。
 
+
+
 ## 6.1 已确认的噪声与盲区
 
-| 实验 | 现象 | 是否确认 | 规避 / 过滤策略 | 证据 |
-| --- | --- | --- | --- | --- |
-| N09 | 输出非确定性 | `待填写` | `待填写` | `待填写` |
-| N08 | exit code 不可信 | `待填写` | `待填写` | `待填写` |
-| N03 | 冷缓存 / patch 后缓存陈旧 | `待填写` | `待填写` | `待填写` |
-| N01 | autoload 假阳性 | `待填写` | `待填写` | `待填写` |
-| N02 | addon 单例假阳性 | `待填写` | `待填写` | `待填写` |
-| N04 | 级联放大 | `待填写` | `待填写` | `待填写` |
-| N05 | warning 严重度 | `待填写` | `待填写` | `待填写` |
-| N06 | invalid UID 严重度 | `待填写` | `待填写` | `待填写` |
-| N07 | shader 盲区（假阴性） | `待填写` | `待填写` | `待填写` |
+
+| 实验  | 现象                | 是否确认  | 规避 / 过滤策略 | 证据    |
+| --- | ----------------- | ----- | --------- | ----- |
+| N09 | 输出非确定性            | `待填写` | `待填写`     | `待填写` |
+| N08 | exit code 不可信     | `待填写` | `待填写`     | `待填写` |
+| N03 | 冷缓存 / patch 后缓存陈旧 | `待填写` | `待填写`     | `待填写` |
+| N01 | autoload 假阳性      | `待填写` | `待填写`     | `待填写` |
+| N02 | addon 单例假阳性       | `待填写` | `待填写`     | `待填写` |
+| N04 | 级联放大              | `待填写` | `待填写`     | `待填写` |
+| N05 | warning 严重度       | `待填写` | `待填写`     | `待填写` |
+| N06 | invalid UID 严重度   | `待填写` | `待填写`     | `待填写` |
+| N07 | shader 盲区（假阴性）    | `待填写` | `待填写`     | `待填写` |
+
+
+
 
 ## 6.2 未复现 / 尚无定论 / 被阻塞
 
@@ -388,12 +466,16 @@ pipeline:                                   # N15
 - 尚无定论：`待填写`（说明缺哪份证据）
 - 被阻塞：`待填写`（注明阻塞源与解除条件）
 
+
+
 ## 6.3 支持边界
 
 - 自动支持：`待填写`
 - 有条件支持：`待填写`
 - 必须人工审核：`待填写`
 - 明确不支持：C#/GDExtension 仓库（先验，入队拒收）；其余 `待填写`
+
+
 
 ## 6.4 摘要
 
@@ -410,3 +492,4 @@ pipeline:                                   # N15
 ```text
 待填写。
 ```
+

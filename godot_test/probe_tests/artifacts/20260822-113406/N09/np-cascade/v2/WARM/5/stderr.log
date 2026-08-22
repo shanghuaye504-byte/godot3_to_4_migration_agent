@@ -1,0 +1,6 @@
+SCRIPT ERROR: Parse Error: Could not preload resource script "res://root_bad.gd".
+          at: GDScript::reload (res://dep_1.gd:3)
+SCRIPT ERROR: Parse Error: Could not resolve script "res://root_bad.gd".
+          at: GDScript::reload (res://dep_1.gd:3)
+ERROR: Failed to load script "res://dep_1.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

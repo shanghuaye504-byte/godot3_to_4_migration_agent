@@ -1,0 +1,383 @@
+{
+  "analyzer": "stability",
+  "view": "longitudinal",
+  "run_id": "20260822-113406",
+  "N": "N09",
+  "artifact_dir": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/artifacts/20260822-113406/N09",
+  "inputs_digest": "31919eb4683934a49a4a7fad005697608419731c135b9dea6bf9b055e18df428",
+  "step_count": 8,
+  "repeat_total": 40,
+  "all_line_sets_identical": true,
+  "all_common_line_orders_identical": true,
+  "unstable_step_count": 0,
+  "steps": [
+    {
+      "project": "clean-control",
+      "fixture": "phase1/CleanControl",
+      "cmd": "V1",
+      "cache_state": "COLD",
+      "step_id": "v1",
+      "target": null,
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "clean-control",
+      "fixture": "phase1/CleanControl",
+      "cmd": "V1",
+      "cache_state": "WARM",
+      "step_id": "v1",
+      "target": null,
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "clean-control",
+      "fixture": "phase1/CleanControl",
+      "cmd": "V2",
+      "cache_state": "WARM",
+      "step_id": "v2",
+      "target": "res://main.gd",
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "clean-control",
+      "fixture": "phase1/CleanControl",
+      "cmd": "V3",
+      "cache_state": "COLD",
+      "step_id": "v3",
+      "target": null,
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 21,
+            "2": 21,
+            "3": 21,
+            "4": 21,
+            "5": 21
+          },
+          "union_size": 19,
+          "intersection_size": 19
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "clean-control",
+      "fixture": "phase1/CleanControl",
+      "cmd": "V5",
+      "cache_state": "WARM",
+      "step_id": "v5",
+      "target": null,
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 3,
+            "2": 3,
+            "3": 3,
+            "4": 3,
+            "5": 3
+          },
+          "union_size": 3,
+          "intersection_size": 3
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "np-cascade",
+      "fixture": "phase1/NP-CASCADE",
+      "cmd": "V1",
+      "cache_state": "WARM",
+      "step_id": "v1",
+      "target": null,
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 6,
+            "2": 6,
+            "3": 6,
+            "4": 6,
+            "5": 6
+          },
+          "union_size": 5,
+          "intersection_size": 5
+        }
+      }
+    },
+    {
+      "project": "np-cascade",
+      "fixture": "phase1/NP-CASCADE",
+      "cmd": "V2",
+      "cache_state": "WARM",
+      "step_id": "v2",
+      "target": "res://dep_1.gd",
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 6,
+            "2": 6,
+            "3": 6,
+            "4": 6,
+            "5": 6
+          },
+          "union_size": 5,
+          "intersection_size": 5
+        }
+      }
+    },
+    {
+      "project": "np-cascade",
+      "fixture": "phase1/NP-CASCADE",
+      "cmd": "V3",
+      "cache_state": "COLD",
+      "step_id": "v3",
+      "target": null,
+      "repeat_count": 5,
+      "repeat_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 27,
+            "2": 27,
+            "3": 27,
+            "4": 27,
+            "5": 27
+          },
+          "union_size": 25,
+          "intersection_size": 25
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    }
+  ]
+}

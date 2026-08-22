@@ -1,0 +1,10 @@
+[
+  "/usr/local/bin/godot4",
+  "--headless",
+  "--path",
+  "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-113406-N09-phase1-CleanControl",
+  "--check-only",
+  "--script",
+  "res://__probe_sentinel.gd",
+  "--quit"
+]

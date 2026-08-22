@@ -1,0 +1,29 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-113406-N09-phase1-CleanControl",
+  "files": {
+    "a.gd": {
+      "sha256": "f31a0b6e643f865097dbd1dc4401b66e08f3b58e5b710def1adfb00e49f1b351",
+      "size": 61
+    },
+    "a.gd.uid": {
+      "sha256": "17e789d3cd6f37592ed10170b810a8ffd5e3b273d986a4180c909dcc7d9c8558",
+      "size": 19
+    },
+    "main.gd": {
+      "sha256": "a668bda86fd8084f92f3ddb54970c0a3ae7c0c0fc7d8dbd789ee0bf6cacbfe76",
+      "size": 75
+    },
+    "main.gd.uid": {
+      "sha256": "38eedff09ebb3c4451c311dd5a1c7a1b229b81dd996ee8263ee188f573fbb568",
+      "size": 19
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "1b69773e9b112a6364648a796accc5d283815a800a003e5f5344c876efe80664",
+      "size": 435
+    }
+  }
+}

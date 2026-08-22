@@ -1,7 +1,0 @@
-# artifacts vs fixtures
-artifacts=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/artifacts
-fixtures=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/fixtures
-artifacts_resolved=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/artifacts
-fixtures_resolved=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/fixtures
-artifacts_inside_fixtures=False
-same_parent=True

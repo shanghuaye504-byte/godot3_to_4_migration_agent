@@ -1,7 +1,0 @@
-timed_out=True
-signal=9
-returncode=None
-wall=1.004
-pid=95648 pgid=95648
-residual_pids=[]
-PASS=True

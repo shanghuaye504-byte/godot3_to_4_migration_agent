@@ -1,5 +1,0 @@
-# experiments/common/signature-rules.yaml
-#
-# 两级 signature 的字段抹除规则。由 N09 校准后回写，供后续实验的 normalize 使用。
-# local_signature 保留 res:// 路径与符号名；noise_signature 只留消息模板。
-# 当前为骨架，不含正则或占位符表。
