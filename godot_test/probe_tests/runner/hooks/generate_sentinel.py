@@ -1,7 +1,8 @@
-"""generate_sentinel：V9 步骤专用 hook。
+"""generate_sentinel：V1 项目级扫描的哨兵。
 
-扫描 workspace 下除 __probe_* 外的全部 .gd 文件，写入 res://__probe_sentinel.gd
-把它们逐个 preload；该文件不常驻 fixture，步骤结束后由 revert 闭包删除。
+由 kernel 在 V1（及 V7_V1 / V8_V1）步骤开始时写入、结束后删除。
+扫描 workspace 下除 __probe_* 外的全部 .gd，写入 res://__probe_sentinel.gd
+把它们逐个 preload。该文件不常驻 fixture。
 """
 
 from __future__ import annotations

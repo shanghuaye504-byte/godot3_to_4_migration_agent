@@ -1,0 +1,22 @@
+{
+  "engine_profile": {
+    "build_hash": "9fab64a7acbe2af2690e3ac7c3249b40363b76bb",
+    "version": "4.7.1.stable.official.a13da4feb"
+  },
+  "exp_id": "N09",
+  "fake": false,
+  "groups": [
+    {
+      "group_id": "clean-control",
+      "inputs_digest": "a2c7ab3e4540a57f321431fa7301073a74194894",
+      "status": "OK"
+    },
+    {
+      "group_id": "np-cascade",
+      "inputs_digest": "021b4c38dd92f1f85f9519d6febd5fb6e58adae2",
+      "status": "OK"
+    }
+  ],
+  "inputs_digest": "f49471be5f53adcb3ec216ab156895a4ebd20c25",
+  "run_id": "n09-20260821"
+}

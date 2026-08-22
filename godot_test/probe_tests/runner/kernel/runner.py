@@ -18,18 +18,18 @@
        cache.resolve_cache_state    COLD 删 .godot / WARM 检查标记
        _run_step_repeats：
          对每个 repeat_idx（同一件事再拍一遍）：
-           hooks.apply              例如 V9 写入哨兵
+           hooks.apply              YAML hook；V1 另由 kernel 写入哨兵
            commands.resolve         V3 → argv 列表
            构造 Measurement 标签
            capture.run_measurement  ← 唯一按快门的地方
-           hooks.revoke             删掉哨兵
-         artifacts.write_*          把每条 RawResult 写成 log
+           artifacts.write_*        立刻落盘原始测量
+           hooks.revoke             含删除 V1 哨兵
        若本 step 是成功的 V3 → cache.mark_warm
      finally cleanup                无论成败：杀进程组、删 workspace、验 fixture
 
   C. 收工
-     analyzer（stability）吃全部 RawResult，写 evaluation.json
-     （判定不是 kernel 的职责，但当前由导演在片尾喊一声「去剪辑」）
+     写 groups.json；不调 analyzer、不写判定文件。
+     工作区已在 finally 销毁。判定是另一次进程：python Analyzer.py --path artifacts/<run-id>/<N>/
 
 和 capture 的边界：
   runner  = 拍什么、以什么顺序、拍几遍、布景/收工
@@ -43,10 +43,8 @@ from pathlib import Path
 from typing import Optional
 
 from . import artifacts, cache, capture, cleanup, commands, digest, schema, workspace
-from .types import CacheState, EngineProfile, Measurement
-from ..analyzers import base as analyzer_base
-from ..analyzers import normalize
-from ..analyzers import stability  # noqa: F401  (import 触发 register("stability", ...))
+from .types import EngineProfile, Measurement
+from ..hooks import generate_sentinel
 from ..hooks import registry as hook_registry
 
 PROBE_ROOT = Path(__file__).resolve().parents[2]
@@ -101,30 +99,11 @@ def _group_inputs_digest(
     )
 
 
-def _find_experiment_yaml(experiments_root: Path, exp_id: str) -> Path:
-    for phase_dir in sorted(p for p in experiments_root.iterdir() if p.is_dir()):
-        candidate = phase_dir / f"{exp_id}.yaml"
-        if candidate.exists():
-            return candidate
-    raise FileNotFoundError(f"找不到实验 YAML: {exp_id} (searched under {experiments_root})")
-
-
 def _last_success(raws: list) -> bool:
     if not raws:
         return False
     last = raws[-1]
     return last.process.returncode == 0 and not last.process.timed_out and last.process.signal is None
-
-
-def _group_common_command_at_warm(spec, results_by_group_step: dict) -> dict:
-    by_command: dict = {}
-    for group in spec.groups:
-        for step in group.steps:
-            if step.cache_state != CacheState.WARM:
-                continue
-            raws = results_by_group_step.get((group.group_id, step.step_id), [])
-            by_command.setdefault(step.command, {}).setdefault(group.group_id, []).extend(raws)
-    return {command: groups for command, groups in by_command.items() if len(groups) >= 2}
 
 
 def _run_step_repeats(
@@ -137,20 +116,22 @@ def _run_step_repeats(
     run_id: str,
     exp_id: str,
     artifacts_root: Path,
-    rules,
     tracked_pgids: list,
     inputs_digest: str,
 ) -> list:
-    """一个 step 的内层循环：repeat 次调用 capture.run_measurement。
-
-    每次 repeat 现场相同（同一 argv 模板、同一 cache_state），只改 repeat_idx。
-    全部 repeat 收齐后再落盘，便于纵向 evaluation 写进每条 artifact。
-    """
+    """一个 step 的内层循环：repeat 次 capture + 立刻落盘原始测量。"""
     raws = []
     for repeat_idx in range(step.repeat):
-        invocations = hook_registry.apply_hooks(
-            step.hooks, workspace=ws, context={"step_id": step.step_id, "repeat_idx": repeat_idx}
-        )
+        context = {"step_id": step.step_id, "repeat_idx": repeat_idx}
+        yaml_hooks = list(step.hooks)
+        if commands.uses_sentinel(step.command):
+            yaml_hooks = [h for h in yaml_hooks if h.name != "generate_sentinel"]
+        invocations = hook_registry.apply_hooks(yaml_hooks, workspace=ws, context=context)
+        if commands.uses_sentinel(step.command):
+            revert = generate_sentinel.apply(ws, context=context)
+            invocations.append(
+                hook_registry.HookInvocation(name="generate_sentinel", revert=revert)
+            )
         try:
             argv = commands.resolve_command(
                 step.command,
@@ -162,7 +143,7 @@ def _run_step_repeats(
             )
             if argv and isinstance(argv[0], list):
                 raise NotImplementedError(
-                    f"{step.command} 的多进程 fanout（如 V10）本轮范围之外"
+                    f"{step.command} 的多进程 fanout 本轮范围之外"
                 )
 
             measurement = Measurement(
@@ -183,32 +164,25 @@ def _run_step_repeats(
             )
             tracked_pgids.append(raw.process.pgid)
             raws.append(raw)
+            directory = artifacts.step_artifact_dir(
+                artifacts_root,
+                run_id,
+                exp_id,
+                group.group_id,
+                step.step_id,
+                step.cache_state.value,
+                repeat_idx,
+            )
+            cache_manifest = {"cache_state": step.cache_state.value, "is_warm": cache.is_warm(ws)}
+            artifacts.write_step_artifacts(
+                directory,
+                raw,
+                cache_manifest,
+                dataclasses.asdict(engine_profile),
+            )
         finally:
             hook_registry.revoke_hooks(invocations)
 
-    vertical_eval = stability.evaluate_vertical(raws, rules)
-    for repeat_idx, raw in enumerate(raws):
-        directory = artifacts.step_artifact_dir(
-            artifacts_root,
-            run_id,
-            exp_id,
-            group.group_id,
-            step.step_id,
-            step.cache_state.value,
-            repeat_idx,
-        )
-        signatures = normalize.compute_signatures(
-            normalize.parse_output_lines(raw.stdout) + normalize.parse_output_lines(raw.stderr), rules
-        )
-        cache_manifest = {"cache_state": step.cache_state.value, "is_warm": cache.is_warm(ws)}
-        artifacts.write_step_artifacts(
-            directory,
-            raw,
-            signatures,
-            {"vertical": vertical_eval},
-            cache_manifest,
-            dataclasses.asdict(engine_profile),
-        )
     return raws
 
 
@@ -233,7 +207,7 @@ def run_experiment(
     artifacts_root = Path(artifacts_root or PROBE_ROOT / "artifacts")
     annotations_root = Path(annotations_root or PROBE_ROOT / "annotations")
 
-    spec_path = _find_experiment_yaml(experiments_root, exp_id)
+    spec_path = schema.find_experiment_yaml(experiments_root, exp_id)
     spec = schema.load_experiment(spec_path, common_dir=common_dir)
 
     engine_raw = dict(spec.engine_profile)
@@ -305,9 +279,6 @@ def run_experiment(
             raise digest.BlockedExperimentError(freshness.reason)
 
     profiles = commands.load_command_profiles(common_dir)
-    rules = normalize.load_signature_rules(common_dir / "signature-rules.yaml")
-
-    results_by_group_step: dict = {}
     group_summaries = []
 
     for preview in group_previews:
@@ -332,11 +303,9 @@ def run_experiment(
                     run_id=run_id,
                     exp_id=exp_id,
                     artifacts_root=artifacts_root,
-                    rules=rules,
                     tracked_pgids=tracked_pgids,
                     inputs_digest=inputs_digest,
                 )
-                results_by_group_step[(group.group_id, step.step_id)] = raws
                 if step.command in _WARM_TRIGGER_COMMANDS and _last_success(raws):
                     cache.mark_warm(ws, step.step_id)
 
@@ -364,25 +333,8 @@ def run_experiment(
             group_dir.mkdir(parents=True, exist_ok=True)
             artifacts.write_cleanup(group_dir, dataclasses.asdict(report))
 
-    vertical_by_step = {
-        f"{group_id}/{step_id}": stability.evaluate_vertical(raws, rules)
-        for (group_id, step_id), raws in results_by_group_step.items()
-    }
-
-    horizontal_by_group = {}
-    if spec.analysis.type == "stability":
-        for command, raws_by_group in _group_common_command_at_warm(spec, results_by_group_step).items():
-            horizontal_by_group[command] = stability.evaluate_horizontal(raws_by_group, rules)
-
-    evaluation = analyzer_base.dispatch(
-        spec.analysis.type,
-        vertical_by_step=vertical_by_step,
-        horizontal_by_group=horizontal_by_group,
-    )
-
     exp_artifact_dir = artifacts_root / run_id / exp_id
     exp_artifact_dir.mkdir(parents=True, exist_ok=True)
-    artifacts.write_json(exp_artifact_dir / "evaluation.json", dataclasses.asdict(evaluation))
     artifacts.write_json(exp_artifact_dir / "groups.json", group_summaries)
 
     all_groups_ok = bool(group_summaries) and all(item.get("status") == "OK" for item in group_summaries)
@@ -398,13 +350,14 @@ def run_experiment(
         )
 
     return {
-        "exp_id": exp_id,
+        "exp_id": spec.id,
+        "phase": spec.phase,
         "run_id": run_id,
         "fake": engine_profile.fake,
         "engine_profile": dataclasses.asdict(engine_profile),
         "artifacts_root": str(artifacts_root / run_id),
+        "artifact_dir": str(artifacts_root / run_id / spec.id),
         "groups": group_summaries,
-        "evaluation": dataclasses.asdict(evaluation),
         "freshness": dataclasses.asdict(freshness),
         "experiment_digest": experiment_digest,
         "force_stale": force_stale,

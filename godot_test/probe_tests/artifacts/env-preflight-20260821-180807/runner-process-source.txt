@@ -1,0 +1,24 @@
+# runner process-group support
+file=/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/runner/kernel/process.py
+--- grep ---
+3:用 argv 列表启动（不经 shell）；独立进程组（start_new_session=True）；
+4:timeout 时 killpg(SIGKILL)；记录 rc / signal / wall time。
+10:import subprocess
+19:def killpg_safe(pgid: int, sig: int = signal_module.SIGKILL) -> None:
+23:        os.killpg(pgid, sig)
+31:    result = subprocess.run(
+58:    proc = subprocess.Popen(
+62:        stdout=subprocess.PIPE,
+63:        stderr=subprocess.PIPE,
+64:        start_new_session=True,
+71:        except subprocess.TimeoutExpired:
+73:            killpg_safe(pgid, signal_module.SIGKILL)
+76:        killpg_safe(pgid, signal_module.SIGKILL)
+--- has_Popen ---
+yes
+--- has_killpg ---
+yes
+--- has_start_new_session ---
+yes
+--- has_skeleton_comment ---
+no

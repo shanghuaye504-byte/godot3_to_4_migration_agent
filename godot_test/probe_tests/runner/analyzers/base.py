@@ -1,10 +1,12 @@
 """Analyzer 基类接口。
 
-consume RawResult + annotations 埋点表，产出 Evaluation（写成 evaluation.json）。
+consume 事后从 artifacts 重建的 RawResult（LoadedShot），按 YAML 的
+analysis.type 分派。产物写 report/<phase>/<N>/，不是 artifacts/。
+只由 Analyzer.py（python Analyzer.py --path）调用；kernel 不引用本模块。
+
 8 类 analysis.type 通过 register()/dispatch() 分派；本轮只有 "stability"
-（见 stability.py）真正 register 了实现，其余类型 dispatch 时回退到
-status="NOT_IMPLEMENTED" 的占位形状，保证 evaluation.json 落盘契约不因为
-某个 analyzer 尚未实现而整体崩溃。
+真正 register 了实现。其余类型 dispatch 时回退到 status="NOT_IMPLEMENTED"
+的占位形状，由 Analyzer.py 写入 report/.../dispatch.json。
 """
 
 from __future__ import annotations

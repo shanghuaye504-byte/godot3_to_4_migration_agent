@@ -1,19 +1,13 @@
 # experiments/common/command-profiles.yaml
 #
-# V1-V10 的 argv 模板，以及 PROJECT_CHECK 逻辑别名。
-# 字面 V1 永不被全局替换。PROJECT_CHECK 由 N08 导出的 command-capabilities.json 解析
-# （尚未产出，见 runner/kernel/commands.py 的 resolve_project_check）。
+# V1–V8 的 argv 模板。V1 是项目级编译校验（哨兵脚本）。
+# 哨兵文件由 kernel 在 V1 / V7_V1 / V8_V1 步骤前写入、结束后删除，不在本文件配置 hook。
 #
-# 占位符：{path} = 工作区绝对路径；{script} = 单文件 check 目标（res:// 相对路径，
-# 不含 res:// 前缀，由 resolve_command 拼接）。
-#
-# V9 的 __probe_sentinel.gd 由 generate_sentinel hook 在步骤开始时写入、结束时删除，
-# 不常驻 fixture；这里的模板只负责指向固定文件名。
-# V10（对每个 .gd 循环跑 V2）不是静态模板，由 resolve_command 特殊展开为多条 argv。
+# 占位符：{path} = 工作区绝对路径；{script} = 单文件 check 目标（不含 res:// 前缀）。
 
 commands:
   V1:
-    argv: ["--headless", "--path", "{path}", "--check-only", "--quit"]
+    argv: ["--headless", "--path", "{path}", "--check-only", "--script", "res://__probe_sentinel.gd", "--quit"]
     requires: []
   V2:
     argv: ["--headless", "--path", "{path}", "--script", "res://{script}", "--check-only", "--quit"]
@@ -31,7 +25,7 @@ commands:
     argv: ["--headless", "--path", "{path}", "--quit-after", "2"]
     requires: []
   V7_V1:
-    argv: ["--headless", "--path", "{path}", "--check-only", "--quit", "--verbose"]
+    argv: ["--headless", "--path", "{path}", "--check-only", "--script", "res://__probe_sentinel.gd", "--quit", "--verbose"]
     requires: []
   V7_V2:
     argv: ["--headless", "--path", "{path}", "--script", "res://{script}", "--check-only", "--quit", "--verbose"]
@@ -40,12 +34,8 @@ commands:
     argv: ["--headless", "--path", "{path}", "--editor", "--import", "--quit", "--verbose"]
     requires: []
   V8_V1:
-    argv: ["--headless", "--path", "{path}", "--check-only", "--quit", "--debug"]
+    argv: ["--headless", "--path", "{path}", "--check-only", "--script", "res://__probe_sentinel.gd", "--quit", "--debug"]
     requires: []
   V8_V2:
     argv: ["--headless", "--path", "{path}", "--script", "res://{script}", "--check-only", "--quit", "--debug"]
     requires: ["script"]
-  V9:
-    argv: ["--headless", "--path", "{path}", "--check-only", "--script", "res://__probe_sentinel.gd", "--quit"]
-    requires: []
-    hook: generate_sentinel

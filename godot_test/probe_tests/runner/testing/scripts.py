@@ -51,7 +51,11 @@ def classify_command(argv: list) -> str:
     do_import = "--import" in tokens
 
     if "__probe_sentinel.gd" in script:
-        return "V9"
+        if debug:
+            return "V8_V1"
+        if verbose:
+            return "V7_V1"
+        return "V1"
     if script and check_only:
         if debug:
             return "V8_V2"
@@ -101,7 +105,7 @@ def lookup(argv: list, *, cwd: Optional[Path] = None, project_path: Optional[Pat
     if hang:
         return _response(stdout=_ENGINE_BANNER, stderr="", returncode=0, sleep=3600.0)
 
-    if fixture == "cascade" and command in {"V1", "V7_V1", "V9"}:
+    if fixture == "cascade" and command in {"V1", "V7_V1"}:
         return _response(stdout=_ENGINE_BANNER, stderr=_CASCADE_STDERR, returncode=1)
 
     if fixture == "cascade" and command in {"V3", "V4", "V7_V3"}:

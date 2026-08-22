@@ -1,12 +1,11 @@
 # experiments/phase1/N09.yaml
 #
-# Determinism & Cross-Fixture Calibration。
-# 纵向：CleanControl 组内 repeat=5 的重复稳定性；
-# 横向：WARM 下 CleanControl 与 NP-CASCADE 在相同 command 上的 local_signature
-# 差异（离线 diff，用于校准两级 signature 的字段抹除规则）。
-# 两个 group 各自独立从 fixture clone workspace（决策：不做"同一 workspace
-# 内恢复"）。同一 group 内部的 steps 共享同一个 workspace，是 COLD -> WARM 的
-# 状态自然演进。
+# Determinism & Cross-Fixture Calibration。YAML 只描述采集矩阵并选型
+# analysis.type: stability。
+#
+# V1 即项目级编译校验：kernel 前置写入哨兵、结束后删除，步骤不必写 hook。
+# clean-control：COLD V1 → V2(main.gd) → V3；WARM V1、V2(main.gd)、V3、V5
+# np-cascade：COLD V3；WARM V1、V2(dep_1.gd)、V3
 
 id: N09
 phase: phase1
@@ -30,27 +29,9 @@ groups:
       - step_id: v3-cold
         command: V3
         cache_state: COLD
-      - step_id: v4-warm
-        command: V4
+      - step_id: v1-warm
+        command: V1
         cache_state: WARM
-      - step_id: v5-warm
-        command: V5
-        cache_state: WARM
-        timeout_seconds: 10
-      - step_id: v6-warm
-        command: V6
-        cache_state: WARM
-        timeout_seconds: 10
-      - step_id: v7-warm
-        command: V7_V1
-        cache_state: WARM
-
-  - group_id: np-cascade
-    fixture: phase1/NP-CASCADE
-    steps:
-      - step_id: v3-cold
-        command: V3
-        cache_state: COLD
       - step_id: v2-warm
         command: V2
         cache_state: WARM
@@ -58,8 +39,24 @@ groups:
       - step_id: v3-warm
         command: V3
         cache_state: WARM
-      - step_id: v9-warm
-        command: V9
+      - step_id: v5-warm
+        command: V5
         cache_state: WARM
-        hooks:
-          - name: generate_sentinel
+        timeout_seconds: 10
+
+  - group_id: np-cascade
+    fixture: phase1/NP-CASCADE
+    steps:
+      - step_id: v3-cold
+        command: V3
+        cache_state: COLD
+      - step_id: v1-warm
+        command: V1
+        cache_state: WARM
+      - step_id: v2-warm
+        command: V2
+        cache_state: WARM
+        script: dep_1.gd
+      - step_id: v3-warm
+        command: V3
+        cache_state: WARM

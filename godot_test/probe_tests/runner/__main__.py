@@ -1,7 +1,7 @@
 """CLI 入口：python -m runner <experiment-id> [--run-id ID] [--fake] [--repeat N] [--force-stale]
 
-解析命令行、加载 experiments/**/*.yaml、调度 kernel、分派 analyzer、
-写出 artifacts/<run-id>/index.md。
+只调度 kernel 采集并写 artifacts/<run-id>/index.md。不调 analyzer。
+判定：python Analyzer.py --path artifacts/<run-id>/<N>/
 STALE 默认拒绝；--force-stale 仅绕过 STALE，不能绕过 MISSING。
 """
 
@@ -57,6 +57,8 @@ def main(argv=None) -> int:
     artifacts_root = Path(result.get("artifacts_root") or (PROBE_ROOT / "artifacts" / run_id))
     index_path = report_index.write_run_index(artifacts_root, run_id=run_id, summary=result)
     result["index_md"] = str(index_path)
+    artifact_dir = result.get("artifact_dir") or str(artifacts_root / result["exp_id"])
+    result["analyze_hint"] = f"python Analyzer.py --path {artifact_dir}"
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
     return 0
 

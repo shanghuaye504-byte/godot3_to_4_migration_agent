@@ -17,8 +17,6 @@ _MEASUREMENT_FILES = (
     "fs-after.json",
     "workspace.diff",
     "cache-manifest.json",
-    "signatures.json",
-    "evaluation.json",
 )
 
 
@@ -72,6 +70,11 @@ def write_run_index(
                     "exp_id": summary.get("exp_id"),
                     "fake": summary.get("fake"),
                     "groups": summary.get("groups"),
+                    "analyze_hint": (
+                        f"python Analyzer.py --path {summary.get('artifact_dir')}"
+                        if summary.get("artifact_dir")
+                        else None
+                    ),
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -87,7 +90,7 @@ def write_run_index(
     for exp_dir in exp_dirs:
         lines.append(f"## {exp_dir.name}")
         lines.append("")
-        for name in ("evaluation.json", "groups.json"):
+        for name in ("groups.json",):
             path = exp_dir / name
             if path.is_file():
                 lines.append(f"- 实验级 `{name}`: `{_rel(path, run_dir)}`")

@@ -1,0 +1,2 @@
+# fixture .godot scan after smoke
+count=1

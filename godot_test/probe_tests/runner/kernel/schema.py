@@ -51,6 +51,8 @@ class GroupSpec:
 
 @dataclass
 class AnalysisSpec:
+    """YAML 的判定选型。仅 Analyzer.py / 事后脚本读取；kernel 忽略。"""
+
     type: str
     extra: dict = field(default_factory=dict)
 
@@ -140,6 +142,16 @@ def _parse_group(raw: dict, ctx: str, repeat_default: int, timeout_default: floa
         for raw_step in raw_steps
     ]
     return GroupSpec(group_id=group_id, fixture=fixture, steps=steps, derived=raw.get("derived"))
+
+
+def find_experiment_yaml(experiments_root: Path, exp_id: str) -> Path:
+    experiments_root = Path(experiments_root)
+    if experiments_root.is_dir():
+        for phase_dir in sorted(p for p in experiments_root.iterdir() if p.is_dir()):
+            candidate = phase_dir / f"{exp_id}.yaml"
+            if candidate.is_file():
+                return candidate
+    raise FileNotFoundError(f"找不到实验 YAML: {exp_id} (searched under {experiments_root})")
 
 
 def load_experiment(path: Path, common_dir: Optional[Path] = None) -> ExperimentSpec:

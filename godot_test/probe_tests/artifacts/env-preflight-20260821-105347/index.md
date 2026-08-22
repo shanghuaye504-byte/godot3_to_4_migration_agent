@@ -2,6 +2,8 @@
 
 环境预检，不是 N01–N21 实验 run。未改动任何 fixture。
 
+**已被 `env-preflight-20260821-180807` 取代。** 本目录保留为历史：当时 `process.py` 仍为骨架，故进程组终止记为 `BLOCKED`。
+
 | 文件 | 内容 |
 |---|---|
 | `godot-identity.txt` | `--version`、realpath、fat binary 架构、宿主 arch |
