@@ -1,0 +1,7 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+
+Debugger Break, Reason: 'Parser Error: Expected parameter name.'
+*Frame 0 - res://orphan_bad_parse.gd:3 in function ''
+Enter "help" for assistance.
+debug> 

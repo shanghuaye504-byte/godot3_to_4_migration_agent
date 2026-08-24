@@ -1,0 +1,12 @@
+--- fs-before
++++ fs-after
++ .godot/.gdignore  sha256=01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b size=1
++ .godot/editor/filesystem_cache10  sha256=1880823343a901861ca0bb6e71bea9d0f0b6ef7932c99e100bbf3a586f467df4 size=677
++ .godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg  sha256=1cd364461e125be309da7a50c21e1a9262a5f28c2c44251e00d11770807accb8 size=235
++ .godot/editor/project_metadata.cfg  sha256=67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57 size=183
++ .godot/global_script_class_cache.cfg  sha256=f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16 size=8
++ .godot/uid_cache.bin  sha256=9095b43ef3cefda602662966d76f7c188e5c460c7bdbf53223e141da4d78f16d size=122
++ bad.gdshader.uid  sha256=3ae8fbb54eae25d261aa597c9a746eb823aedb0689533f6eb30ca05106035478 size=20
++ good.gdshader.uid  sha256=8fa7ad33d034f5d0b39bfc2ed221464bbbf2664128479e25a1ab7a47c82d1350 size=20
++ main.gd.uid  sha256=c1876792037949773f809c56b5c346283b4bef8949aacc247a4b98911df170bf size=20
++ shader_user.gd.uid  sha256=c6c49d7ee220b8448e86b461bd18cf523b251a077d3a2cd121919db01ddae664 size=20

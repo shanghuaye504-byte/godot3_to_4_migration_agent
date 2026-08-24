@@ -1,0 +1,105 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-115551-N04-phase1-NP-CASCADE",
+  "files": {
+    ".godot/.gdignore": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    ".godot/.probe-warm-ok.json": {
+      "sha256": "36a7f94caa3f4d2fb8182d2c6fb71c1d747ac7f2a03e533a89694eb04b1972c6",
+      "size": 74
+    },
+    ".godot/editor/filesystem_cache10": {
+      "sha256": "61709959bd8b1aeaac2047eb812c296362f4533abe8299f046674a7cde6f4810",
+      "size": 789
+    },
+    ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+      "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+      "size": 90
+    },
+    ".godot/editor/project_metadata.cfg": {
+      "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+      "size": 183
+    },
+    ".godot/global_script_class_cache.cfg": {
+      "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+      "size": 8
+    },
+    ".godot/uid_cache.bin": {
+      "sha256": "7b3881f762b7c02235797544a8d03606932aab3922f28c3b004c9ec50777d0b8",
+      "size": 213
+    },
+    "dep_1.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_1.gd.uid": {
+      "sha256": "32ad3cb95dd8db826148f6ed4bcc5a807e725e57449e368e91817fc5a7687bdd",
+      "size": 20
+    },
+    "dep_2.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_2.gd.uid": {
+      "sha256": "234bdaaeddff4766e444f489ea4a8f663b5e459e71440b28863b7c7760f21e28",
+      "size": 20
+    },
+    "dep_3.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_3.gd.uid": {
+      "sha256": "9bd50cf7001bbe0a35d6ab9b18e6cca83fb42dbce156e9373cedb82f623cacbf",
+      "size": 20
+    },
+    "dep_4.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_4.gd.uid": {
+      "sha256": "f67679669450c9efaee5d50909557402f63344ca173119bdb144d0d2f6f9e934",
+      "size": 20
+    },
+    "dep_5.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_5.gd.uid": {
+      "sha256": "8e2da2f5019df6e98517a87975dc9f886e03a44a28a739009539e70978b9a1d6",
+      "size": 20
+    },
+    "leaf.gd": {
+      "sha256": "660c01056de5fcfe454e0d7de9eac67622b6c8d47d8d534eb2acf4674dfd7271",
+      "size": 79
+    },
+    "leaf.gd.uid": {
+      "sha256": "bf38a59ec47b7dcf4248cf590ae47aff8ce4abbb55b69b88f2e1ebcf4f0ab188",
+      "size": 19
+    },
+    "main.gd": {
+      "sha256": "15cbcba1c2b886e0c3379e9f7f385f20aa4706125e14e248eff06a0ec488baf6",
+      "size": 85
+    },
+    "main.gd.uid": {
+      "sha256": "b7e1f0af7774cac05861c742827ca1faf4da2a7bf7167265014b18a149daa50d",
+      "size": 20
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "c34914a842a48026361a4fa7e2c5c91b81f867404c479b99db67aaaf60e4af85",
+      "size": 148
+    },
+    "root_bad.gd": {
+      "sha256": "b7113d471ebb23095ee1e6838d2c0cb6d89620c16a0899b730430c0b1993ee7c",
+      "size": 37
+    },
+    "root_bad.gd.uid": {
+      "sha256": "32c264789cec31a8b88818453867e3f7b8b54befa7930f2a71eca183150c9aae",
+      "size": 20
+    }
+  }
+}

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://n06forgedinvalid"]
+
+[ext_resource type="Script" uid="uid://n06forgedinvalid" path="res://sub.gd" id="1"]
+
+[node name="Sub" type="Node" unique_id=1079525192]
+script = ExtResource("1")

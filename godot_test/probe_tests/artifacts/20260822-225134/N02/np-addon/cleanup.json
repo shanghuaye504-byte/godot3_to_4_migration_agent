@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-225134-N02-phase1-NP-ADDON",
+  "fixture": "phase1/NP-ADDON",
+  "fixture_clean": true,
+  "fixture_digest_before": "fcf0347b8b2882f6f7a5df55a2b7b534dc6c7ee6be1d7ba31cf6fd869cd1ee51",
+  "fixture_digest_after": "fcf0347b8b2882f6f7a5df55a2b7b534dc6c7ee6be1d7ba31cf6fd869cd1ee51",
+  "probe_files_in_fixture": false
+}

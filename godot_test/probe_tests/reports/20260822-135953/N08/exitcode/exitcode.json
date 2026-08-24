@@ -1,0 +1,607 @@
+{
+  "_comment": "每个 step 的 rc / signal / timed_out：repeats 全部相同则 value 就是最终答案；不一致则 anomaly=true、value=null。本文件是中间结果，不是 CONFIRMED。",
+  "analyzer": "exitcode",
+  "run_id": "20260822-135953",
+  "N": "N08",
+  "artifact_dir": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/artifacts/20260822-135953/N08",
+  "inputs_digest": "9dbcb580aa021423bd8a6607bb260c93c54ee6390ad9f2827ec429270cac4b8c",
+  "step_count": 10,
+  "repeat_total": 28,
+  "all_repeats_consistent": true,
+  "anomaly_step_count": 0,
+  "steps": [
+    {
+      "project": "clean-control",
+      "fixture": "phase1/CleanControl",
+      "cmd": "V1",
+      "cache_state": "WARM",
+      "step_id": "v1",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.187445,
+        "2": 0.179336,
+        "3": 0.182356
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-autoload",
+      "fixture": "phase1/NP-AUTOLOAD",
+      "cmd": "V2",
+      "cache_state": "COLD",
+      "step_id": "v2",
+      "target": "res://uses_autoload.gd",
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.185412,
+        "2": 0.188435,
+        "3": 0.184734
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V1",
+      "cache_state": "WARM",
+      "step_id": "v1",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.180702,
+        "2": 0.183506,
+        "3": 0.181866
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V2",
+      "cache_state": "WARM",
+      "step_id": "v2",
+      "target": "res://orphan_bad_parse.gd",
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.189806,
+        "2": 0.183909,
+        "3": 0.188952
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V3",
+      "cache_state": "COLD",
+      "step_id": "v3",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 1.25851,
+        "2": 1.265664,
+        "3": 1.250689
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V4",
+      "cache_state": "COLD",
+      "step_id": "v4",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 1.457221,
+        "2": 1.259811,
+        "3": 1.257848
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V5",
+      "cache_state": "WARM",
+      "step_id": "v5",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.186051,
+        "2": 0.179157,
+        "3": 0.175656
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V6",
+      "cache_state": "WARM",
+      "step_id": "v6",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.18042,
+        "2": 0.175479,
+        "3": 0.180386
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V7",
+      "cache_state": "WARM",
+      "step_id": "v7",
+      "target": null,
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": 0,
+        "values_by_repeat": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": null,
+        "values_by_repeat": {
+          "1": null,
+          "2": null,
+          "3": null
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false,
+          "2": false,
+          "3": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.180143,
+        "2": 0.181825,
+        "3": 0.184564
+      },
+      "anomaly": false
+    },
+    {
+      "project": "np-syntax",
+      "fixture": "phase1/NP-SYNTAX",
+      "cmd": "V8",
+      "cache_state": "WARM",
+      "step_id": "v8",
+      "target": "res://orphan_bad_parse.gd",
+      "repeat_count": 1,
+      "repeat_indices": [
+        1
+      ],
+      "timeout_seconds": 30,
+      "rc": {
+        "consistent": true,
+        "value": -6,
+        "values_by_repeat": {
+          "1": -6
+        }
+      },
+      "signal": {
+        "consistent": true,
+        "value": 6,
+        "values_by_repeat": {
+          "1": 6
+        }
+      },
+      "timed_out": {
+        "consistent": true,
+        "value": false,
+        "values_by_repeat": {
+          "1": false
+        }
+      },
+      "wall_time_by_repeat": {
+        "1": 0.277679
+      },
+      "anomaly": false,
+      "leftover_godot": [
+        {
+          "godot_pids_after_measure": [],
+          "leftover_godot": false,
+          "crash_mark_in_stderr": true
+        }
+      ],
+      "crash_mark_in_stderr_repeats": [
+        1
+      ]
+    }
+  ],
+  "cross_table": {
+    "_comment": "缺一格不算完成。observed_rc 来自 repeats 共识；anomaly 则本格不能当最终答案。",
+    "complete": true,
+    "rows": [
+      {
+        "id": "clean",
+        "scene": "干净",
+        "has_real_error": false,
+        "expected_rc": "0",
+        "cell_filled": true,
+        "observed_rc": 0,
+        "observed_signal": null,
+        "observed_timed_out": false,
+        "anomaly": false,
+        "project": "clean-control",
+        "cmd": "V1",
+        "cache_state": "WARM",
+        "matches_expected": true
+      },
+      {
+        "id": "file-true-error",
+        "scene": "单文件真错",
+        "has_real_error": true,
+        "expected_rc": "≠0",
+        "cell_filled": true,
+        "observed_rc": 0,
+        "observed_signal": null,
+        "observed_timed_out": false,
+        "anomaly": false,
+        "project": "np-syntax",
+        "cmd": "V2",
+        "cache_state": "WARM",
+        "matches_expected": false
+      },
+      {
+        "id": "project-true-error",
+        "scene": "项目级真错",
+        "has_real_error": true,
+        "expected_rc": "≠0",
+        "cell_filled": true,
+        "observed_rc": 0,
+        "observed_signal": null,
+        "observed_timed_out": false,
+        "anomaly": false,
+        "project": "np-syntax",
+        "cmd": "V1",
+        "cache_state": "WARM",
+        "matches_expected": false
+      },
+      {
+        "id": "false-positive-candidate",
+        "scene": "纯假阳性候选",
+        "has_real_error": null,
+        "expected_rc": "0",
+        "cell_filled": true,
+        "observed_rc": 0,
+        "observed_signal": null,
+        "observed_timed_out": false,
+        "anomaly": false,
+        "_comment": "「有真错误＝否」由 N01 确认后回填，本脚本不预判",
+        "project": "np-autoload",
+        "cmd": "V2",
+        "cache_state": "COLD",
+        "matches_expected": true
+      },
+      {
+        "id": "v8-timeout-kill",
+        "scene": "被 timeout kill",
+        "has_real_error": null,
+        "expected_rc": "124/137",
+        "cell_filled": true,
+        "observed_rc": -6,
+        "observed_signal": 6,
+        "observed_timed_out": false,
+        "anomaly": false,
+        "_comment": "V8 可能有 NP-SYNTAX 与 NP-ADDON 两格，都列出",
+        "project": "np-syntax",
+        "cmd": "V8",
+        "cache_state": "WARM",
+        "matches_expected": false
+      }
+    ]
+  },
+  "b9": {
+    "_comment": "B9 观测：有坏脚本时 V5 仍 rc=0 且未 timeout → 启动成功不能证明脚本全部正确。本字段是观测，不是 CONFIRMED。",
+    "present": true,
+    "anomaly": false,
+    "rc": 0,
+    "timed_out": false,
+    "started_successfully_with_bad_scripts": true
+  },
+  "v8_liveness": {
+    "_comment": "V8 存活性观测：wall≥timeout，或 rc∈{134,139}，或 stderr 含 'handle_crash: Program crashed with signal 11'。任一成立只记观测，是否永久禁入 --debug 由人写报告。",
+    "present": true,
+    "runs": [
+      {
+        "project": "np-syntax",
+        "anomaly": false,
+        "rc": -6,
+        "signal": 6,
+        "timed_out": false,
+        "wall_time_by_repeat": {
+          "1": 0.277679
+        },
+        "hang": false,
+        "crash_rc_134_139": false,
+        "signal_11": false,
+        "crash_text": true,
+        "leftover_godot": false,
+        "debug_unusable_observed": true
+      }
+    ]
+  }
+}

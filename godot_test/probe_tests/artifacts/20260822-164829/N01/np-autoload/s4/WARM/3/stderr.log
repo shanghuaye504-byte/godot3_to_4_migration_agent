@@ -1,0 +1,4 @@
+SCRIPT ERROR: Compile Error: Identifier not found: Config
+          at: GDScript::reload (res://uses_autoload.gd:4)
+ERROR: Failed to load script "res://uses_autoload.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

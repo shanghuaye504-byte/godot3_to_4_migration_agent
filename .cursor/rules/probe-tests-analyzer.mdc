@@ -1,0 +1,70 @@
+---
+description: 生成或改 probe_tests/analyzer。覆盖 CLI、读 artifacts 路径、写 reports 路径与契约。用户说「生成某个 analyzer」时直接用本规则，不要再翻 ARCHITECTURE 找路径。
+globs: godot_test/probe_tests/analyzer/**
+alwaysApply: false
+---
+
+# probe_tests analyzer
+
+根目录：`godot_test/probe_tests/`（`PROBE_ROOT = Path(__file__).resolve().parents[1]`）。`godot_test/` 在 `.gitignore` 里，改这里不要 `git add`。
+
+用户只描述功能时：实现 `analyzer/<name>.py`，按下面契约接线；功能细节以用户描述 + 该脚本现有 docstring / README 对应实验卡片为准。路径、调用、落盘**以本规则为准**，不要再搜 ARCHITECTURE 命名。
+
+## 调用与落盘
+
+```text
+python analyzer/<name>.py <artifact-dir> [--out DIR]
+```
+
+| 输入 | 含义 |
+| --- | --- |
+| `artifacts/<run-id>` | run 根；发现其下每个实验目录，各写一份报告 |
+| `artifacts/<run-id>/<N>` | 单个实验 |
+
+默认输出（禁止另造目录名）：
+
+```text
+artifacts/<run-id>/<N>/  →  reports/<run-id>/<N>/<analyzer-name>/<name>.json
+```
+
+`--out` 有且只有一个实验时 = 该实验的输出目录；多个实验时写成 `--out/<N>/<name>/`。stdout 打印写出的路径；失败 exit 2。
+
+相对路径先按 cwd 解析，不存在再按 `PROBE_ROOT / raw`。JSON：`indent=2`、`ensure_ascii=False`、末尾换行。
+
+## 怎么认实验目录
+
+实验目录直接含子路径 `group/step/cache/repeat/metadata.json`，或根上有 `index.md` / `run.json`。
+
+- 用 `path.glob("*/*/*/*/metadata.json")` 且 `parent.parent.name ∈ {COLD,WARM,PRESERVE}` 判断。
+- **禁止**对 run 根 `rglob("metadata.json")`：嵌套的 N09 日志会让 run-id 被误判成实验，报告会写成 `reports/<run-id>/<name>/`（缺 `<N>`）。
+
+## 读 log（只读）
+
+```text
+artifacts/<run-id>/<N>/<group_id>/<step_id>/<cache_state>/<repeat_idx>/
+  metadata.json   stdout.log   stderr.log   process-status.json
+```
+
+`metadata.json` 字段：`N` `run_id` `group_id` `step_id` `cache_state` `repeat_idx` `cmd` `target` `fixture` `inputs_digest`。
+
+一个 step = `(group_id / fixture, cmd, cache_state)`。**COLD 与 WARM 是两个 step**。`repeat_idx` 从 1 起。按 metadata 分组，不要写死 fixture 名。
+
+## 现有脚本（新角度就新文件，禁止 `if N == "Nxx"`）
+
+| 脚本 | 角度 | 实验 |
+| --- | --- | --- |
+| `stability.py` | 纵向重复 + 横向行差 | N09 |
+| `delta.py` | BG 减法 + 埋点归类 | N01 N02 N05 N06 N07 |
+| `sequence.py` | 有序状态机 | N03 N06 |
+| `exitcode.py` | rc / signal / timeout | N08 |
+| `cascade.py` | 根因与放大 | N04 |
+| `capability.py` | 能力矩阵，无对错 | N15 |
+| `corpus.py` | 数据集聚合 | N21 |
+| `common.py` | 行解析与两级 signature（唯一实现点） | 共享 |
+
+## 契约
+
+- 只读 `artifacts/`，不启动 Godot，不要求 workspace 仍在。
+- 禁止 `import` 实验脚本；签名计算只从 `common.py` 取。
+- 不写 `CONFIRMED` / `BG-DRIFT` / 字段抹除规格；那是人写 `reports/README.md` 的事。
+- 假 Godot 产物不得当已确认证据。

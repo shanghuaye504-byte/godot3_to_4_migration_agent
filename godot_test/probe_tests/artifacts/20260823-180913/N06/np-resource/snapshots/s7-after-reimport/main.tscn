@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://n06forgedinvalid"]
+
+[ext_resource type="PackedScene" uid="uid://n06forgedinvalid" path="res://sub.tscn" id="1"]
+
+[node name="Main" type="Node" unique_id=1394023963]
+
+[node name="SubInst" parent="." unique_id=260009704 instance=ExtResource("1")]

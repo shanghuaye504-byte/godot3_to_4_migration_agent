@@ -1,0 +1,26 @@
+{
+  "tag": "s9-after-retarget",
+  "uids": {
+    "main.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ],
+    "sub.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ],
+    "sub.gd.uid": [
+      "uid://n06forgedinvalid"
+    ],
+    "project.godot": [],
+    "other.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ]
+  },
+  "retarget": {
+    "from": "res://sub.tscn",
+    "to": "res://other.tscn",
+    "other_copied_from": "sub.tscn"
+  }
+}

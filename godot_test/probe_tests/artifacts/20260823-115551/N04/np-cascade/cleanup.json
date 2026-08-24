@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-115551-N04-phase1-NP-CASCADE",
+  "fixture": "phase1/NP-CASCADE",
+  "fixture_clean": true,
+  "fixture_digest_before": "3693a2e29b303ee718609dda4e7a3004c732719316237b13d6858f58596be4a3",
+  "fixture_digest_after": "3693a2e29b303ee718609dda4e7a3004c732719316237b13d6858f58596be4a3",
+  "probe_files_in_fixture": false
+}

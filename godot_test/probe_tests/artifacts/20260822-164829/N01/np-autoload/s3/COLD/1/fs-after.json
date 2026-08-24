@@ -1,0 +1,69 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-164829-N01-phase1-NP-AUTOLOAD",
+  "files": {
+    ".godot/.gdignore": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    ".godot/editor/filesystem_cache10": {
+      "sha256": "ba186db8bccee87cb8e9d87bfde4f573a709006be4090d34febd9e81a5e525c2",
+      "size": 385
+    },
+    ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+      "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+      "size": 90
+    },
+    ".godot/editor/project_metadata.cfg": {
+      "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+      "size": 183
+    },
+    ".godot/global_script_class_cache.cfg": {
+      "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+      "size": 8
+    },
+    ".godot/uid_cache.bin": {
+      "sha256": "f9e40a008eb201c1d160415114ec8e95ff6c5c7f453a7a77a67e4d95f25d8afc",
+      "size": 90
+    },
+    "config.gd": {
+      "sha256": "dac4328f0aa70500371e3a488c3f21c9147e95fc75066bde330a015bba13f23b",
+      "size": 79
+    },
+    "config.gd.uid": {
+      "sha256": "d592797a045c6fbf45ac7b6e41147b6470b20109a3b3f83cafb9f64c74ee72b3",
+      "size": 20
+    },
+    "main.gd": {
+      "sha256": "66173b9ee3b412c68fba948819ed7780661fb2213170b213d51294ee63f3d6c3",
+      "size": 116
+    },
+    "main.gd.uid": {
+      "sha256": "1d0c126fe0479a8573f35234f5a11523da78b6f00fc7fc9156eb6f7b9dde00bd",
+      "size": 19
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "b10e20de139c8091e1379d67de8bb91a9f78f728e22f954d88d78168aa6a1ad7",
+      "size": 187
+    },
+    "res_loader.gd.disabled": {
+      "sha256": "cb6783b095dcd5b5394a254a35737a4ac142bc1111cdbd53e4008a43a1ab8b4d",
+      "size": 257
+    },
+    "shadow_config.gd.disabled": {
+      "sha256": "637d8639da6f4b060972e27109041b0fa55b5cc1fa76701f17d52f7ccb349f5c",
+      "size": 31
+    },
+    "uses_autoload.gd": {
+      "sha256": "21da8a0e7eac737619628c50f9d0bab4af5247b4f767ca9a317a96333e714f82",
+      "size": 68
+    },
+    "uses_autoload.gd.uid": {
+      "sha256": "8cd0a52b8ef07a81cf7442189eb75fe632300ba1b546c1f11cfe074c6e4aa8bd",
+      "size": 19
+    }
+  }
+}

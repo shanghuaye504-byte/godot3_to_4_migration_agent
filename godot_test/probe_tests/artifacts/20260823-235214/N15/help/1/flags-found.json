@@ -1,0 +1,14 @@
+{
+  "convert-3to4": [
+    "--convert-3to4                     "
+  ],
+  "validate-conversion-3to4": [
+    "--validate-conversion-3to4         "
+  ],
+  "upgrade": [],
+  "ProjectUpgradeTool": [],
+  "3to4": [
+    "--convert-3to4                     ",
+    "--validate-conversion-3to4         "
+  ]
+}

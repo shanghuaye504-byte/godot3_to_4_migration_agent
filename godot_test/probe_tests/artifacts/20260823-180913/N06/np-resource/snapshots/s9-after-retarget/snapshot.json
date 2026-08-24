@@ -1,0 +1,28 @@
+{
+  "tag": "s9-after-retarget",
+  "uids": {
+    "main.tscn": [
+      "uid://hkbl48745yaj",
+      "uid://c66i7tbgxdem6"
+    ],
+    "sub.tscn": [
+      "uid://c66i7tbgxdem6",
+      "uid://dvemcuu87n1e2"
+    ],
+    "sub.gd.uid": [
+      "uid://dvemcuu87n1e2"
+    ],
+    "project.godot": [],
+    "other.tscn": [
+      "uid://n06otherbase01",
+      "uid://dvemcuu87n1e2"
+    ]
+  },
+  "retarget": {
+    "from": "res://sub.tscn",
+    "to": "res://other.tscn",
+    "other_copied_from": "sub.tscn",
+    "other_scene_uid": "uid://n06otherbase01",
+    "main_ext_resource_uid_kept": "uid://c66i7tbgxdem6"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "tag": "after-s1-warm",
+  "expected_uid": "uid://qmfp8cu17gl2",
+  "uid_file_exists": true,
+  "uid_file_value": "uid://qmfp8cu17gl2",
+  "uid_matches_patch": true,
+  "project_has_dummy_singleton": true,
+  "project_autoload_has_expected_uid": true,
+  "import_done": true,
+  "from_step": "s1"
+}

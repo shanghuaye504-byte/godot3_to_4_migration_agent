@@ -1,0 +1,57 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-180913-N06-phase1-NP-RESOURCE",
+  "files": {
+    ".godot/.gdignore": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    ".godot/.probe-warm-ok.json": {
+      "sha256": "4cfe29b722d483c4b056ae1ad9e35630a6a2e603e70150f7047d77dd1fdb8339",
+      "size": 75
+    },
+    ".godot/editor/filesystem_cache10": {
+      "sha256": "d571f5be048452437c6dae0118d8cbaeafff6e5d38333ce9b096d428d2977a8b",
+      "size": 487
+    },
+    ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+      "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+      "size": 90
+    },
+    ".godot/editor/project_metadata.cfg": {
+      "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+      "size": 183
+    },
+    ".godot/global_script_class_cache.cfg": {
+      "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+      "size": 8
+    },
+    ".godot/uid_cache.bin": {
+      "sha256": "53085ae81af18b6395180151e44366143a89c8f42e38f49242ae52d4d69684b7",
+      "size": 109
+    },
+    "main.tscn": {
+      "sha256": "9fc0e3a22d8dc4a8700831bdba8ef841224701adf82d97548364781a9325cc8b",
+      "size": 270
+    },
+    "other.tscn": {
+      "sha256": "395c61dd9e7e3ef99b7254625462fd86d81d23b9f941153117ed76808e39b689",
+      "size": 208
+    },
+    "project.godot": {
+      "sha256": "4e7574de273f4fe43015cc144889b46959ef63a8fe7e57c1c58ca03c958ec078",
+      "size": 736
+    },
+    "sub.gd": {
+      "sha256": "b0698aec7ef27eeb28c8cdf15a446d1fb9cdeb92ab34a9cfc40870654ee5b978",
+      "size": 53
+    },
+    "sub.gd.uid": {
+      "sha256": "9ee9899a6ddeacd908c1150f0b56ccbdaa28b63227042d166fe0ecee954a34ef",
+      "size": 20
+    },
+    "sub.tscn": {
+      "sha256": "bb4800b1deb84871fe8d4ed927cb5028ffcb4609b4d26a44ff8fd0621915a4ac",
+      "size": 207
+    }
+  }
+}

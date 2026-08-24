@@ -1,0 +1,50 @@
+{
+  "N": "N01",
+  "run_id": "20260822-164829",
+  "inputs_digest": "720465e2c7e9dd11f3ecb53db7907bf4027700862bf0a7d1c8f4e07c9200c4af",
+  "inputs": {
+    "fixtures": {
+      "phase1/NP-AUTOLOAD": "405f9e2e585ec9bd12e2a990c692f927f88e5343fa930bd5b20e733c444c1a5b"
+    },
+    "annotations": {
+      "phase1/NP-AUTOLOAD": "f2dd46fbbe8e19a95b26be51735076ff02117e68e148253dea7652e847a9f166"
+    },
+    "derived": {},
+    "godot_build_hash": "a13da4feb",
+    "godot_path": "/usr/local/bin/godot4",
+    "godot_fake": false,
+    "upstream": {
+      "N09": "31919eb4683934a49a4a7fad005697608419731c135b9dea6bf9b055e18df428",
+      "N08": "9dbcb580aa021423bd8a6607bb260c93c54ee6390ad9f2827ec429270cac4b8c",
+      "N03": "066b348923ec459331078473aef3e9885b65420607cd2f35bf48e6604df07eb9"
+    }
+  },
+  "godot": {
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "binary_sha1": "9fab64a7acbe2af2690e3ac7c3249b40363b76bb",
+    "platform": "Darwin 25.3.0 / arm64",
+    "fake": false
+  },
+  "artifact_dir": "artifacts/20260822-164829/N01",
+  "measurement_count": 19,
+  "exports": {
+    "kind": "collection-pointer",
+    "repeat": 3,
+    "groups": [
+      "np-autoload"
+    ],
+    "steps": [
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s7",
+      "s8"
+    ],
+    "script_order_note": "s2=V5 COLD then s3=V3（README 步骤 2/3 仅在本脚本对调）；s6=workspace rename shadow_config.gd.disabled，无 measure"
+  },
+  "usable_for_confirmed": true
+}

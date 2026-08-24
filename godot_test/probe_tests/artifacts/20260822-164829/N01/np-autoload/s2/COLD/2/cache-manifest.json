@@ -1,0 +1,10 @@
+{
+  "before": {
+    "exists": false,
+    "files": {}
+  },
+  "after": {
+    "exists": false,
+    "files": {}
+  }
+}

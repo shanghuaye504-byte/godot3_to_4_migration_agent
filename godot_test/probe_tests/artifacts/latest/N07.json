@@ -1,0 +1,59 @@
+{
+  "N": "N07",
+  "run_id": "20260823-182940",
+  "inputs_digest": "596cccfcd0b676a3ad98e723f5662040792b33d5a9db6f62e252e6065f44d970",
+  "inputs": {
+    "fixtures": {
+      "phase1/NP-SHADER": "4dfdfcd80d746180439486b5276df42d3e089fa084bae3f201f06e0909f75807"
+    },
+    "annotations": {
+      "phase1/NP-SHADER": "5f321ddfe5ebb0f5bed028b1a2f4584e68f38af48ce05349c97f0c8418760860"
+    },
+    "derived": {},
+    "godot_build_hash": "a13da4feb",
+    "godot_path": "/usr/local/bin/godot4",
+    "godot_fake": false,
+    "upstream": {
+      "N09": "31919eb4683934a49a4a7fad005697608419731c135b9dea6bf9b055e18df428",
+      "N08": "9dbcb580aa021423bd8a6607bb260c93c54ee6390ad9f2827ec429270cac4b8c"
+    }
+  },
+  "godot": {
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "binary_sha1": "9fab64a7acbe2af2690e3ac7c3249b40363b76bb",
+    "platform": "Darwin 25.3.0 / arm64",
+    "fake": false
+  },
+  "artifact_dir": "artifacts/20260823-182940/N07",
+  "measurement_count": 15,
+  "exports": {
+    "kind": "collection-pointer",
+    "repeat": 3,
+    "groups": [
+      "np-shader"
+    ],
+    "steps": [
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5"
+    ],
+    "fragment": "np-warn-debug.ini",
+    "sentinel_include_default": [
+      ".gd"
+    ],
+    "sentinel_extended": false,
+    "signal_source": {
+      "s1": "script-parse-preload-cold",
+      "s2": "resource-import",
+      "s3": "script-parse-preload-warm",
+      "s4": "scene-run",
+      "s5": "sentinel-gd-only"
+    },
+    "script_order_note": "s2 结束后 _mark_warm，避免 s3 再偷跑 V3；未改 sentinel 默认 include；对照靠同一次日志里的 bad.gdshader vs good.gdshader；V5 的 NP_SHADER_MAIN_STARTED 不能证明 shader 正确"
+  },
+  "usable_for_confirmed": true
+}

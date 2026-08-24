@@ -1,0 +1,29 @@
+{
+  "N": "N04",
+  "run_id": "20260823-115551",
+  "group_id": "np-cascade",
+  "step_id": "s4",
+  "cache_state": "WARM",
+  "repeat_idx": 3,
+  "cmd": "V2",
+  "target": "res://dep_1.gd",
+  "base": null,
+  "fixture": "phase1/NP-CASCADE",
+  "inputs_digest": "007344b705e424250e4bbf3839c0217325658f7863fda7b536170553a125b808",
+  "cwd": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-115551-N04-phase1-NP-CASCADE",
+  "applied_helpers": [
+    "warm"
+  ],
+  "env_overrides": {},
+  "timeout_seconds": 30,
+  "godot": {
+    "executable": [
+      "/usr/local/bin/godot4"
+    ],
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "fake": false
+  },
+  "force_stale": false
+}

@@ -1,4 +1,14 @@
 # derived/NP-RESOURCE@uid-baseline/provenance.yaml
 #
-# N06 正确 UID 基线的来源记录。规划字段同 NP-ADDON@plugin-enabled。
-# 当前为占位。
+# N06 GUI 打开并保存后的正确 UID 基线。
+# apply_derived 校验的是当前 Godot 可执行文件的 build hash，不是 git commit。
+
+godot_version: 4.7.1.stable.official.a13da4feb
+build_hash: a13da4feb
+created_at: 2026-08-23T17:12:00+08:00
+operator: yy_catmax
+confirmed: "gui-open-save-uid-baseline"
+scene_uid: "uid://hkbl48745yaj"
+sub_scene_uid: "uid://c66i7tbgxdem6"
+sub_script_uid: "uid://dvemcuu87n1e2"
+note: "patch is main.tscn sub.tscn sub.gd.uid project.godot; .godot/ excluded as import/editor noise"

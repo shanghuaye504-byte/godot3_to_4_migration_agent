@@ -1,0 +1,49 @@
+{
+  "N": "N15",
+  "run_id": "20260823-235214",
+  "inputs_digest": "be847219d0264877bc64af89806917daedb1287d02e0c8c8ed60e4ed11b3ad90",
+  "inputs": {
+    "fixtures": {
+      "phase2/CP-MINIMAL": "9f55c5a087787bc232a6c839de26aea12e64358314712bff6641bf45828da461"
+    },
+    "annotations": {
+      "phase2/CP-MINIMAL": "b5a145aac2877a67f21c4e0d2bfef985b682eb200c3d95627a14caec9a644c1d"
+    },
+    "derived": {},
+    "godot_build_hash": "a13da4feb",
+    "godot_path": "/usr/local/bin/godot4",
+    "godot_fake": false,
+    "upstream": {}
+  },
+  "godot": {
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "binary_sha1": "9fab64a7acbe2af2690e3ac7c3249b40363b76bb",
+    "platform": "Darwin 25.3.0 / arm64",
+    "fake": false
+  },
+  "artifact_dir": "artifacts/20260823-235214/N15",
+  "measurement_count": 7,
+  "exports": {
+    "kind": "converter-capabilities",
+    "help_contains": {
+      "convert-3to4": true,
+      "validate-conversion-3to4": true,
+      "upgrade": false,
+      "ProjectUpgradeTool": false,
+      "3to4": true
+    },
+    "upgrade_tool_entry_found": false,
+    "groups": [
+      "help",
+      "validate",
+      "convert",
+      "convert-args",
+      "upgrade-tool",
+      "v3-boundary-raw",
+      "v3-boundary-converted"
+    ]
+  },
+  "usable_for_confirmed": true
+}

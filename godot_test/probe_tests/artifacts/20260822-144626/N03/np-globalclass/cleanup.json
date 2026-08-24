@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-144626-N03-phase1-NP-GLOBALCLASS",
+  "fixture": "phase1/NP-GLOBALCLASS",
+  "fixture_clean": true,
+  "fixture_digest_before": "1feb22f193011701a7a52eaff91feffce56c3f8de5b0be02ba51c00a0d893a02",
+  "fixture_digest_after": "1feb22f193011701a7a52eaff91feffce56c3f8de5b0be02ba51c00a0d893a02",
+  "probe_files_in_fixture": false
+}

@@ -1,0 +1,45 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-115551-N04-phase1-NP-CASCADE",
+  "files": {
+    "dep_1.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_2.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_3.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_4.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "dep_5.gd": {
+      "sha256": "cd8b8a38876dcba7479d317d0182557016a0cc7783d22f0746a2e3fd35ceb72d",
+      "size": 82
+    },
+    "leaf.gd": {
+      "sha256": "660c01056de5fcfe454e0d7de9eac67622b6c8d47d8d534eb2acf4674dfd7271",
+      "size": 79
+    },
+    "main.gd": {
+      "sha256": "15cbcba1c2b886e0c3379e9f7f385f20aa4706125e14e248eff06a0ec488baf6",
+      "size": 85
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "c34914a842a48026361a4fa7e2c5c91b81f867404c479b99db67aaaf60e4af85",
+      "size": 148
+    },
+    "root_bad.gd": {
+      "sha256": "b7113d471ebb23095ee1e6838d2c0cb6d89620c16a0899b730430c0b1993ee7c",
+      "size": 37
+    }
+  }
+}

@@ -42,16 +42,16 @@ repeat_idx ∈ {1..R}
 共 8 条。旧编号 V9（哨兵）并入 **V1**；旧编号 V10（逐文件循环 V2）删除。后续实验凡写 V1，均指哨兵项目级校验。
 
 
-| ID     | 命令                                                                                                                                                              | 语义定位                                                                                                                                                                               |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **V1** | `$GODOT --headless --path $P --check-only --script res://__probe_sentinel.gd --quit`，哨兵内 preload 全部脚本，哨兵脚本必须按照相对路径引入，必须要排序后引入，避免每次产生log的顺序不同。哨兵生效本身就是一个去噪的里程碑。 | 项目级编译校验。godot-proposals #1758 的 workaround；已验证有效。哨兵**不常驻 fixture**，由 `probe.sentinel` 在步骤开始时生成、步骤结束时删除（契约见 ARCHITECTURE.md §5）。不带 `--script` 的裸 `--check-only` 已确认是 no-op，不再占用指令编号 |
-| **V2** | `$GODOT --headless --path $P --script res://X.gd --check-only --quit`                                                                                           | 单文件 check（官方文档唯一支持的用法）                                                                                                                                                             |
-| **V3** | `$GODOT --headless --path $P --editor --import --quit`                                                                                                          | 全项目导入 + class cache 重建                                                                                                                                                             |
-| **V4** | `$GODOT --headless --path $P --import --quit`                                                                                                                   | 不带 `--editor` 能否 import                                                                                                                                                            |
-| **V5** | `$GODOT --headless --path $P --quit`                                                                                                                            | 真实运行时（autoload 会注册）→ **交叉验证信号源**                                                                                                                                                   |
-| **V6** | `$GODOT --headless --path $P --quit-after 2`                                                                                                                    | 更硬的防挂死                                                                                                                                                                             |
-| **V7** | V1/V2/V3 + `--verbose`                                                                                                                                          | 是否给出结构化/依赖顺序信息                                                                                                                                                                     |
-| **V8** | V1/V2 + `--debug`                                                                                                                                               | **预期挂死或 signal 11 崩溃**                                                                                                                                                             |
+| ID     | 命令                                                                                                                                                                                                                   | 语义定位                                                                                                                                                                               |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **V1** | `$GODOT --headless --path $P --check-only --script res://__probe_sentinel.gd --quit`，哨兵内 preload 全部脚本，哨兵脚本必须按照相对路径引入，必须要排序后引入，避免每次产生log的顺序不同。哨兵生效本身就是一个去噪的里程碑。哨兵本身只拉取gd代码，因为shader等资源应该在原本项目的脚本中去主动引用，哨兵不改变原本项目的逻辑。 | 项目级编译校验。godot-proposals #1758 的 workaround；已验证有效。哨兵**不常驻 fixture**，由 `probe.sentinel` 在步骤开始时生成、步骤结束时删除（契约见 ARCHITECTURE.md §5）。不带 `--script` 的裸 `--check-only` 已确认是 no-op，不再占用指令编号 |
+| **V2** | `$GODOT --headless --path $P --script res://X.gd --check-only --quit`                                                                                                                                                | 单文件 check（官方文档唯一支持的用法）                                                                                                                                                             |
+| **V3** | `$GODOT --headless --path $P --editor --import --quit`                                                                                                                                                               | 全项目导入 + class cache 重建                                                                                                                                                             |
+| **V4** | `$GODOT --headless --path $P --import --quit`                                                                                                                                                                        | 不带 `--editor` 能否 import                                                                                                                                                            |
+| **V5** | `$GODOT --headless --path $P --quit`                                                                                                                                                                                 | 真实运行时（autoload 会注册）→ **交叉验证信号源**                                                                                                                                                   |
+| **V6** | `$GODOT --headless --path $P --quit-after 2`                                                                                                                                                                         | 更硬的防挂死                                                                                                                                                                             |
+| **V7** | V1/V2/V3 + `--verbose`                                                                                                                                                                                               | 是否给出结构化/依赖顺序信息                                                                                                                                                                     |
+| **V8** | V1/V2 + `--debug`                                                                                                                                                                                                    | **预期挂死或 signal 11 崩溃**                                                                                                                                                             |
 
 
 
@@ -445,7 +445,7 @@ N            = 独立、有序、可重复、可恢复的实验定义
 | 10  | V8  | NP-SYNTAX `orphan_bad_parse.gd`，外层 `timeout 30` | WARM | 1   | `--debug` 是否掉进交互式 debugger 永久挂住，或 signal 11 崩溃 |
 
 
-
+注意：关键结论：V1的哨兵脚本可以检查出所有有错误的脚本，但是无法报出每一个有错误的脚本的具体错误是什么，必须先用V1检查出出错的脚本，然后再用V2专门地去排查这一个具体脚本的错误。
 
 ### 判据
 
@@ -454,11 +454,11 @@ N            = 独立、有序、可重复、可恢复的实验定义
 
 | 场景             | 项目             | 有真错误 | 期望 rc   | 实测 rc |
 | -------------- | -------------- | ---- | ------- | ----- |
-| 干净             | CleanControl   | 否    | 0       | ?     |
-| 单文件真错          | NP-SYNTAX V2   | 是    | ≠0      | ?     |
-| 项目级真错          | NP-SYNTAX V1   | 是    | ≠0      | ?     |
-| 纯假阳性           | NP-AUTOLOAD V2 | 否    | 0       | ?     |
-| 被 timeout kill | V8 步骤          | —    | 124/137 | ?     |
+| 干净             | CleanControl   | 否    | 0       | 0     |
+| 单文件真错          | NP-SYNTAX V2   | 是    | ≠0      | 0     |
+| 项目级真错          | NP-SYNTAX V1   | 是    | ≠0      | 0     |
+| 纯假阳性           | NP-AUTOLOAD V2 | 否    | 0       | 0     |
+| 被 timeout kill | V8 步骤          | —    | 124/137 | -6    |
 
 
 另外两条判据：
@@ -781,7 +781,7 @@ CLEAN / HAS_ERRORS / INFRA_FAILURE
 | 7   | V3  | 整个项目                                                                                                             | WARM      | 3   | import 能否自愈伪造的 UID         |
 | 8   | V1  | 全项目哨兵                                                                                                            | WARM      | 3   | 补 import 之后噪声是否消失          |
 | 9   | —   | 把 `main.tscn` 的 `ext_resource` 指向另一个路径（原 N12-b 的触发物）                                                             | —         | —   | —                          |
-| 10  | V1  | 全项目哨兵（**不 import**）                                                                                              | WARM      | 3   | 资源引用变更后不 import 会不会报错      |
+| 10  | V1  | 全项目哨兵（**不 import**）                                                                                              | COLD      | 3   | 资源引用变更后不 import 会不会报错      |
 | 11  | V3  | 整个项目                                                                                                             | WARM      | 1   | 补 import                   |
 | 12  | V1  | 全项目哨兵                                                                                                            | WARM      | 3   | 补 import 之后是否干净            |
 

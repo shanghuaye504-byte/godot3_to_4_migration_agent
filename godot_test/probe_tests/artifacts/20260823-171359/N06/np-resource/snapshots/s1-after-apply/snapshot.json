@@ -1,0 +1,18 @@
+{
+  "tag": "s1-after-apply",
+  "uids": {
+    "main.tscn": [
+      "uid://hkbl48745yaj",
+      "uid://c66i7tbgxdem6"
+    ],
+    "sub.tscn": [
+      "uid://c66i7tbgxdem6",
+      "uid://dvemcuu87n1e2"
+    ],
+    "sub.gd.uid": [
+      "uid://dvemcuu87n1e2"
+    ],
+    "project.godot": []
+  },
+  "settings": "np-warn-debug.ini"
+}

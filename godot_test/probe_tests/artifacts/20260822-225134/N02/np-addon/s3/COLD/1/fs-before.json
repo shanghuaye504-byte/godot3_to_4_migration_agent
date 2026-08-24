@@ -1,0 +1,49 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-225134-N02-phase1-NP-ADDON",
+  "files": {
+    "addons/dummy/dummy_singleton.gd": {
+      "sha256": "16c168a6e470b9649dcdd4bdc540fb24fd13d6b3420fda4b6f0f793732f55015",
+      "size": 57
+    },
+    "addons/dummy/dummy_singleton.gd.uid": {
+      "sha256": "893589e066ce9155d8340fc7a359cf7b2bba3d20f94909e761d015f0cf290e79",
+      "size": 19
+    },
+    "addons/dummy/plugin.cfg": {
+      "sha256": "df3b4764325537a764f5f0c4e39f585745e3fb119bd8ba50a5101b830a29f873",
+      "size": 90
+    },
+    "addons/dummy/plugin.gd": {
+      "sha256": "0eaa409a682dce8a4720a73539f15a4a2a90a5554bccedf0294c02ead3033a3d",
+      "size": 297
+    },
+    "addons/dummy/plugin.gd.uid": {
+      "sha256": "e2d62599416360d93daabb578cab16dfb673c4e4cc425ebaba9e38b702a9da2f",
+      "size": 20
+    },
+    "main.gd": {
+      "sha256": "984e0198c3ce7ec2ab3a91aa99276042954a78b6f2545d00688eb925bd8f06cb",
+      "size": 106
+    },
+    "main.gd.uid": {
+      "sha256": "41fb5c7673f27ccd1ac26d6c224ea243c7d216cb5af37e021b67d6ca51f8a780",
+      "size": 19
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "1c6731edb8fbefd440ae9803e9419c51b82a0490a43f0e6e3e235a0de7aef920",
+      "size": 559
+    },
+    "uses_addon.gd": {
+      "sha256": "87fc3bd13727439c922f3704540c4c2f515cfc595062ad54424f635ce40a606a",
+      "size": 55
+    },
+    "uses_addon.gd.uid": {
+      "sha256": "3c5fb6999cfc0f906b7b24d7e60d1524ef28fdf7e5d672ed39d27977cbf4fbd8",
+      "size": 20
+    }
+  }
+}

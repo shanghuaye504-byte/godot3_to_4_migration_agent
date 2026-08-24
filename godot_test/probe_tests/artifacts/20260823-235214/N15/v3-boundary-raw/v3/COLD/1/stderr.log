@@ -1,0 +1,16 @@
+SCRIPT ERROR: Parse Error: Static function "get_ticks_msec()" not found in base "GDScriptNativeClass".
+          at: GDScript::reload (res://main.gd:4)
+ERROR: Failed to load script "res://main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+ERROR: No loader found for resource: res://fx.shader (expected type: Shader)
+   at: _load (core/io/resource_loader.cpp:332)
+ERROR: res://mat.tres:6 - Parse Error: .
+   at: _printerr (scene/resources/resource_format_text.cpp:41)
+ERROR: Failed loading resource: res://mat.tres.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Parse Error: File unrecognized. [Resource file res://main.tscn:10]
+   at: _parse_node_tag (scene/resources/resource_format_text.cpp:293)
+ERROR: Failed loading resource: res://main.tscn.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Plugin is not attached to debugger.
+   at: is_active (editor/debugger/editor_debugger_plugin.cpp:102)

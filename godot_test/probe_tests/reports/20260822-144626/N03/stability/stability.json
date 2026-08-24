@@ -1,0 +1,206 @@
+{
+  "analyzer": "stability",
+  "view": "longitudinal",
+  "run_id": "20260822-144626",
+  "N": "N03",
+  "artifact_dir": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/artifacts/20260822-144626/N03",
+  "inputs_digest": "066b348923ec459331078473aef3e9885b65420607cd2f35bf48e6604df07eb9",
+  "step_count": 5,
+  "repeat_total": 14,
+  "all_line_sets_identical": true,
+  "all_common_line_orders_identical": true,
+  "unstable_step_count": 0,
+  "steps": [
+    {
+      "project": "np-globalclass",
+      "fixture": "phase1/NP-GLOBALCLASS",
+      "cmd": "V2",
+      "cache_state": "COLD",
+      "step_id": "t1",
+      "target": "res://uses_class.gd",
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 4,
+            "2": 4,
+            "3": 4
+          },
+          "union_size": 4,
+          "intersection_size": 4
+        }
+      }
+    },
+    {
+      "project": "np-globalclass",
+      "fixture": "phase1/NP-GLOBALCLASS",
+      "cmd": "V2",
+      "cache_state": "WARM",
+      "step_id": "t3",
+      "target": "res://uses_class.gd",
+      "repeat_count": 6,
+      "repeat_indices": [
+        1,
+        1,
+        2,
+        2,
+        3,
+        3
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0,
+            "2": 0,
+            "3": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "np-globalclass",
+      "fixture": "phase1/NP-GLOBALCLASS",
+      "cmd": "V2",
+      "cache_state": "PRESERVE",
+      "step_id": "t4",
+      "target": "res://uses_late.gd",
+      "repeat_count": 3,
+      "repeat_indices": [
+        1,
+        2,
+        3
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 2,
+            "2": 2,
+            "3": 2
+          },
+          "union_size": 2,
+          "intersection_size": 2
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 4,
+            "2": 4,
+            "3": 4
+          },
+          "union_size": 4,
+          "intersection_size": 4
+        }
+      }
+    },
+    {
+      "project": "np-globalclass",
+      "fixture": "phase1/NP-GLOBALCLASS",
+      "cmd": "V3",
+      "cache_state": "COLD",
+      "step_id": "t2",
+      "target": null,
+      "repeat_count": 1,
+      "repeat_indices": [
+        1
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 22
+          },
+          "union_size": 20,
+          "intersection_size": 20
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    },
+    {
+      "project": "np-globalclass",
+      "fixture": "phase1/NP-GLOBALCLASS",
+      "cmd": "V3",
+      "cache_state": "PRESERVE",
+      "step_id": "t5",
+      "target": null,
+      "repeat_count": 1,
+      "repeat_indices": [
+        1
+      ],
+      "line_set_identical": true,
+      "common_line_order_identical": true,
+      "streams": {
+        "stdout": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 21
+          },
+          "union_size": 19,
+          "intersection_size": 19
+        },
+        "stderr": {
+          "line_set_identical": true,
+          "common_line_order_identical": true,
+          "line_count_by_repeat": {
+            "1": 0
+          },
+          "union_size": 0,
+          "intersection_size": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "tag": "s4-after-corrupt",
+  "uids": {
+    "main.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ],
+    "sub.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ],
+    "sub.gd.uid": [
+      "uid://n06forgedinvalid"
+    ],
+    "project.godot": []
+  },
+  "forged": {
+    "main.tscn": {
+      "before": [
+        "uid://hkbl48745yaj",
+        "uid://c66i7tbgxdem6"
+      ],
+      "after": [
+        "uid://n06forgedinvalid",
+        "uid://n06forgedinvalid"
+      ]
+    },
+    "sub.tscn": {
+      "before": [
+        "uid://c66i7tbgxdem6",
+        "uid://dvemcuu87n1e2"
+      ],
+      "after": [
+        "uid://n06forgedinvalid",
+        "uid://n06forgedinvalid"
+      ]
+    },
+    "sub.gd.uid": {
+      "before": [
+        "uid://dvemcuu87n1e2"
+      ],
+      "after": [
+        "uid://n06forgedinvalid"
+      ]
+    }
+  }
+}

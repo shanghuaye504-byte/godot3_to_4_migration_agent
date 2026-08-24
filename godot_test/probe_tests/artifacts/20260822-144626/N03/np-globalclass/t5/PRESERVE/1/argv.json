@@ -1,0 +1,9 @@
+[
+  "/usr/local/bin/godot4",
+  "--headless",
+  "--path",
+  "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-144626-N03-phase1-NP-GLOBALCLASS",
+  "--editor",
+  "--import",
+  "--quit"
+]

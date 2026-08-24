@@ -1,0 +1,17 @@
+{
+  "tag": "s7-after-reimport",
+  "uids": {
+    "main.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ],
+    "sub.tscn": [
+      "uid://n06forgedinvalid",
+      "uid://n06forgedinvalid"
+    ],
+    "sub.gd.uid": [
+      "uid://n06forgedinvalid"
+    ],
+    "project.godot": []
+  }
+}

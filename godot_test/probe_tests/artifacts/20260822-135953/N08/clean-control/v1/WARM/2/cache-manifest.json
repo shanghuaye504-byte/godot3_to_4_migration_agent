@@ -1,0 +1,108 @@
+{
+  "before": {
+    "exists": true,
+    "files": {
+      ".godot/.gdignore": {
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "size": 1
+      },
+      ".godot/.probe-warm-ok.json": {
+        "sha256": "4e86172dea9fa53191c3ed7e05616b95fc3c774712cdaab523a1d2a5cbc59010",
+        "size": 53
+      },
+      ".godot/editor/editor_layout.cfg": {
+        "sha256": "088e3933b4818a7fc0b554932e734987660c47e486f1bd4baecd12a80ef89b97",
+        "size": 1528
+      },
+      ".godot/editor/editor_script_doc_cache.res": {
+        "sha256": "31d29382e69b4414b0f4a82b01dea85daee8ba5893245ddce34f867a2e1bea18",
+        "size": 345
+      },
+      ".godot/editor/editor_script_doc_cache.res-folding-a7de57390d6e786984ca20c70a831128.cfg": {
+        "sha256": "fa44dfbae9b3b64980c44d9922acdad9b34ea46c85cce8a917708577229c27f6",
+        "size": 49
+      },
+      ".godot/editor/filesystem_cache10": {
+        "sha256": "54f422075886aa8f52789f6c85eac7967cc0d01554dae6f342cf8c0779751077",
+        "size": 289
+      },
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+        "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+        "size": 90
+      },
+      ".godot/editor/project_metadata.cfg": {
+        "sha256": "6f7d3685a4cb471fde734d60725cadab0bcf162d962a34547edcb85210c1f94c",
+        "size": 209
+      },
+      ".godot/editor/script_editor_cache.cfg": {
+        "sha256": "af823332f5a22bd5b8e6d8eed1ddafd4cd9d3113df1e1b25fcbcb39b8ceb8489",
+        "size": 255
+      },
+      ".godot/global_script_class_cache.cfg": {
+        "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+        "size": 8
+      },
+      ".godot/scene_groups_cache.cfg": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      ".godot/uid_cache.bin": {
+        "sha256": "903c017ee8691595d3b56c79013db18751b312106e254dd1e3879966717696ff",
+        "size": 51
+      }
+    }
+  },
+  "after": {
+    "exists": true,
+    "files": {
+      ".godot/.gdignore": {
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "size": 1
+      },
+      ".godot/.probe-warm-ok.json": {
+        "sha256": "4e86172dea9fa53191c3ed7e05616b95fc3c774712cdaab523a1d2a5cbc59010",
+        "size": 53
+      },
+      ".godot/editor/editor_layout.cfg": {
+        "sha256": "088e3933b4818a7fc0b554932e734987660c47e486f1bd4baecd12a80ef89b97",
+        "size": 1528
+      },
+      ".godot/editor/editor_script_doc_cache.res": {
+        "sha256": "31d29382e69b4414b0f4a82b01dea85daee8ba5893245ddce34f867a2e1bea18",
+        "size": 345
+      },
+      ".godot/editor/editor_script_doc_cache.res-folding-a7de57390d6e786984ca20c70a831128.cfg": {
+        "sha256": "fa44dfbae9b3b64980c44d9922acdad9b34ea46c85cce8a917708577229c27f6",
+        "size": 49
+      },
+      ".godot/editor/filesystem_cache10": {
+        "sha256": "54f422075886aa8f52789f6c85eac7967cc0d01554dae6f342cf8c0779751077",
+        "size": 289
+      },
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+        "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+        "size": 90
+      },
+      ".godot/editor/project_metadata.cfg": {
+        "sha256": "6f7d3685a4cb471fde734d60725cadab0bcf162d962a34547edcb85210c1f94c",
+        "size": 209
+      },
+      ".godot/editor/script_editor_cache.cfg": {
+        "sha256": "af823332f5a22bd5b8e6d8eed1ddafd4cd9d3113df1e1b25fcbcb39b8ceb8489",
+        "size": 255
+      },
+      ".godot/global_script_class_cache.cfg": {
+        "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+        "size": 8
+      },
+      ".godot/scene_groups_cache.cfg": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      ".godot/uid_cache.bin": {
+        "sha256": "903c017ee8691595d3b56c79013db18751b312106e254dd1e3879966717696ff",
+        "size": 51
+      }
+    }
+  }
+}

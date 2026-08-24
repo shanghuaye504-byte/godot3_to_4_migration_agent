@@ -1,0 +1,25 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-180913-N06-phase1-NP-RESOURCE",
+  "files": {
+    "main.tscn": {
+      "sha256": "eed9528225688cd300b03e7f408bd15f3e320d6b4c0b0406fa15ebbf0cd32cf7",
+      "size": 268
+    },
+    "project.godot": {
+      "sha256": "4e7574de273f4fe43015cc144889b46959ef63a8fe7e57c1c58ca03c958ec078",
+      "size": 736
+    },
+    "sub.gd": {
+      "sha256": "b0698aec7ef27eeb28c8cdf15a446d1fb9cdeb92ab34a9cfc40870654ee5b978",
+      "size": 53
+    },
+    "sub.gd.uid": {
+      "sha256": "9ee9899a6ddeacd908c1150f0b56ccbdaa28b63227042d166fe0ecee954a34ef",
+      "size": 20
+    },
+    "sub.tscn": {
+      "sha256": "bb4800b1deb84871fe8d4ed927cb5028ffcb4609b4d26a44ff8fd0621915a4ac",
+      "size": 207
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "N": "N03",
+  "run_id": "20260822-144626",
+  "inputs_digest": "066b348923ec459331078473aef3e9885b65420607cd2f35bf48e6604df07eb9",
+  "inputs": {
+    "fixtures": {
+      "phase1/NP-GLOBALCLASS": "1feb22f193011701a7a52eaff91feffce56c3f8de5b0be02ba51c00a0d893a02"
+    },
+    "annotations": {
+      "phase1/NP-GLOBALCLASS": "0955c81d9b98628f86f750a386a5b3c1b8a0e787a1bc0bea77978694f489c15e"
+    },
+    "derived": {},
+    "godot_build_hash": "a13da4feb",
+    "godot_path": "/usr/local/bin/godot4",
+    "godot_fake": false,
+    "upstream": {
+      "N09": "31919eb4683934a49a4a7fad005697608419731c135b9dea6bf9b055e18df428",
+      "N08": "9dbcb580aa021423bd8a6607bb260c93c54ee6390ad9f2827ec429270cac4b8c"
+    }
+  },
+  "godot": {
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "binary_sha1": "9fab64a7acbe2af2690e3ac7c3249b40363b76bb",
+    "platform": "Darwin 25.3.0 / arm64",
+    "fake": false
+  },
+  "artifact_dir": "artifacts/20260822-144626/N03",
+  "measurement_count": 14,
+  "exports": {
+    "kind": "collection-pointer",
+    "repeat": 3,
+    "groups": [
+      "np-globalclass"
+    ],
+    "steps": [
+      "t1",
+      "t2",
+      "t3",
+      "t4",
+      "t5",
+      "t6"
+    ]
+  },
+  "usable_for_confirmed": true
+}

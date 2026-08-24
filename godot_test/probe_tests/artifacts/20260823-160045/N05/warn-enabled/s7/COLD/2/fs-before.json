@@ -1,0 +1,37 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-160045-N05-phase1-NP-WARN",
+  "files": {
+    "addons/noisy/noisy.gd": {
+      "sha256": "4a0fae7805cf51cf3c23c9a830db541682d1c87ebba30214807c58e69e9e6598",
+      "size": 100
+    },
+    "addons/noisy/noisy.gd.uid": {
+      "sha256": "92f0db72683481f8754a64e7a69a5f3a81aaa6c8cb891607ea5c4665e13f7dc4",
+      "size": 19
+    },
+    "main.gd": {
+      "sha256": "26855987c90371eb9e45f74e0f2a36cbdfd0ab09f803f77e310352988ee1fd4f",
+      "size": 82
+    },
+    "main.gd.uid": {
+      "sha256": "e2b523b67b5d760b31a2390143ee4de9b2b54e03b5c4caf3ef139746767b46d3",
+      "size": 20
+    },
+    "main.tscn": {
+      "sha256": "b38ddd490529a82527080088a3a1e66c5018426266e9b75d55cd99cc2c032724",
+      "size": 279
+    },
+    "project.godot": {
+      "sha256": "8efd9fac78f88e43e35aa6d753889b7a689fe6ada6b0705a2f5a081cdc8f16fa",
+      "size": 447
+    },
+    "warn.gd": {
+      "sha256": "e6398d905ccedc6102ceeb12deb41777a1f2cdb5c2cd2bcc8e70d23ca6d18527",
+      "size": 212
+    },
+    "warn.gd.uid": {
+      "sha256": "784bd3d6494e923f5f31138c827b1dc66b6cb9417a4080c278c83437ca51cb45",
+      "size": 20
+    }
+  }
+}

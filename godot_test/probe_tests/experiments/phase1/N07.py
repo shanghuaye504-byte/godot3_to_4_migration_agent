@@ -1,50 +1,161 @@
-"""N07 采集脚本：shader verifier 盲区（漏报，不是假阳性）。P1-9。
+#!/usr/bin/env python3
+"""N07 正式采集脚本：shader verifier 盲区（漏报，不是假阳性）。P1-9。
 
-脚本只采集；Δ 归类交给 analyzer/delta.py。
-本文件只记录契约，不含实现。
+按 README.md P1-9 采集。全程一个 NP-SHADER 工作区。不跑 V8。
+注入 np-warn-debug.ini，stdout 与 stderr 都看。不写回 fixture。
+无 derived / GUI。默认哨兵只 preload *.gd，本实验不改 sentinel 默认 include。
 
-================================================================
-1. 身份与依赖
-================================================================
+本脚本只落盘，不下结论（不写 CONFIRMED / shader_coverage 最终取值）。
+假 Godot 禁止用于本实验。
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from pathlib import Path
+
+PROBE_ROOT = Path(__file__).resolve().parents[2]
+if str(PROBE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROBE_ROOT))
+
+from experiments.util import probe  # noqa: E402
+from experiments.util.probe import (  # noqa: E402
+    WARM_MARKER,
+    BlockedError,
+    ProbeError,
+    StaleError,
+)
 
 N = "N07"
-依赖：N08（命令能力）、N09（归一化）
-启动时读上游 latest JSON；缺失或 STALE 则按契约处理。
-repeat = 3
-导出：artifacts/latest/N07.json（验证边界声明；哨兵是否扩展到 shader 的 capability）
-判定：python analyzer/delta.py artifacts/<run-id>/N07/
+FIXTURES = ("phase1/NP-SHADER",)
+FRAGMENT = "np-warn-debug.ini"
+GROUP = "np-shader"
 
-对照：同项目 good.gdshader（第一优先，区分「这个 shader 坏」与「任何 shader 都不报」）> CleanControl。
-每一步都必须与 good.gdshader 侧的输出对比。
 
-若确认 V2 的 preload 方案成立，本实验只输出 capability，不直接改写其他 fixture；
-是否把哨兵 preload 扩展到 .gdshader 由 probe.sentinel(include=...) 统一控制，不在各脚本里各写一份。
+def main() -> int:
+    os.environ.pop("PROBE_GODOT", None)
 
-================================================================
-2. fixture / derived
-================================================================
+    try:
+        run = probe.start(
+            N,
+            repeat_default=3,
+            timeout_seconds=30,
+            fixtures=FIXTURES,
+            depends_on=("N09", "N08"),
+        )
+        if run.identity.fake:
+            raise ProbeError(
+                "BLOCKED: N07 正式采集禁止假 Godot。"
+                f" 当前可执行文件是 {run.identity.path}"
+            )
 
-fixture：fixtures/phase1/NP-SHADER
-  坏 bad.gdshader → mat.tres → 挂在 main.tscn 的 Sprite2D 上
-  shader_user.gd 用 preload 引用它
-  同项目另有 good.gdshader → good_mat.tres 作为正确 shader 对照
-无 derived patch。
+        with probe.workspace("phase1/NP-SHADER", group=GROUP) as ws:
+            probe.settings(ws, FRAGMENT)
 
-================================================================
-3. 步骤表（一个 measure 对应一行）
-================================================================
+            # 1  V2  shader_user.gd  COLD  ×3
+            #    脚本解析：preload 能否把 shader 错误抬到 GDScript 解析期。
+            run.measure(
+                ws,
+                group=GROUP,
+                step="s1",
+                cmd="V2",
+                cache="COLD",
+                target="res://shader_user.gd",
+            )
 
-  1  V2  shader_user.gd    COLD  ×3   preload 能否把 shader 错误「抬」到 GDScript 解析期
-  2  V3  整个项目          COLD  ×3   import 阶段是否报 shader 错误
-  3  V2  shader_user.gd    WARM  ×3   暖态下是否仍然可见
-  4  V5  整个项目          WARM  ×3   场景启动阶段是否报（main.tscn 上挂着坏材质）
-  5  V1  全项目哨兵        WARM  ×3   默认哨兵（只 preload *.gd）的覆盖范围到哪
+            # 2  V3  整个项目  COLD  ×3
+            recs = run.measure(
+                ws,
+                group=GROUP,
+                step="s2",
+                cmd="V3",
+                cache="COLD",
+            )
+            _mark_warm(ws, recs[-1])
 
-每一步标注信号来源：脚本解析 / 资源 import / 场景启动。三类必须分开存。
+            # 3  V2  shader_user.gd  WARM  ×3
+            run.measure(
+                ws,
+                group=GROUP,
+                step="s3",
+                cmd="V2",
+                cache="WARM",
+                target="res://shader_user.gd",
+            )
 
-================================================================
-4. finally 清理
-================================================================
+            # 4  V5  整个项目  WARM  ×3
+            #    场景启动：main.tscn 上同时挂着坏/好材质。
+            run.measure(
+                ws,
+                group=GROUP,
+                step="s4",
+                cmd="V5",
+                cache="WARM",
+            )
 
-杀进程组、删工作区、校验原 fixture 仍 clean。
-"""
+            # 5  V1  全项目哨兵  WARM  ×3
+            #    默认 include 只有 *.gd，不传 include。
+            run.measure(
+                ws,
+                group=GROUP,
+                step="s5",
+                cmd="V1",
+                cache="WARM",
+            )
+
+        run.finish(
+            exports={
+                "kind": "collection-pointer",
+                "repeat": 3,
+                "groups": [GROUP],
+                "steps": ["s1", "s2", "s3", "s4", "s5"],
+                "fragment": FRAGMENT,
+                "sentinel_include_default": [".gd"],
+                "sentinel_extended": False,
+                "signal_source": {
+                    "s1": "script-parse-preload-cold",
+                    "s2": "resource-import",
+                    "s3": "script-parse-preload-warm",
+                    "s4": "scene-run",
+                    "s5": "sentinel-gd-only",
+                },
+                "script_order_note": (
+                    "s2 结束后 _mark_warm，避免 s3 再偷跑 V3；"
+                    "未改 sentinel 默认 include；"
+                    "对照靠同一次日志里的 bad.gdshader vs good.gdshader；"
+                    "V5 的 NP_SHADER_MAIN_STARTED 不能证明 shader 正确"
+                ),
+            }
+        )
+    except (BlockedError, StaleError, ProbeError) as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 2
+    return 0
+
+
+def _mark_warm(ws: probe.Workspace, rec: dict) -> None:
+    """s2 的最后一次 V3 已建好缓存；写 marker，避免后续 WARM 再跑一次 import。"""
+    godot = ws.path / ".godot"
+    godot.mkdir(parents=True, exist_ok=True)
+    marker = ws.path / WARM_MARKER
+    marker.write_text(
+        json.dumps(
+            {
+                "ok": True,
+                "from_step": rec.get("step_id"),
+                "rc": rec.get("rc"),
+                "wall_time": rec.get("wall_time"),
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    ws.warmed = True
+
+
+if __name__ == "__main__":
+    sys.exit(main())

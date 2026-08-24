@@ -1,50 +1,140 @@
-"""N05 采集脚本：warning 与 error 严重度混淆。P1-7。
+#!/usr/bin/env python3
+"""N05 正式采集脚本：warning 与 error 严重度混淆。P1-7。
 
-脚本只采集；Δ 归类交给 analyzer/delta.py。
-本文件只记录契约，不含实现。
+按 README.md P1-7 采集。只跑 NP-WARN，不重跑 CleanControl（N09 已无 WARNING）。
+不跑 V8。配置用 probe.settings 注入 np-warn-debug.ini，不写回 fixture。
+NP-WARN 没有 plugin.cfg，不走 GUI / derived。
 
-================================================================
-1. 身份与依赖
-================================================================
+两个 group、两份工作区：default（步骤 1–3）与 warn-enabled（步骤 4–7）。
+本脚本只落盘，不下结论（不写 CONFIRMED / enable_warnings 最终取值）。
+假 Godot 禁止用于本实验。
+"""
+
+from __future__ import annotations
+
+import os
+import shutil
+import sys
+from pathlib import Path
+
+PROBE_ROOT = Path(__file__).resolve().parents[2]
+if str(PROBE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROBE_ROOT))
+
+from experiments.util import probe  # noqa: E402
+from experiments.util.probe import BlockedError, ProbeError, StaleError  # noqa: E402
 
 N = "N05"
-依赖：N08（V8 已判定不可用，本实验不再重试 --debug）、N09
-启动时读上游 latest JSON；缺失或 STALE 则按契约处理。
-repeat = 3
-导出：artifacts/latest/N05.json（严重度采集策略的采集输入）
-判定：python analyzer/delta.py artifacts/<run-id>/N05/
+FIXTURES = ("phase1/NP-WARN",)
+FRAGMENT = "np-warn-debug.ini"
+GROUP_DEFAULT = "default"
+GROUP_ON = "warn-enabled"
 
-对照：CleanControl 的 BG（背景里本来就有多少 WARNING）。
-原方案里的 V8 对照删除：warning 只能走项目设置这一条路。
 
-================================================================
-2. fixture / derived
-================================================================
+def main() -> int:
+    os.environ.pop("PROBE_GODOT", None)
 
-fixture：fixtures/phase1/NP-WARN（warn.gd 埋 warning；addons/noisy/noisy.gd 验证 exclude_addons）
-无 derived patch。
-配置片段：experiments/common/fragments/np-warn-debug.ini
-  gdscript/warnings/enable=true + exclude_addons=true
-配置注入只发生在「启用 warning」组的临时工作区，用 probe.settings，不写回 fixture。
+    try:
+        run = probe.start(
+            N,
+            repeat_default=3,
+            timeout_seconds=30,
+            fixtures=FIXTURES,
+            depends_on=("N09", "N08"),
+        )
+        if run.identity.fake:
+            raise ProbeError(
+                "BLOCKED: N05 正式采集禁止假 Godot。"
+                f" 当前可执行文件是 {run.identity.path}"
+            )
 
-================================================================
-3. 步骤表（一个 measure 对应一行；两个 group）
-================================================================
+        with probe.workspace("phase1/NP-WARN", group=GROUP_DEFAULT) as ws:
+            # 1  V2  warn.gd  WARM  ×3
+            run.measure(
+                ws,
+                group=GROUP_DEFAULT,
+                step="s1",
+                cmd="V2",
+                cache="WARM",
+                target="res://warn.gd",
+            )
+            # 2  V1  全项目哨兵  WARM  ×3
+            run.measure(
+                ws,
+                group=GROUP_DEFAULT,
+                step="s2",
+                cmd="V1",
+                cache="WARM",
+            )
+            # 3  V3  整个项目  COLD  ×3
+            run.measure(
+                ws,
+                group=GROUP_DEFAULT,
+                step="s3",
+                cmd="V3",
+                cache="COLD",
+            )
 
-group default（默认设置，不注入片段）:
-  1  V2  warn.gd           WARM  ×3   默认设置下单文件通道有没有 warning
-  2  V1  全项目哨兵        WARM  ×3   默认设置下项目级扫描有没有 warning
-  3  V3  整个项目          COLD  ×3   import 通道有没有 warning
+        with probe.workspace("phase1/NP-WARN", group=GROUP_ON) as ws:
+            # 4  注入 warning 片段（只改临时工作区）
+            probe.settings(ws, FRAGMENT)
+            _snapshot_injected(ws, run)
 
-group warn-enabled（probe.settings(np-warn-debug.ini)）:
-  4  —   注入片段
-  5  V2  warn.gd           WARM  ×3   是否以 WARNING: 前缀出现在 stderr 里
-  6  V1  全项目哨兵        WARM  ×3   项目级扫描下的 warning 数量与前缀
-  7  V3  整个项目          COLD  ×3   exclude_addons 是否真的屏蔽了 addons/noisy/noisy.gd 的 warning
+            # 5  V2  warn.gd  WARM  ×3
+            run.measure(
+                ws,
+                group=GROUP_ON,
+                step="s5",
+                cmd="V2",
+                cache="WARM",
+                target="res://warn.gd",
+            )
+            # 6  V1  全项目哨兵  WARM  ×3
+            #    哨兵会 preload addons/noisy；exclude_addons 挡不住硬 preload。
+            run.measure(
+                ws,
+                group=GROUP_ON,
+                step="s6",
+                cmd="V1",
+                cache="WARM",
+            )
+            # 7  V3  整个项目  COLD  ×3
+            #    exclude_addons 是否屏蔽 addon warning 的主观察面。
+            run.measure(
+                ws,
+                group=GROUP_ON,
+                step="s7",
+                cmd="V3",
+                cache="COLD",
+            )
 
-================================================================
-4. finally 清理
-================================================================
+        run.finish(
+            exports={
+                "kind": "collection-pointer",
+                "repeat": 3,
+                "groups": [GROUP_DEFAULT, GROUP_ON],
+                "steps": ["s1", "s2", "s3", "s4", "s5", "s6", "s7"],
+                "fragment": FRAGMENT,
+                "script_order_note": (
+                    "s4=probe.settings(np-warn-debug.ini)，无 measure；"
+                    "未跑 CleanControl，BG 用 N09 无 WARNING"
+                ),
+            }
+        )
+    except (BlockedError, StaleError, ProbeError) as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 2
+    return 0
 
-杀进程组、删工作区、校验原 fixture 仍 clean（project.godot 未被改写）。
-"""
+
+def _snapshot_injected(ws: probe.Workspace, run: probe.Run) -> None:
+    """N05 私事：把注入后的 project.godot 拷到 artifacts，供人读片段原文。"""
+    dest = run.artifact_root / GROUP_ON / "injected"
+    dest.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ws.path / "project.godot", dest / "project.godot")
+    src = PROBE_ROOT / "experiments" / "common" / "fragments" / FRAGMENT
+    shutil.copy2(src, dest / FRAGMENT)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

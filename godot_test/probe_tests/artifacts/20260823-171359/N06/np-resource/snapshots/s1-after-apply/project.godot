@@ -1,0 +1,28 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="NP_RESOURCE"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.7")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+[debug]
+gdscript/warnings/enable=true
+gdscript/warnings/exclude_addons=true
+gdscript/warnings/untyped_declaration=1
+gdscript/warnings/unused_variable=1
+gdscript/warnings/integer_division=1
+gdscript/warnings/narrowing_conversion=1
+gdscript/warnings/shadowed_variable=1
+gdscript/warnings/unused_signal=1

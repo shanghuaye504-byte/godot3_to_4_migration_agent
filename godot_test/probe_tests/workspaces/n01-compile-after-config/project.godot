@@ -1,0 +1,11 @@
+config_version=5
+
+[application]
+config/name="NP_AUTOLOAD"
+run/main_scene="res://main.tscn"
+
+[autoload]
+Config="*res://config.gd"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

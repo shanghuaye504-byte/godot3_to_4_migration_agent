@@ -1,0 +1,16 @@
+WorkerThreadPool: 14 threads, 4 max low-priority.
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+SDL: Joystick Razer DriverKit VirtualJoystic 0.0.3 connected
+SDL: Init OK!
+Using "default" pen tablet driver...
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 3769296884
+EDITOR API HASH: 3146738256
+Loading resource: res://__probe_sentinel.gd remapped: res://__probe_sentinel.gd
+Completed load for: 'res://__probe_sentinel.gd' remapped 'res://__probe_sentinel.gd' at thread -1
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"

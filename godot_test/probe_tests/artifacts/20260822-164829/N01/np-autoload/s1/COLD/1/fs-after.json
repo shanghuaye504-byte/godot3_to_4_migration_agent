@@ -1,0 +1,33 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-164829-N01-phase1-NP-AUTOLOAD",
+  "files": {
+    "config.gd": {
+      "sha256": "dac4328f0aa70500371e3a488c3f21c9147e95fc75066bde330a015bba13f23b",
+      "size": 79
+    },
+    "main.gd": {
+      "sha256": "66173b9ee3b412c68fba948819ed7780661fb2213170b213d51294ee63f3d6c3",
+      "size": 116
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "b10e20de139c8091e1379d67de8bb91a9f78f728e22f954d88d78168aa6a1ad7",
+      "size": 187
+    },
+    "res_loader.gd.disabled": {
+      "sha256": "cb6783b095dcd5b5394a254a35737a4ac142bc1111cdbd53e4008a43a1ab8b4d",
+      "size": 257
+    },
+    "shadow_config.gd.disabled": {
+      "sha256": "637d8639da6f4b060972e27109041b0fa55b5cc1fa76701f17d52f7ccb349f5c",
+      "size": 31
+    },
+    "uses_autoload.gd": {
+      "sha256": "21da8a0e7eac737619628c50f9d0bab4af5247b4f767ca9a317a96333e714f82",
+      "size": 68
+    }
+  }
+}

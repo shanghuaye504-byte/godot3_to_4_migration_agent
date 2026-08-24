@@ -1,0 +1,68 @@
+{
+  "before": {
+    "exists": true,
+    "files": {
+      ".godot/.gdignore": {
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "size": 1
+      },
+      ".godot/.probe-warm-ok.json": {
+        "sha256": "c369de703ff0fd5bcf5cc82d26415e7c7f0c4e2864f4a5cef9891c12ce75ce42",
+        "size": 73
+      },
+      ".godot/editor/filesystem_cache10": {
+        "sha256": "cfe0ca78e8203bc2692db26d5ed65cf74fc41154e233656541ecc1a889edde4d",
+        "size": 677
+      },
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+        "sha256": "1cd364461e125be309da7a50c21e1a9262a5f28c2c44251e00d11770807accb8",
+        "size": 235
+      },
+      ".godot/editor/project_metadata.cfg": {
+        "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+        "size": 183
+      },
+      ".godot/global_script_class_cache.cfg": {
+        "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+        "size": 8
+      },
+      ".godot/uid_cache.bin": {
+        "sha256": "9095b43ef3cefda602662966d76f7c188e5c460c7bdbf53223e141da4d78f16d",
+        "size": 122
+      }
+    }
+  },
+  "after": {
+    "exists": true,
+    "files": {
+      ".godot/.gdignore": {
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "size": 1
+      },
+      ".godot/.probe-warm-ok.json": {
+        "sha256": "c369de703ff0fd5bcf5cc82d26415e7c7f0c4e2864f4a5cef9891c12ce75ce42",
+        "size": 73
+      },
+      ".godot/editor/filesystem_cache10": {
+        "sha256": "cfe0ca78e8203bc2692db26d5ed65cf74fc41154e233656541ecc1a889edde4d",
+        "size": 677
+      },
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+        "sha256": "1cd364461e125be309da7a50c21e1a9262a5f28c2c44251e00d11770807accb8",
+        "size": 235
+      },
+      ".godot/editor/project_metadata.cfg": {
+        "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+        "size": 183
+      },
+      ".godot/global_script_class_cache.cfg": {
+        "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+        "size": 8
+      },
+      ".godot/uid_cache.bin": {
+        "sha256": "9095b43ef3cefda602662966d76f7c188e5c460c7bdbf53223e141da4d78f16d",
+        "size": 122
+      }
+    }
+  }
+}

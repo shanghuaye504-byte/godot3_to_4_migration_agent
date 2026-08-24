@@ -1,0 +1,17 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Starting conversion.
+Trying to convert	1/6 file - "main.tscn" with size - 0 KB
+    File was changed, conversion took 0 ms.
+Trying to convert	2/6 file - "mat.tres" with size - 0 KB
+    File was changed, conversion took 0 ms.
+Trying to convert	3/6 file - "main.gd" with size - 0 KB
+    File was changed, conversion took 1 ms.
+Trying to convert	4/6 file - "child.tscn" with size - 0 KB
+    File was changed, conversion took 0 ms.
+Trying to convert	5/6 file - "project.godot" with size - 0 KB
+    File was changed, conversion took 0 ms.
+Trying to convert	6/6 file - "fx.shader" with size - 0 KB
+    File was changed, conversion took 0 ms.
+Conversion ended - all files(6), converted files: (6), not converted files: (0).
+Conversion of all files took      0.010 seconds.

@@ -1,0 +1,12 @@
+WARNING: UID duplicate detected between res://sub.tscn and res://main.tscn.
+     at: _process_file_system (editor/file_system/editor_file_system.cpp:1405)
+ERROR: Parse Error: Busy. [Resource file res://sub.tscn:6]
+   at: _parse_node_tag (scene/resources/resource_format_text.cpp:293)
+ERROR: Failed loading resource: res://sub.tscn.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Parse Error: Busy. [Resource file res://main.tscn:7]
+   at: _parse_node_tag (scene/resources/resource_format_text.cpp:293)
+ERROR: Failed loading resource: res://main.tscn.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Plugin is not attached to debugger.
+   at: is_active (editor/debugger/editor_debugger_plugin.cpp:102)

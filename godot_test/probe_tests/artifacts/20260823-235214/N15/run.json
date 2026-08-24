@@ -1,0 +1,12 @@
+{
+  "N": "N15",
+  "run_id": "20260823-235214",
+  "inputs_digest": "be847219d0264877bc64af89806917daedb1287d02e0c8c8ed60e4ed11b3ad90",
+  "godot": {
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "fake": false
+  },
+  "force_stale": false
+}

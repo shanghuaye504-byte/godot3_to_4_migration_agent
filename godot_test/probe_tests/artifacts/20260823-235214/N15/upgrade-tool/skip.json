@@ -1,0 +1,7 @@
+{
+  "searched_in": "artifacts/20260823-235214/N15/help/1/stdout.log",
+  "help_text_sha256": "eef62e29a3fd8e7eff29353310f0380ad1bfdf50dd2d6563d665f793c5ff0fe3",
+  "found": false,
+  "hits": [],
+  "reason": "no upgrade/ProjectUpgradeTool keyword found in --help output; step 4 (upgrade tool invocation) is not applicable this run"
+}

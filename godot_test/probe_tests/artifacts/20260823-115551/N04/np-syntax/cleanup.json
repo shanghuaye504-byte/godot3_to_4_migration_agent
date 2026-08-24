@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-115551-N04-phase1-NP-SYNTAX",
+  "fixture": "phase1/NP-SYNTAX",
+  "fixture_clean": true,
+  "fixture_digest_before": "0f0817ea847ca09889a7abc1d2352ab9df56734bc8a24eb1cfd9ed544ed318d8",
+  "fixture_digest_after": "0f0817ea847ca09889a7abc1d2352ab9df56734bc8a24eb1cfd9ed544ed318d8",
+  "probe_files_in_fixture": false
+}

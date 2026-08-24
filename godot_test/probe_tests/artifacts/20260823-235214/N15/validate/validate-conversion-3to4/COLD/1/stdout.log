@@ -1,0 +1,23 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Starting checking if project conversion can be done.
+Checking for conversion - 1/6 file - "main.tscn" with size - 0 KB
+    Checking file took      0.000 ms.
+		Line(9), Sprite -> Sprite2D  -  LINE """ [node name="Vis" type="Sprite" parent="."] """
+Checking for conversion - 2/6 file - "mat.tres" with size - 0 KB
+    Checking file took      0.000 ms.
+		Line(3), .shader -> .gdshader  -  LINE """ [ext_resource path="res://fx.shader" type="Shader" id=1] """
+Checking for conversion - 3/6 file - "main.gd" with size - 0 KB
+    Checking file took      0.000 ms.
+		Line (1) - FULL LINES - """ var t = OS.get_ticks_msec() """  =====>  """ var t = Time.get_ticks_msec() """
+		Line (1) - FULL LINES - """ var c = load("res://child.tscn").instance() """  =====>  """ var c = load("res://child.tscn").instantiate() """
+Checking for conversion - 4/6 file - "child.tscn" with size - 0 KB
+    Checking file took      0.000 ms.
+Checking for conversion - 5/6 file - "project.godot" with size - 0 KB
+    Checking file took      0.000 ms.
+Checking for conversion - 6/6 file - "fx.shader" with size - 0 KB
+    Checking file took      0.000 ms.
+	File extension will be renamed from "shader" to "gdshader".
+		Line(3), hint_color -> source_color  -  LINE """ uniform vec4 tint : hint_color; """
+Checking for valid conversion ended - all files(6), files which would be converted(4), files which would not be converted(2).
+Conversion of all files took      0.010 seconds.

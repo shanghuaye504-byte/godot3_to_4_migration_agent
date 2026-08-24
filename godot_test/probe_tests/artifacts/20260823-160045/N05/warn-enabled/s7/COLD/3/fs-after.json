@@ -1,0 +1,61 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-160045-N05-phase1-NP-WARN",
+  "files": {
+    ".godot/.gdignore": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    ".godot/editor/filesystem_cache10": {
+      "sha256": "85a19cc9690edea86bf84f183a82edfa835130ec97b8a8caa8a69b45f1120f13",
+      "size": 453
+    },
+    ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+      "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+      "size": 90
+    },
+    ".godot/editor/project_metadata.cfg": {
+      "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+      "size": 183
+    },
+    ".godot/global_script_class_cache.cfg": {
+      "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+      "size": 8
+    },
+    ".godot/uid_cache.bin": {
+      "sha256": "e7b9d5584eb2b787571bfe8b8226ddcea72ed11cbe9478ab6c367e09ce1645e9",
+      "size": 93
+    },
+    "addons/noisy/noisy.gd": {
+      "sha256": "4a0fae7805cf51cf3c23c9a830db541682d1c87ebba30214807c58e69e9e6598",
+      "size": 100
+    },
+    "addons/noisy/noisy.gd.uid": {
+      "sha256": "92f0db72683481f8754a64e7a69a5f3a81aaa6c8cb891607ea5c4665e13f7dc4",
+      "size": 19
+    },
+    "main.gd": {
+      "sha256": "26855987c90371eb9e45f74e0f2a36cbdfd0ab09f803f77e310352988ee1fd4f",
+      "size": 82
+    },
+    "main.gd.uid": {
+      "sha256": "e2b523b67b5d760b31a2390143ee4de9b2b54e03b5c4caf3ef139746767b46d3",
+      "size": 20
+    },
+    "main.tscn": {
+      "sha256": "b38ddd490529a82527080088a3a1e66c5018426266e9b75d55cd99cc2c032724",
+      "size": 279
+    },
+    "project.godot": {
+      "sha256": "8efd9fac78f88e43e35aa6d753889b7a689fe6ada6b0705a2f5a081cdc8f16fa",
+      "size": 447
+    },
+    "warn.gd": {
+      "sha256": "e6398d905ccedc6102ceeb12deb41777a1f2cdb5c2cd2bcc8e70d23ca6d18527",
+      "size": 212
+    },
+    "warn.gd.uid": {
+      "sha256": "784bd3d6494e923f5f31138c827b1dc66b6cb9417a4080c278c83437ca51cb45",
+      "size": 20
+    }
+  }
+}

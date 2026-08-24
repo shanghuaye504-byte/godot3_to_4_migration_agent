@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Class "Config" hides an autoload singleton.
+          at: GDScript::reload (res://shadow_config.gd:1)
+ERROR: Failed to load script "res://shadow_config.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

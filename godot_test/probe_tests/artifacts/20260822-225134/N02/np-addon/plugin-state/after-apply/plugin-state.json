@@ -1,0 +1,10 @@
+{
+  "tag": "after-apply",
+  "expected_uid": "uid://qmfp8cu17gl2",
+  "uid_file_exists": false,
+  "uid_file_value": null,
+  "uid_matches_patch": false,
+  "project_has_dummy_singleton": true,
+  "project_autoload_has_expected_uid": true,
+  "import_done": false
+}

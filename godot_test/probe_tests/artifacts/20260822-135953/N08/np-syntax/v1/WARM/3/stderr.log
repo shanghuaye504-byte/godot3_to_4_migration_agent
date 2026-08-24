@@ -1,0 +1,10 @@
+SCRIPT ERROR: Parse Error: Could not preload resource script "res://orphan_bad_parse.gd".
+          at: GDScript::reload (res://__probe_sentinel.gd:6)
+SCRIPT ERROR: Parse Error: Could not resolve script "res://orphan_bad_parse.gd".
+          at: GDScript::reload (res://__probe_sentinel.gd:6)
+SCRIPT ERROR: Parse Error: Could not preload resource script "res://scene_bad.gd".
+          at: GDScript::reload (res://__probe_sentinel.gd:7)
+SCRIPT ERROR: Parse Error: Could not resolve script "res://scene_bad.gd".
+          at: GDScript::reload (res://__probe_sentinel.gd:7)
+ERROR: Failed to load script "res://__probe_sentinel.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

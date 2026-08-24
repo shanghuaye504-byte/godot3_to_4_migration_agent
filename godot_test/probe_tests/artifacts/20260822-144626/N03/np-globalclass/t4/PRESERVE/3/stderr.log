@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Identifier "ProbeLate" not declared in the current scope.
+          at: GDScript::reload (res://uses_late.gd:4)
+ERROR: Failed to load script "res://uses_late.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

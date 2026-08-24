@@ -1,0 +1,29 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-235214-N15-phase2-CP-MINIMAL",
+  "files": {
+    "child.tscn": {
+      "sha256": "b528a8dc7ca7336dda7c1a05845cbccdcc4bae1c739022b4292bb23c7af5afaf",
+      "size": 55
+    },
+    "fx.gdshader": {
+      "sha256": "56834ecc421f1b2ff9e34d2bb87913621020f5aabe2456b314b79dfcb3f42c60",
+      "size": 96
+    },
+    "main.gd": {
+      "sha256": "612d63aeae3c256dba09095787b74131bdf18f85486f62e9f5dc2c639e179fc7",
+      "size": 169
+    },
+    "main.tscn": {
+      "sha256": "db9d257087af62722a4490bab022260103316e950f38211effe0cd19776b1390",
+      "size": 279
+    },
+    "mat.tres": {
+      "sha256": "fdcbf8c48d26460caa73947b7f46cf7cd523cc465da43984118119667f46412d",
+      "size": 156
+    },
+    "project.godot": {
+      "sha256": "954ae47d01fea341207a44bcfeec03e732a5e9739de0d6b9e1743aff5fcf8ddf",
+      "size": 142
+    }
+  }
+}

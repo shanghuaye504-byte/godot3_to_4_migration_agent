@@ -1,0 +1,25 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-144626-N03-phase1-NP-GLOBALCLASS",
+  "files": {
+    "defines.gd": {
+      "sha256": "255b3528f0562eed00a17fd6a5112d5e57bf9bd31515b4e992c53f44a6a05fa5",
+      "size": 74
+    },
+    "main.gd": {
+      "sha256": "86d504101150fbb1a423b55d1d472d757e2058609223dad878630317247a5b7b",
+      "size": 89
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "project.godot": {
+      "sha256": "847ed5074ed57c87aa7183090379445d417dff2e2ce615061f8acc6fdc39a62e",
+      "size": 152
+    },
+    "uses_class.gd": {
+      "sha256": "327fc9040f02cf181703ac9974fedcd4e9ed6175b3816ac68ee15f20a62dc5b3",
+      "size": 57
+    }
+  }
+}

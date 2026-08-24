@@ -1,0 +1,24 @@
+
+================================================================
+handle_crash: Program crashed with signal 11
+Engine version: Godot Engine v4.7.1.stable.official (a13da4feb8d8aefc283c3763d33a2f170a18d541)
+Dumping the backtrace. Please include this when reporting the bug on: https://github.com/godotengine/godot/issues
+Load address: 104f08000
+
+[1] 19134d764 (libsystem_platform.dylib+3764) - _sigtramp + 56
+[2] 109913c4c (main+4a0bc4c) - ZSTD_decompressStream_simpleArgs + 2966088
+[3] 109921ae0 (main+4a19ae0) - ZSTD_decompressStream_simpleArgs + 3023068
+[4] 105b54598 (main+c4c598) - main + 5244396
+[5] 105ada68c (main+bd268c) - main + 4744928
+[6] 105b3b544 (main+c33544) - main + 5141912
+[7] 105beb4b4 (main+ce34b4) - main + 5862664
+[8] 1098c9898 (main+49c1898) - ZSTD_decompressStream_simpleArgs + 2662036
+[9] 1098cb5e8 (main+49c35e8) - ZSTD_decompressStream_simpleArgs + 2669540
+[10] 1098cdde8 (main+49c5de8) - ZSTD_decompressStream_simpleArgs + 2679780
+[11] 1098ce3ac (main+49c63ac) - ZSTD_decompressStream_simpleArgs + 2681256
+[12] 10567514c (main+76d14c) - main + 135584
+[13] 1055f1fa0 (main+6e9fa0) - mvk::SPIRVToMSLConverter::convert(mvk::SPIRVToMSLConversionConfiguration&, mvk::SPIRVToMSLConversionResult&, bool, bool, bool)
+[14] 10565435c (main+74c35c) - main (in Godot) + 944
+[15] 190f79d54 (dyld+8d54) - start + 7184
+-- END OF C++ BACKTRACE --
+================================================================

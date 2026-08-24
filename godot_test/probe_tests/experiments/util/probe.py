@@ -172,6 +172,92 @@ class Run:
         include: Sequence[str] | None,
         base: str | None,
     ) -> dict[str, Any]:
+        uses_sentinel = _cmd_uses_sentinel(cmd, base=base, target=target)
+
+        def _build(ws_path: Path) -> list[str]:
+            return _build_argv(self.identity.executable, cmd, ws_path, target=target, base=base)
+
+        return self._record_measurement(
+            ws,
+            group=group,
+            step=step,
+            cmd_label=cmd,
+            cache_state=cache_state,
+            repeat_idx=repeat_idx,
+            timeout=timeout,
+            build_argv=_build,
+            uses_sentinel=uses_sentinel,
+            sentinel_include=include,
+            extra_metadata={"target": target, "base": base},
+        )
+
+    def measure_raw(
+        self,
+        ws: Workspace,
+        *,
+        group: str,
+        step: str,
+        argv: Sequence[str],
+        cache: str,
+        cmd_label: str,
+        repeat: int | None = None,
+        timeout_seconds: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """一次原始命令行测量，供 V1–V8 之外的一次性能力探测使用（例如 N15）。
+
+        `argv` 由调用方给出完整命令行（不含可执行文件本身，即不含
+        `self.identity.executable`——本函数会自动前置）；`cmd_label` 只是
+        写进 `metadata.json.cmd` / index.md 供人和 analyzer 识别，不参与
+        README §0.2 的 V1–V8 语义（不触发哨兵、不做 V-code 专属校验）。
+        """
+        cache_state = _norm_cache(cache)
+        n_repeat = self.repeat_default if repeat is None else int(repeat)
+        timeout = self.timeout_seconds if timeout_seconds is None else int(timeout_seconds)
+        if n_repeat < 1:
+            raise ProbeError(f"repeat 必须 ≥ 1，得到 {n_repeat}")
+
+        fixed_argv = list(self.identity.executable) + list(argv)
+
+        results: list[dict[str, Any]] = []
+        for idx in range(1, n_repeat + 1):
+            results.append(
+                self._record_measurement(
+                    ws,
+                    group=group,
+                    step=step,
+                    cmd_label=cmd_label,
+                    cache_state=cache_state,
+                    repeat_idx=idx,
+                    timeout=timeout,
+                    build_argv=lambda _ws_path, _a=fixed_argv: list(_a),
+                    uses_sentinel=False,
+                    sentinel_include=None,
+                    extra_metadata={"target": None, "base": None, "raw_argv": True},
+                )
+            )
+        return results
+
+    def _record_measurement(
+        self,
+        ws: Workspace,
+        *,
+        group: str,
+        step: str,
+        cmd_label: str,
+        cache_state: str,
+        repeat_idx: int,
+        timeout: int,
+        build_argv,
+        uses_sentinel: bool,
+        sentinel_include: Sequence[str] | None,
+        extra_metadata: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """一次测量的全部同构落盘动作（应用缓存态、跑进程、写 artifact）。
+
+        被 `_measure_once`（V1–V8）与 `measure_raw`（原始 argv）共用，
+        两者只在"怎么算出 argv / 要不要哨兵"上不同，落盘形状必须一致
+        才能让 analyzer 不区分来源地读取同一套 artifact（ARCHITECTURE §6）。
+        """
         applied: list[str] = []
         if cache_state == "COLD":
             cold(ws)
@@ -180,7 +266,6 @@ class Run:
             warm(ws)
             applied.append("warm")
 
-        uses_sentinel = _cmd_uses_sentinel(cmd, base=base, target=target)
         dest = (
             self.artifact_root
             / group
@@ -192,20 +277,14 @@ class Run:
 
         cache_before = _cache_manifest(ws.path)
         fs_before = snapshot(ws)
-        sentinel_ctx = sentinel(ws, include=include) if uses_sentinel else _null_cm()
+        sentinel_ctx = sentinel(ws, include=sentinel_include) if uses_sentinel else _null_cm()
         argv: list[str] = []
         proc: ProcessResult | None = None
         try:
             with sentinel_ctx:
                 if uses_sentinel:
                     applied.append("sentinel")
-                argv = _build_argv(
-                    self.identity.executable,
-                    cmd,
-                    ws.path,
-                    target=target,
-                    base=base,
-                )
+                argv = build_argv(ws.path)
                 proc = _run_process(argv, cwd=ws.path, timeout=timeout, live=self.live_procs)
         finally:
             if uses_sentinel:
@@ -222,7 +301,7 @@ class Run:
             "step_id": step,
             "cache_state": cache_state,
             "repeat_idx": repeat_idx,
-            "cmd": cmd,
+            "cmd": cmd_label,
             "dir": str(dest.relative_to(ARTIFACTS_DIR)),
             "rc": proc.rc,
             "timed_out": proc.timed_out,
@@ -235,9 +314,7 @@ class Run:
             "step_id": step,
             "cache_state": cache_state,
             "repeat_idx": repeat_idx,
-            "cmd": cmd,
-            "target": target,
-            "base": base,
+            "cmd": cmd_label,
             "fixture": ws.fixture,
             "inputs_digest": self.inputs_digest,
             "cwd": str(ws.path),
@@ -253,6 +330,7 @@ class Run:
             },
             "force_stale": self.force_stale,
         }
+        metadata.update(dict(extra_metadata or {}))
         _write_json(dest / "metadata.json", metadata)
         _write_json(dest / "argv.json", argv)
         (dest / "stdout.log").write_text(proc.stdout, encoding="utf-8")
@@ -477,25 +555,103 @@ def apply_derived(ws: Workspace, name: str) -> Path:
             f"derived {name} build hash 空或不一致 "
             f"(provenance={expected!r} current={actual!r})；退回 manual gate"
         )
-    check = subprocess.run(
-        ["git", "apply", "--check", str(patch)],
-        cwd=ws.path,
-        capture_output=True,
-        text=True,
-    )
+    check = _git_apply(patch, ws.path, check=True)
     if check.returncode != 0:
         raise ManualGateError(
             f"git apply --check 失败 ({name}): {check.stderr or check.stdout}"
         )
-    applied = subprocess.run(
-        ["git", "apply", str(patch)],
-        cwd=ws.path,
-        capture_output=True,
-        text=True,
-    )
+    applied = _git_apply(patch, ws.path, check=False)
     if applied.returncode != 0:
         raise ProbeError(f"git apply 失败 ({name}): {applied.stderr or applied.stdout}")
     return patch
+
+
+def run_help(run: Run, *, timeout_seconds: int = 10, group: str = "help", step: str = "1") -> dict[str, Any]:
+    """跑一次 `--help`：不涉及项目，不建 workspace，不做 fs snapshot。
+
+    只服务一次性能力探测（N15）：CLI 入口是否存在，只能从 `--help` 原文判断，
+    不能只凭源码里存在对应代码就判定可用（README §P2-1 判据）。
+    """
+    dest = run.artifact_root / group / step
+    dest.mkdir(parents=True, exist_ok=True)
+    argv = list(run.identity.executable) + ["--help"]
+    proc = _run_process(argv, cwd=PROBE_ROOT, timeout=timeout_seconds, live=run.live_procs)
+    record = {
+        "group_id": group,
+        "step_id": step,
+        "cache_state": "N/A",
+        "repeat_idx": 1,
+        "cmd": "--help",
+        "dir": str(dest.relative_to(ARTIFACTS_DIR)),
+        "rc": proc.rc,
+        "timed_out": proc.timed_out,
+        "wall_time": proc.wall_time,
+    }
+    metadata = {
+        "N": run.N,
+        "run_id": run.run_id,
+        "group_id": group,
+        "step_id": step,
+        "cache_state": "N/A",
+        "repeat_idx": 1,
+        "cmd": "--help",
+        "target": None,
+        "base": None,
+        "fixture": None,
+        "inputs_digest": run.inputs_digest,
+        "cwd": str(PROBE_ROOT),
+        "applied_helpers": [],
+        "env_overrides": _env_overrides(),
+        "timeout_seconds": timeout_seconds,
+        "godot": {
+            "executable": run.identity.executable,
+            "path": run.identity.path,
+            "version": run.identity.version,
+            "build_hash": run.identity.build_hash,
+            "fake": run.identity.fake,
+        },
+        "force_stale": run.force_stale,
+    }
+    _write_json(dest / "metadata.json", metadata)
+    _write_json(dest / "argv.json", argv)
+    (dest / "stdout.log").write_text(proc.stdout, encoding="utf-8")
+    (dest / "stderr.log").write_text(proc.stderr, encoding="utf-8")
+    _write_json(
+        dest / "process-status.json",
+        {
+            "rc": proc.rc,
+            "signal": proc.signal,
+            "timed_out": proc.timed_out,
+            "wall_time": proc.wall_time,
+            "pid": proc.pid,
+        },
+    )
+    run.measurements.append(record)
+    return record
+
+
+def _git_apply(patch: Path, ws: Path, *, check: bool) -> subprocess.CompletedProcess:
+    """对工作区应用 unified diff，不借用父仓库的 index。
+
+    workspaces/ 在仓库树内（gitignore）。默认 `git apply` 会从仓库根解析
+    `project.godot`，找不到就 Skipped 且 rc=0，patch 实际没打上。
+    """
+    cmd = ["git", "apply"]
+    if check:
+        cmd.append("--check")
+    cmd.extend(["--verbose", str(patch)])
+    env = os.environ.copy()
+    env["GIT_CEILING_DIRECTORIES"] = str(ws.resolve().parent)
+    proc = subprocess.run(cmd, cwd=str(ws), capture_output=True, text=True, env=env)
+    text = f"{proc.stdout or ''}{proc.stderr or ''}"
+    if proc.returncode == 0 and "Skipped patch" in text:
+        return subprocess.CompletedProcess(
+            proc.args,
+            1,
+            proc.stdout,
+            (proc.stderr or "") + "Skipped patch treated as failure\n",
+        )
+    return proc
 
 
 def snapshot(ws: Workspace | Path) -> dict[str, Any]:

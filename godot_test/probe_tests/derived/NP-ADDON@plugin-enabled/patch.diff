@@ -1,2 +1,32 @@
-# 占位。N02 在 GUI 启用 dummy 插件后，把相对 fixtures/phase1/NP-ADDON 的
-# project.godot diff 冻在这里。当前无内容。
+diff --git a/project.godot b/project.godot
+index e436c69..7f9cf21 100644
+--- a/project.godot
++++ b/project.godot
+@@ -1,8 +1,27 @@
++; Engine configuration file.
++; It's best edited using the editor UI and not directly,
++; since the parameters that go here are not all obvious.
++;
++; Format:
++;   [section] ; section goes between []
++;   param=value ; assign values to parameters
++
+ config_version=5
+ 
+ [application]
++
+ config/name="NP_ADDON"
+ run/main_scene="res://main.tscn"
++config/features=PackedStringArray("4.7")
++
++[autoload]
++
++DummySingleton="*uid://qmfp8cu17gl2"
++
++[editor_plugins]
++
++enabled=PackedStringArray("res://addons/dummy/plugin.cfg")
+ 
+ [rendering]
++
+ renderer/rendering_method="gl_compatibility"

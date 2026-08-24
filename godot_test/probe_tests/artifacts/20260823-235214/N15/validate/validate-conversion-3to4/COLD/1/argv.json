@@ -1,0 +1,8 @@
+[
+  "/usr/local/bin/godot4",
+  "--headless",
+  "--path",
+  "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-235214-N15-phase2-CP-MINIMAL",
+  "--validate-conversion-3to4",
+  "--quit"
+]

@@ -1,0 +1,30 @@
+{
+  "N": "N06",
+  "run_id": "20260823-171359",
+  "group_id": "np-resource",
+  "step_id": "s10",
+  "cache_state": "WARM",
+  "repeat_idx": 1,
+  "cmd": "V1",
+  "target": null,
+  "base": null,
+  "fixture": "phase1/NP-RESOURCE",
+  "inputs_digest": "ad84c36674156ecd3fb832de6dc09de6a93ec8350d2c117e938c2a7597720d16",
+  "cwd": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-171359-N06-phase1-NP-RESOURCE",
+  "applied_helpers": [
+    "warm",
+    "sentinel"
+  ],
+  "env_overrides": {},
+  "timeout_seconds": 30,
+  "godot": {
+    "executable": [
+      "/usr/local/bin/godot4"
+    ],
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "fake": false
+  },
+  "force_stale": false
+}

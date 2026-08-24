@@ -1,0 +1,9 @@
+[
+  "/usr/local/bin/godot4",
+  "--headless",
+  "--path",
+  "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-164829-N01-phase1-NP-AUTOLOAD",
+  "--editor",
+  "--import",
+  "--quit"
+]

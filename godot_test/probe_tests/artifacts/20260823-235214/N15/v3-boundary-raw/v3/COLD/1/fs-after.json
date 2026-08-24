@@ -1,0 +1,53 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-235214-N15-phase2-CP-MINIMAL",
+  "files": {
+    ".godot/.gdignore": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    ".godot/editor/filesystem_cache10": {
+      "sha256": "644f3af98ecec5e7bb67ab90913048ebff17f5e54065a52d629e8a0382c0750d",
+      "size": 377
+    },
+    ".godot/editor/project_metadata.cfg": {
+      "sha256": "47023c6314cee1584b3f5bfb4b09bafa350d00c012515a4dc297d460624b15f5",
+      "size": 139
+    },
+    ".godot/global_script_class_cache.cfg": {
+      "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+      "size": 8
+    },
+    ".godot/uid_cache.bin": {
+      "sha256": "893133e6b788e1a60f68c2853bb175824b7a0cd6dc0d464656b129dda6ffa3bb",
+      "size": 29
+    },
+    "child.tscn": {
+      "sha256": "b528a8dc7ca7336dda7c1a05845cbccdcc4bae1c739022b4292bb23c7af5afaf",
+      "size": 55
+    },
+    "fx.shader": {
+      "sha256": "672e1603c501b05d3816df4bce5cd1d76c8da06efdc60d2ecbf29ab76a8795c9",
+      "size": 94
+    },
+    "main.gd": {
+      "sha256": "e7a850765ce3fb76cdfc77647cfd04782838a8eb446536ebb9493fb307bd665b",
+      "size": 164
+    },
+    "main.gd.uid": {
+      "sha256": "7e15a3a0088ff9355b8993ebc61862e0232d00459fdd77dc8a1599680d25eeed",
+      "size": 20
+    },
+    "main.tscn": {
+      "sha256": "e011cb1d0646144f8873390a2df844c7ba5acece32f73b6f05386004fdb62948",
+      "size": 277
+    },
+    "mat.tres": {
+      "sha256": "d006d870c0ae73c75951acc6e8c3443a28b750132acc0366b370a2973d7c58f6",
+      "size": 154
+    },
+    "project.godot": {
+      "sha256": "11f80563445ebd1f26d44b2bc5c3102d37f3560f2107f0c657a1c0214be1cbd7",
+      "size": 90
+    }
+  }
+}

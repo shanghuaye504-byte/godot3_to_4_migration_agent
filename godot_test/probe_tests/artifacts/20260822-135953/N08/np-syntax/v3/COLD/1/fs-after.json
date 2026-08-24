@@ -1,0 +1,81 @@
+{
+  "root": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-135953-N08-phase1-NP-SYNTAX",
+  "files": {
+    ".godot/.gdignore": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    ".godot/editor/filesystem_cache10": {
+      "sha256": "ea58d54242fe75ef342c05d54b36f97387f45d1df5f4855f2c54a7e9b13ef5bb",
+      "size": 654
+    },
+    ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+      "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+      "size": 90
+    },
+    ".godot/editor/project_metadata.cfg": {
+      "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+      "size": 183
+    },
+    ".godot/global_script_class_cache.cfg": {
+      "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+      "size": 8
+    },
+    ".godot/uid_cache.bin": {
+      "sha256": "9a66271898853aceb1f0dbe0b8b360ae7b738da44206e4fe270f6d47ab9a3d6a",
+      "size": 158
+    },
+    "main.gd": {
+      "sha256": "e26a613830dc7210f250097044c12348d21954b4a758e1f2d84a059d4d117a6a",
+      "size": 84
+    },
+    "main.gd.uid": {
+      "sha256": "f183e173878561ae6e78d3b8995673a420bf1734cc3f9c996e18b33ce9e6b506",
+      "size": 20
+    },
+    "main.tscn": {
+      "sha256": "227df0fb6efd7611bfd69e0393df885446ce8bc521cad7f4450753d59da4a1eb",
+      "size": 149
+    },
+    "ok.gd": {
+      "sha256": "f31a0b6e643f865097dbd1dc4401b66e08f3b58e5b710def1adfb00e49f1b351",
+      "size": 61
+    },
+    "ok.gd.uid": {
+      "sha256": "63fab6187613bd036cfa72784735e13955d1423d4e5cceb9637b66254962c5e7",
+      "size": 20
+    },
+    "orphan_bad_compile.gd": {
+      "sha256": "21c24dfc96025904debc33fcf91af3d3c907f26d69a4db687421f4ecb507b816",
+      "size": 72
+    },
+    "orphan_bad_compile.gd.uid": {
+      "sha256": "99a3f57339b53a5a9459a54224e5a4e00477cfc8945046a6dfced5811568a2ec",
+      "size": 20
+    },
+    "orphan_bad_parse.gd": {
+      "sha256": "006af40e7ae752d7a3e22bb02c7630ce87fdc70787f43d0960659b84f60fdaf2",
+      "size": 34
+    },
+    "orphan_bad_parse.gd.uid": {
+      "sha256": "51b3db508b1820dc96738969dd499f7a47195f353860991afa5d08d670e9c800",
+      "size": 20
+    },
+    "project.godot": {
+      "sha256": "956ed9a671550003d6ee5610faaa0b52838d8f7c7f3c40ef6772b77a55199723",
+      "size": 147
+    },
+    "scene_bad.gd": {
+      "sha256": "b7113d471ebb23095ee1e6838d2c0cb6d89620c16a0899b730430c0b1993ee7c",
+      "size": 37
+    },
+    "scene_bad.gd.uid": {
+      "sha256": "6c78854ac29ea7c10112749480758526ab50308cf21e16c54165efe58ec6995e",
+      "size": 20
+    },
+    "scene_bad.tscn": {
+      "sha256": "064a2c5e9e32f26f5dfd0a73d663216ec108c387a4860515e9fd605bf4d46015",
+      "size": 158
+    }
+  }
+}

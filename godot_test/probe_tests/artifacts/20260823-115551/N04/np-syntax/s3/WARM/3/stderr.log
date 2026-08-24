@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Unexpected "Indent" in class body.
+          at: GDScript::reload (res://scene_bad.gd:4)
+ERROR: Failed to load script "res://scene_bad.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

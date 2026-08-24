@@ -1,0 +1,50 @@
+[
+  {
+    "path": ".godot/.gdignore",
+    "actually_changed": true,
+    "reported_changed": null,
+    "mismatch": false
+  },
+  {
+    "path": "child.tscn",
+    "actually_changed": false,
+    "reported_changed": true,
+    "mismatch": true
+  },
+  {
+    "path": "fx.gdshader",
+    "actually_changed": true,
+    "reported_changed": null,
+    "mismatch": false
+  },
+  {
+    "path": "fx.shader",
+    "actually_changed": true,
+    "reported_changed": true,
+    "mismatch": false
+  },
+  {
+    "path": "main.gd",
+    "actually_changed": true,
+    "reported_changed": true,
+    "mismatch": false
+  },
+  {
+    "path": "main.tscn",
+    "actually_changed": true,
+    "reported_changed": true,
+    "mismatch": false
+  },
+  {
+    "path": "mat.tres",
+    "actually_changed": true,
+    "reported_changed": true,
+    "mismatch": false
+  },
+  {
+    "path": "project.godot",
+    "actually_changed": true,
+    "reported_changed": true,
+    "mismatch": false
+  }
+]

@@ -1,2 +1,61 @@
-# 占位。N06 在 GUI 打开并保存项目、生成正确 UID 后，把相对
-# fixtures/phase1/NP-RESOURCE 的 diff 冻在这里。当前无内容。
+diff --git a/main.tscn b/main.tscn
+index 1baa9b4..d95dbd2 100644
+--- a/main.tscn
++++ b/main.tscn
+@@ -1,7 +1,7 @@
+-[gd_scene load_steps=2 format=3]
++[gd_scene format=3 uid="uid://hkbl48745yaj"]
+ 
+-[ext_resource type="PackedScene" path="res://sub.tscn" id="1"]
++[ext_resource type="PackedScene" uid="uid://c66i7tbgxdem6" path="res://sub.tscn" id="1"]
+ 
+-[node name="Main" type="Node"]
++[node name="Main" type="Node" unique_id=1394023963]
+ 
+-[node name="SubInst" parent="." instance=ExtResource("1")]
++[node name="SubInst" parent="." unique_id=260009704 instance=ExtResource("1")]
+diff --git a/project.godot b/project.godot
+index 41601fe..dc5886b 100644
+--- a/project.godot
++++ b/project.godot
+@@ -1,8 +1,19 @@
++; Engine configuration file.
++; It's best edited using the editor UI and not directly,
++; since the parameters that go here are not all obvious.
++;
++; Format:
++;   [section] ; section goes between []
++;   param=value ; assign values to parameters
++
+ config_version=5
+ 
+ [application]
++
+ config/name="NP_RESOURCE"
+ run/main_scene="res://main.tscn"
++config/features=PackedStringArray("4.7")
+ 
+ [rendering]
++
+ renderer/rendering_method="gl_compatibility"
+diff --git a/sub.gd.uid b/sub.gd.uid
+new file mode 100644
+index 0000000..9564f57
+--- /dev/null
++++ b/sub.gd.uid
+@@ -0,0 +1 @@
++uid://dvemcuu87n1e2
+diff --git a/sub.tscn b/sub.tscn
+index d5c2b29..3650b2f 100644
+--- a/sub.tscn
++++ b/sub.tscn
+@@ -1,6 +1,6 @@
+-[gd_scene load_steps=2 format=3]
++[gd_scene format=3 uid="uid://c66i7tbgxdem6"]
+ 
+-[ext_resource type="Script" path="res://sub.gd" id="1"]
++[ext_resource type="Script" uid="uid://dvemcuu87n1e2" path="res://sub.gd" id="1"]
+ 
+-[node name="Sub" type="Node"]
++[node name="Sub" type="Node" unique_id=1079525192]
+ script = ExtResource("1")

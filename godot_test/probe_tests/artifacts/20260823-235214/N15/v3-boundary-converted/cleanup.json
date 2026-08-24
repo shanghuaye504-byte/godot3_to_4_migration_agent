@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-235214-N15-phase2-CP-MINIMAL",
+  "fixture": "phase2/CP-MINIMAL",
+  "fixture_clean": true,
+  "fixture_digest_before": "9f55c5a087787bc232a6c839de26aea12e64358314712bff6641bf45828da461",
+  "fixture_digest_after": "9f55c5a087787bc232a6c839de26aea12e64358314712bff6641bf45828da461",
+  "probe_files_in_fixture": false
+}

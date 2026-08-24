@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-180913-N06-phase1-NP-RESOURCE",
+  "fixture": "phase1/NP-RESOURCE",
+  "fixture_clean": true,
+  "fixture_digest_before": "e8cf6d84a1841f73dbf9e23da3b194f05a70970024058123822977c1646617a9",
+  "fixture_digest_after": "e8cf6d84a1841f73dbf9e23da3b194f05a70970024058123822977c1646617a9",
+  "probe_files_in_fixture": false
+}

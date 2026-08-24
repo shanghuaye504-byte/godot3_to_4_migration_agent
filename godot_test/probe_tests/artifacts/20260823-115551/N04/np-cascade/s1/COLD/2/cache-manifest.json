@@ -1,0 +1,35 @@
+{
+  "before": {
+    "exists": false,
+    "files": {}
+  },
+  "after": {
+    "exists": true,
+    "files": {
+      ".godot/.gdignore": {
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "size": 1
+      },
+      ".godot/editor/filesystem_cache10": {
+        "sha256": "40ef2b625552749995660296655ef32d9547bd1afc5433f504df8e2ae608e871",
+        "size": 789
+      },
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg": {
+        "sha256": "fb8543239054fd159ba9adbda789f885f15ee6becc5a083e91cfbbb19d34cf33",
+        "size": 90
+      },
+      ".godot/editor/project_metadata.cfg": {
+        "sha256": "67f4ed4f01e8047db28a1c6c903d616b74af725a1c2dfd2c9333be077281da57",
+        "size": 183
+      },
+      ".godot/global_script_class_cache.cfg": {
+        "sha256": "f61aa7ad3097022d6a9d110ca3f73fa7bb348ec2cf9a6e7c9523574dc75f5a16",
+        "size": 8
+      },
+      ".godot/uid_cache.bin": {
+        "sha256": "7b3881f762b7c02235797544a8d03606932aab3922f28c3b004c9ec50777d0b8",
+        "size": 213
+      }
+    }
+  }
+}

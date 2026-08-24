@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260822-164829-N01-phase1-NP-AUTOLOAD",
+  "fixture": "phase1/NP-AUTOLOAD",
+  "fixture_clean": true,
+  "fixture_digest_before": "405f9e2e585ec9bd12e2a990c692f927f88e5343fa930bd5b20e733c444c1a5b",
+  "fixture_digest_after": "405f9e2e585ec9bd12e2a990c692f927f88e5343fa930bd5b20e733c444c1a5b",
+  "probe_files_in_fixture": false
+}

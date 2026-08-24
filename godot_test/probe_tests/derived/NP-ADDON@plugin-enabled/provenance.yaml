@@ -1,5 +1,14 @@
 # derived/NP-ADDON@plugin-enabled/provenance.yaml
 #
-# N02 GUI 启用插件这一状态的来源记录。
-# 规划字段：godot_version、build_hash、created_at、operator、confirmed。
-# 当前为占位，build hash 为空时 runner 必须退回 manual gate。
+# N02 GUI 启用 dummy 插件后的可重放状态。
+# apply_derived 校验的是当前 Godot 可执行文件的 build hash，不是 git commit。
+
+godot_version: 4.7.1.stable.official.a13da4feb
+build_hash: a13da4feb
+created_at: 2026-08-22T22:41:00+08:00
+operator: yy_catmax
+confirmed: "gui-plugin-enabled"
+autoload_written: DummySingleton
+autoload_value: "*uid://qmfp8cu17gl2"
+editor_plugins: "res://addons/dummy/plugin.cfg"
+note: "patch is project.godot only; .godot/ .uid main.tscn excluded as import/editor noise"

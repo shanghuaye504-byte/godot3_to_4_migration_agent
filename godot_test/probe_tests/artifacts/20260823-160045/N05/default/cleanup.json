@@ -1,0 +1,9 @@
+{
+  "workspace_removed": true,
+  "workspace_path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-160045-N05-phase1-NP-WARN",
+  "fixture": "phase1/NP-WARN",
+  "fixture_clean": true,
+  "fixture_digest_before": "4f700527b65fd52f9b1dc6367b898774a54602b12271b561ff6f3cd97c201377",
+  "fixture_digest_after": "4f700527b65fd52f9b1dc6367b898774a54602b12271b561ff6f3cd97c201377",
+  "probe_files_in_fixture": false
+}

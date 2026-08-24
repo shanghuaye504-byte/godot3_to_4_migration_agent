@@ -1,0 +1,10 @@
+[
+  "/usr/local/bin/godot4",
+  "--headless",
+  "--path",
+  "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/workspaces/20260823-115551-N04-phase1-NP-SYNTAX",
+  "--script",
+  "res://scene_bad.gd",
+  "--check-only",
+  "--quit"
+]

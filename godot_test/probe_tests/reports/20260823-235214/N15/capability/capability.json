@@ -1,0 +1,308 @@
+{
+  "_comment": "converter / upgrade-tool CLI 能力矩阵，只做事实提取，不宣布流水线形状、不写 CONFIRMED。「报告成功但文件未变化」等异常本身作为一条观测保留。",
+  "analyzer": "capability",
+  "run_id": "20260823-235214",
+  "N": "N15",
+  "artifact_dir": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/godot_test/probe_tests/artifacts/20260823-235214/N15",
+  "inputs_digest": "be847219d0264877bc64af89806917daedb1287d02e0c8c8ed60e4ed11b3ad90",
+  "godot": {
+    "path": "/usr/local/bin/godot4",
+    "version": "4.7.1.stable.official.a13da4feb",
+    "build_hash": "a13da4feb",
+    "fake": false
+  },
+  "cli_entry_points": {
+    "help_callable": true,
+    "rc": 0,
+    "timed_out": false,
+    "entries": {
+      "convert-3to4": {
+        "found": true,
+        "hits": [
+          "--convert-3to4                     "
+        ]
+      },
+      "validate-conversion-3to4": {
+        "found": true,
+        "hits": [
+          "--validate-conversion-3to4         "
+        ]
+      },
+      "upgrade": {
+        "found": false,
+        "hits": []
+      },
+      "ProjectUpgradeTool": {
+        "found": false,
+        "hits": []
+      },
+      "3to4": {
+        "found": true,
+        "hits": [
+          "--convert-3to4                     ",
+          "--validate-conversion-3to4         "
+        ]
+      }
+    }
+  },
+  "validate_conversion_3to4": {
+    "callable": true,
+    "rc": 0,
+    "timed_out": false,
+    "wall_time": 0.182388,
+    "content_unchanged": {
+      "project_files_unchanged": true,
+      "excluded_prefix": ".godot/"
+    }
+  },
+  "convert_3to4": {
+    "callable": true,
+    "rc": 0,
+    "timed_out": false,
+    "wall_time": 0.181882,
+    "changes_files": true,
+    "changed_paths": [
+      "fx.gdshader",
+      "fx.shader",
+      "main.gd",
+      "main.tscn",
+      "mat.tres",
+      "project.godot"
+    ],
+    "reported_success_but_unchanged": [
+      "child.tscn"
+    ],
+    "mismatch_count": 1,
+    "file_change_summary": [
+      {
+        "path": ".godot/.gdignore",
+        "actually_changed": true,
+        "reported_changed": null,
+        "mismatch": false
+      },
+      {
+        "path": "child.tscn",
+        "actually_changed": false,
+        "reported_changed": true,
+        "mismatch": true
+      },
+      {
+        "path": "fx.gdshader",
+        "actually_changed": true,
+        "reported_changed": null,
+        "mismatch": false
+      },
+      {
+        "path": "fx.shader",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "main.gd",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "main.tscn",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "mat.tres",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "project.godot",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      }
+    ]
+  },
+  "convert_3to4_with_size_args": {
+    "callable": true,
+    "rc": 0,
+    "timed_out": false,
+    "wall_time": 0.186563,
+    "args_echo": {
+      "max_file_kb": "4096",
+      "max_line_size": "100000"
+    },
+    "changes_files": true,
+    "changed_paths": [
+      "fx.gdshader",
+      "fx.shader",
+      "main.gd",
+      "main.tscn",
+      "mat.tres",
+      "project.godot"
+    ],
+    "reported_success_but_unchanged": [
+      "child.tscn"
+    ],
+    "mismatch_count": 1,
+    "file_change_summary": [
+      {
+        "path": ".godot/.gdignore",
+        "actually_changed": true,
+        "reported_changed": null,
+        "mismatch": false
+      },
+      {
+        "path": "child.tscn",
+        "actually_changed": false,
+        "reported_changed": true,
+        "mismatch": true
+      },
+      {
+        "path": "fx.gdshader",
+        "actually_changed": true,
+        "reported_changed": null,
+        "mismatch": false
+      },
+      {
+        "path": "fx.shader",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "main.gd",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "main.tscn",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "mat.tres",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      },
+      {
+        "path": "project.godot",
+        "actually_changed": true,
+        "reported_changed": true,
+        "mismatch": false
+      }
+    ]
+  },
+  "convert_3to4_args_consistent_with_no_args": {
+    "accepts_size_args": true,
+    "same_changed_paths_as_no_args": true,
+    "only_in_no_args": [],
+    "only_in_with_args": []
+  },
+  "upgrade_tool_entry": {
+    "searched_in": "artifacts/20260823-235214/N15/help/1/stdout.log",
+    "help_text_sha256": "eef62e29a3fd8e7eff29353310f0380ad1bfdf50dd2d6563d665f793c5ff0fe3",
+    "found": false,
+    "hits": [],
+    "reason": "no upgrade/ProjectUpgradeTool keyword found in --help output; step 4 (upgrade tool invocation) is not applicable this run"
+  },
+  "v3_alone_on_unconverted_project": {
+    "_comment": "V3 单独作用于未转换（3.x 语法 / config_version=4）项目的观测：rc 是否为 0 与 stderr 是否含 ERROR/SCRIPT ERROR 分开记录——rc 不可信已由 N08 确认，这里只再次留证。",
+    "rc": 0,
+    "timed_out": false,
+    "error_lines": [
+      "SCRIPT ERROR: Parse Error: Static function \"get_ticks_msec()\" not found in base \"GDScriptNativeClass\".",
+      "ERROR: Failed to load script \"res://main.gd\" with error \"Parse error\".",
+      "ERROR: No loader found for resource: res://fx.shader (expected type: Shader)",
+      "ERROR: res://mat.tres:6 - Parse Error: .",
+      "ERROR: Failed loading resource: res://mat.tres.",
+      "ERROR: Parse Error: File unrecognized. [Resource file res://main.tscn:10]",
+      "ERROR: Failed loading resource: res://main.tscn.",
+      "ERROR: Plugin is not attached to debugger."
+    ],
+    "errors_present": true
+  },
+  "v3_after_convert_3to4": {
+    "_comment": "先跑 convert-3to4 再跑 V3：观测 V3 在文本已转换后还会新增哪些文件（UID sidecar / import 缓存），以及是否还有除此之外的文本级改写。",
+    "convert_step": {
+      "callable": true,
+      "rc": 0,
+      "timed_out": false,
+      "wall_time": 0.186806,
+      "changes_files": false,
+      "changed_paths": [],
+      "reported_success_but_unchanged": [],
+      "mismatch_count": 0,
+      "file_change_summary": []
+    },
+    "v3_rc": 0,
+    "v3_timed_out": false,
+    "v3_added_paths": [
+      ".godot/.gdignore",
+      ".godot/editor/filesystem_cache10",
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg",
+      ".godot/editor/project_metadata.cfg",
+      ".godot/global_script_class_cache.cfg",
+      ".godot/uid_cache.bin",
+      "fx.gdshader.uid",
+      "main.gd.uid"
+    ],
+    "v3_uid_sidecars_generated": [
+      "fx.gdshader.uid",
+      "main.gd.uid"
+    ],
+    "v3_godot_cache_paths_generated": [
+      ".godot/.gdignore",
+      ".godot/editor/filesystem_cache10",
+      ".godot/editor/main.tscn-folding-3070c538c03ee49b7677ff960a3f5195.cfg",
+      ".godot/editor/project_metadata.cfg",
+      ".godot/global_script_class_cache.cfg",
+      ".godot/uid_cache.bin"
+    ],
+    "v3_added_non_cache_non_uid_paths": []
+  },
+  "responsibility_matrix": {
+    "_comment": "工具 × 文件类型 × 动作，纯事实汇总，不判断正确性。convert-3to4 改文本；V3(after convert) 只补 UID/缓存；V3(on unconverted) 不做任何文本改写，只报错。",
+    "convert_3to4": {
+      "action": "text-rewrite-and-rename",
+      "touched_by_extension": {
+        ".gd": [
+          "main.gd"
+        ],
+        ".gdshader": [
+          "fx.gdshader"
+        ],
+        ".godot": [
+          "project.godot"
+        ],
+        ".shader": [
+          "fx.shader"
+        ],
+        ".tres": [
+          "mat.tres"
+        ],
+        ".tscn": [
+          "main.tscn"
+        ]
+      }
+    },
+    "v3_import_after_convert": {
+      "action": "uid-sidecar-and-import-cache-only",
+      "uid_sidecars_by_extension": {
+        ".uid": [
+          "fx.gdshader.uid",
+          "main.gd.uid"
+        ]
+      },
+      "other_new_files": []
+    },
+    "v3_import_on_unconverted": {
+      "action": "none-fails-with-parse-or-load-errors",
+      "errors_present": true
+    }
+  }
+}

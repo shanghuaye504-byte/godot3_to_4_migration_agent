@@ -1,0 +1,9 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+--Main Shader--
+    2 | 
+    3 | void fragment() {
+E   4->  COLOR = vec4(1.0, 0.0, 0.0)
+    5 | }
+    6 | 
+NP_SHADER_MAIN_STARTED

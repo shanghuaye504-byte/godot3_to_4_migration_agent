@@ -1,0 +1,7 @@
+--- fs-before
++++ fs-after
+~ .godot/editor/filesystem_cache10  5fd5fb08c813b46faf8bfd22ab6e8a1755fdc7c14061978fad3231511281c70b -> faaf2b6c5ef2423ae5b834db391c04fe2e07326bb4a0fae93ae173dc24d3162c size 392 -> 574
+~ .godot/global_script_class_cache.cfg  865c3fd7e64509cdc9de82c87996a9ff487197dd4795fb8d81b44f0468ccad61 -> a4f40df8480665262c9d376f34ad2bd45c50561474fbcf87cedf30d4adfc890f size 154 -> 306
+~ .godot/uid_cache.bin  59f804bc1f270db87a8c8af15d1b6da82b15c678bfb16a2686c0e844f65be556 -> 0e11a7ddee401e85dee9f97fb8d570f626c68456a09aec3f89c15c7961cf4152 size 88 -> 149
++ late_class.gd.uid  sha256=db90c7f017a8b04209b382067290ec192d9062fc2f75a424d5a14095d567c011 size=20
++ uses_late.gd.uid  sha256=f4c0f1fa278345b620b9e9d7646a147b802d1e4dda5c7a7e32c9fe0d38fc562b size=20
