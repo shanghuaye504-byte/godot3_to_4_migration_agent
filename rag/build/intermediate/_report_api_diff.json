@@ -1,0 +1,11 @@
+{
+  "api_from": "4.0.4",
+  "api_to": "4.7.1",
+  "rule_count": 6612,
+  "by_change": {
+    "signature": 389,
+    "add": 5971,
+    "remove": 230,
+    "type": 22
+  }
+}

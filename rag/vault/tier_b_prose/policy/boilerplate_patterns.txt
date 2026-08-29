@@ -1,0 +1,42 @@
+# One regex per line. Blocks matching any pattern are dropped.
+# Used by all process_<bucket>.py scripts.
+# See rag/vault/tier_b_prose/CHUNKING.md §3.1 and §4.2.
+#
+# Keep this list conservative: only add patterns for text that is almost
+# certainly page chrome, build artifacts, or navigation -- not migration
+# knowledge.
+
+# Generic web / docs chrome
+Last updated on
+Edit this page on GitHub
+Sign up for free to join this conversation
+Was this page helpful\?
+Table of contents
+On this page
+
+# Godot docs chrome
+^See also$
+^Note$
+^Tip$
+^Warning$
+^Important$
+Inherits:
+Inherited By:
+^Default:
+^Description$
+^Method Descriptions$
+^User-contributed notes$
+^Generated on
+
+# GitHub UI / metadata leaked into scraped blocks
+notification settings
+issue actions
+^\s*metadata\s*$
+^\s*assignees\s*$
+^\s*labels\s*$
+
+# Docutils build artifacts and leaked local paths
+\(INFO/1\)
+\(WARNING/1\)
+\(ERROR/1\)
+/Users/yy_catmax/workspace

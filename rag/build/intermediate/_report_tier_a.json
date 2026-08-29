@@ -1,0 +1,20 @@
+{
+  "row_count": 8260,
+  "skipped_yaml": 2,
+  "collisions": [],
+  "by_source": {
+    "official_renames": 1101,
+    "official_renames_skipped": 84,
+    "api_diff": 6612,
+    "official_prose": 444,
+    "manual_trap": 5,
+    "manual_rewrite": 10,
+    "official_prose_3to4_shader": 4
+  },
+  "jsonl": {
+    "renames.jsonl": 1185,
+    "api_diff.jsonl": 6612,
+    "rst_4x.jsonl": 444,
+    "manual.jsonl": 19
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "per_array": {
+    "enum_renames": {
+      "enabled": 112,
+      "skipped": 1
+    },
+    "gdscript_function_renames": {
+      "enabled": 409,
+      "skipped": 51
+    },
+    "gdscript_properties_renames": {
+      "enabled": 94,
+      "skipped": 24
+    },
+    "gdscript_signals_renames": {
+      "enabled": 14,
+      "skipped": 2
+    },
+    "project_settings_renames": {
+      "enabled": 39,
+      "skipped": 0
+    },
+    "project_godot_renames": {
+      "enabled": 37,
+      "skipped": 0
+    },
+    "input_map_renames": {
+      "enabled": 7,
+      "skipped": 0
+    },
+    "builtin_types_renames": {
+      "enabled": 9,
+      "skipped": 0
+    },
+    "shaders_renames": {
+      "enabled": 14,
+      "skipped": 0
+    },
+    "class_renames": {
+      "enabled": 198,
+      "skipped": 2
+    },
+    "color_renames": {
+      "enabled": 146,
+      "skipped": 0
+    },
+    "theme_override_renames": {
+      "enabled": 22,
+      "skipped": 4
+    }
+  },
+  "csharp_skipped_arrays": [
+    "csharp_function_renames",
+    "csharp_properties_renames",
+    "csharp_signals_renames"
+  ],
+  "unrecognized": [],
+  "unrecognized_count": 0,
+  "rule_count": 1185
+}

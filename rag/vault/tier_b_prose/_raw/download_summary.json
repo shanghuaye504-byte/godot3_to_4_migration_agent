@@ -1,0 +1,234 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.rst",
+    "status": 200,
+    "size": 50322,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.1.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.1.rst",
+    "status": 200,
+    "size": 26053,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.1.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.2.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.2.rst",
+    "status": 200,
+    "size": 30760,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.2.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.3.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.3.rst",
+    "status": 200,
+    "size": 32115,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.3.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.4.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.4.rst",
+    "status": 200,
+    "size": 20376,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.4.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.5.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.5.rst",
+    "status": 200,
+    "size": 28773,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.5.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.6.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.6.rst",
+    "status": 200,
+    "size": 31290,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.6.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/migrating/upgrading_to_godot_4.7.rst",
+    "category": "official_upgrading_guide",
+    "slug": "upgrading_to_godot_4.7.rst",
+    "status": 200,
+    "size": 29651,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_upgrading_guide/upgrading_to_godot_4.7.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/scripting/gdscript/gdscript_basics.rst",
+    "category": "official_gdscript_doc",
+    "slug": "gdscript_basics.rst",
+    "status": 200,
+    "size": 114991,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_gdscript_doc/gdscript_basics.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/tutorials/scripting/gdscript/gdscript_styleguide.rst",
+    "category": "official_gdscript_doc",
+    "slug": "gdscript_styleguide.rst",
+    "status": 200,
+    "size": 25939,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_gdscript_doc/gdscript_styleguide.rst"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/godotengine/godot-docs/master/getting_started/step_by_step/signals.rst",
+    "category": "official_gdscript_doc",
+    "slug": "signals_step_by_step.rst",
+    "status": 200,
+    "size": 17865,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_gdscript_doc/signals_step_by_step.rst"
+  },
+  {
+    "url": "https://docs.godotengine.org/en/stable/tutorials/physics/using_character_body_2d.html",
+    "category": "official_html_doc",
+    "slug": "using_character_body_2d.html",
+    "status": 200,
+    "size": 1418376,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_html_doc/using_character_body_2d.html"
+  },
+  {
+    "url": "https://docs.godotengine.org/en/stable/classes/class_fileaccess.html",
+    "category": "official_html_doc",
+    "slug": "class_fileaccess.html",
+    "status": 200,
+    "size": 1429357,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_html_doc/class_fileaccess.html"
+  },
+  {
+    "url": "https://docs.godotengine.org/en/4.4/classes/class_editorplugin.html",
+    "category": "official_html_doc",
+    "slug": "class_editorplugin.html",
+    "status": 200,
+    "size": 1299435,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_html_doc/class_editorplugin.html"
+  },
+  {
+    "url": "https://godotengine.org/article/core-refactoring-progress-report-2/",
+    "category": "official_blog",
+    "slug": "core-refactoring-progress-report-2.html",
+    "status": 200,
+    "size": 25948,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_blog/core-refactoring-progress-report-2.html"
+  },
+  {
+    "url": "https://godotengine.org/article/multiplayer-changes-godot-4-0-report-2/",
+    "category": "official_blog",
+    "slug": "multiplayer-changes-godot-4-0-report-2.html",
+    "status": 200,
+    "size": 29085,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/official_blog/multiplayer-changes-godot-4-0-report-2.html"
+  },
+  {
+    "url": "https://uhiyama-lab.com/en/notes/godot/await-coroutine-basics/",
+    "category": "community_blog",
+    "slug": "await-coroutine-basics.html",
+    "status": 200,
+    "size": 188440,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/await-coroutine-basics.html"
+  },
+  {
+    "url": "https://bugnet.io/blog/fix-godot-tween-not-working-godot-4",
+    "category": "community_blog",
+    "slug": "fix-godot-tween-not-working-godot-4.html",
+    "status": 200,
+    "size": 15650,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/fix-godot-tween-not-working-godot-4.html"
+  },
+  {
+    "url": "https://bugnet.io/blog/fix-godot-characterbody2d-move-and-slide-not-moving",
+    "category": "community_blog",
+    "slug": "fix-godot-characterbody2d-move-and-slide-not-moving.html",
+    "status": 200,
+    "size": 18230,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/fix-godot-characterbody2d-move-and-slide-not-moving.html"
+  },
+  {
+    "url": "https://bugnet.io/blog/fix-nonexistent-function-connecting-signals-godot",
+    "category": "community_blog",
+    "slug": "fix-nonexistent-function-connecting-signals-godot.html",
+    "status": 200,
+    "size": 14481,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/fix-nonexistent-function-connecting-signals-godot.html"
+  },
+  {
+    "url": "https://shaggydev.com/2022/09/27/godot-4-setter-getter/",
+    "category": "community_blog",
+    "slug": "godot-4-setter-getter.html",
+    "status": 200,
+    "size": 28703,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/godot-4-setter-getter.html"
+  },
+  {
+    "url": "https://godot-mcp.abyo.net/guides/godot4-export-annotations",
+    "category": "community_blog",
+    "slug": "godot4-export-annotations.html",
+    "status": 200,
+    "size": 51629,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/godot4-export-annotations.html"
+  },
+  {
+    "url": "https://bugnet.io/blog/fix-godot-rpc-call-not-working-enet-multiplayer",
+    "category": "community_blog",
+    "slug": "fix-godot-rpc-call-not-working-enet-multiplayer.html",
+    "status": 200,
+    "size": 14173,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_blog/fix-godot-rpc-call-not-working-enet-multiplayer.html"
+  },
+  {
+    "url": "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976",
+    "category": "community_gist",
+    "slug": "wolfgangsenff_migration_notes.html",
+    "status": 200,
+    "size": 467451,
+    "path": "/Users/yy_catmax/workspace/Godot Workspace/godot3_to_4_migration_agent/rag/vault/tier_b_prose/_raw/community_gist/wolfgangsenff_migration_notes.html"
+  },
+  {
+    "url": "https://github.com/godotengine/godot/pull/41794",
+    "category": "github_pr",
+    "slug": "godot_pull_41794.md",
+    "status": 200,
+    "size": 53969,
+    "path": "github_pr/godot_pull_41794.md"
+  },
+  {
+    "url": "https://github.com/godotengine/godot/pull/65271",
+    "category": "github_pr",
+    "slug": "godot_pull_65271.md",
+    "status": 200,
+    "size": 12942,
+    "path": "github_pr/godot_pull_65271.md"
+  },
+  {
+    "url": "https://github.com/godotengine/godot-docs/issues/5577",
+    "category": "github_issue",
+    "slug": "godot-docs_issue_5577.md",
+    "status": 200,
+    "size": 1223,
+    "path": "github_issue/godot-docs_issue_5577.md"
+  },
+  {
+    "url": "https://github.com/godotengine/godot-docs/issues/6265",
+    "category": "github_issue",
+    "slug": "godot-docs_issue_6265.md",
+    "status": 200,
+    "size": 213,
+    "path": "github_issue/godot-docs_issue_6265.md"
+  },
+  {
+    "url": "https://github.com/godotengine/godot-proposals/discussions/6192",
+    "category": "github_discussion",
+    "slug": "godot-proposals_discussion_6192.md",
+    "status": 200,
+    "size": 2779,
+    "path": "github_discussion/godot-proposals_discussion_6192.md"
+  }
+]

@@ -1,0 +1,38 @@
+# Heading substrings that force a block to be dropped.
+# Used by process_official_gdscript_doc.py and process_official_blog.py.
+# See rag/vault/tier_b_prose/CHUNKING.md §3.1, §6.3 and §6.5.
+#
+# Keep this list conservative. Only list headings that are clearly
+# navigation, metadata, SEO filler, or structural noise.
+
+denylist:
+  # Generic docs / page metadata
+  - History
+  - "Next steps"
+  - "Release plan"
+  - "下一步"
+  - "发布计划"
+  - Future
+  - Credits
+  - Acknowledgements
+  - Changelog
+  - Navigation
+  - References
+  - License
+
+  # Community blog SEO / footer headings
+  - Summary
+  - "Related Issues"
+  - "Related Posts"
+  - "Related Articles"
+  - "You may also like"
+
+  # Community gist short structural headings (often one word + colon)
+  - "GDScript:"
+  - "Variables:"
+  - "Exports:"
+  - "Multiplayer:"
+  - "Yield/await:"
+  - "becomes:"
+  - "to:"
+  - "Additionally:"

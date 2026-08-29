@@ -1,0 +1,8 @@
+# Heading substrings that previously forced a block to be kept.
+# Kept empty intentionally: type B now keeps all non-denylisted blocks,
+# so this allowlist is no longer used as a hard gate.
+#
+# If you want to boost specific headings in the future (e.g. for tagging),
+# populate this list and update process_official_gdscript_doc.py to read it.
+
+allowlist: []

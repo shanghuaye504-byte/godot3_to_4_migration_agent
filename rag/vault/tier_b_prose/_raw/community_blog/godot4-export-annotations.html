@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en" class="lang-en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@export and Annotations in Godot 4 — Complete Guide | Godot MCP Pro</title>
+  <meta name="description" content="Complete guide to @export, @onready, @tool, and all GDScript annotations in Godot 4. Covers @export_range, @export_enum, @export_group, @export_category, and migration from Godot 3.">
+
+  <!-- SEO -->
+  <meta name="keywords" content="Godot 4 @export, GDScript annotations, @export_range, @export_enum, @export_group, @onready, @tool, Godot 4 export, Godot inspector, GDScript export variable, Godot 4 @export 使い方, GDScript アノテーション, Godot 4 チュートリアル">
+  <meta name="author" content="Godot MCP Pro">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <link rel="canonical" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html">
+
+  <!-- hreflang -->
+  <link rel="alternate" hreflang="en" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html">
+  <link rel="alternate" hreflang="ja" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html?lang=ja">
+  <link rel="alternate" hreflang="pt-br" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html?lang=pt-br">
+  <link rel="alternate" hreflang="es" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html?lang=es">
+  <link rel="alternate" hreflang="ru" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html?lang=ru">
+  <link rel="alternate" hreflang="zh" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html?lang=zh">
+  <link rel="alternate" hreflang="hi" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html?lang=hi">
+  <link rel="alternate" hreflang="x-default" href="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="@export and Annotations in Godot 4 — Complete Guide">
+  <meta property="og:description" content="Complete guide to @export, @onready, @tool, and all GDScript annotations in Godot 4. Covers @export_range, @export_enum, @export_group, and more.">
+  <meta property="og:url" content="https://godot-mcp.abyo.net/guides/godot4-export-annotations.html">
+  <meta property="og:site_name" content="Godot MCP Pro">
+  <meta property="og:image" content="https://godot-mcp.abyo.net/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ja_JP">
+  <meta property="og:locale:alternate" content="pt_BR">
+  <meta property="og:locale:alternate" content="es_ES">
+  <meta property="og:locale:alternate" content="ru_RU">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta property="og:locale:alternate" content="hi_IN">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@y1uda">
+  <meta name="twitter:title" content="@export and Annotations in Godot 4 — Complete Guide">
+  <meta name="twitter:description" content="Complete guide to @export, @onready, @tool, and all GDScript annotations in Godot 4.">
+  <meta name="twitter:image" content="https://godot-mcp.abyo.net/og-image.png">
+
+  <!-- Structured Data: TechArticle -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "@export and Annotations in Godot 4 — Complete Guide",
+    "description": "Complete guide to @export, @onready, @tool, and all GDScript annotations in Godot 4. Covers @export_range, @export_enum, @export_group, @export_category, migration from Godot 3, and static typing best practices.",
+    "author": {
+      "@type": "Organization",
+      "name": "Godot MCP Pro",
+      "url": "https://godot-mcp.abyo.net/"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Godot MCP Pro",
+      "url": "https://godot-mcp.abyo.net/"
+    },
+    "datePublished": "2026-03-25",
+    "dateModified": "2026-03-25",
+    "url": "https://godot-mcp.abyo.net/guides/godot4-export-annotations.html",
+    "inLanguage": ["en", "ja"],
+    "proficiencyLevel": "Beginner",
+    "dependencies": "Godot 4.0+",
+    "about": [
+      {"@type": "Thing", "name": "GDScript"},
+      {"@type": "Thing", "name": "Godot Engine"},
+      {"@type": "Thing", "name": "Export annotations"}
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://godot-mcp.abyo.net/"},
+      {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://godot-mcp.abyo.net/#guides"},
+      {"@type": "ListItem", "position": 3, "name": "@export and Annotations", "item": "https://godot-mcp.abyo.net/guides/godot4-export-annotations.html"}
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #478cbf;
+      --accent-hover: #5a9fd4;
+      --green: #3fb950;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+    /* i18n toggle */
+    html.lang-en .ja { display: none !important; }
+    html.lang-ja .en { display: none !important; }
+
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .lang-toggle button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .lang-toggle button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .lang-toggle button:hover:not(.active) {
+      color: var(--text);
+    }
+
+    /* Nav */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+    }
+    .site-nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+    .site-nav .nav-brand {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .site-nav .nav-brand span { color: var(--accent); }
+    .site-nav .nav-links {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 20px;
+    }
+    .site-nav .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .site-nav .nav-links a:hover { color: var(--text); }
+    .site-nav .nav-cta {
+      background: var(--accent);
+      color: #fff !important;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .site-nav .nav-cta:hover { background: var(--accent-hover); }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      padding: 16px 0 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    .breadcrumb .sep {
+      margin: 0 8px;
+      color: var(--border);
+    }
+
+    /* Article */
+    .article-header {
+      padding: 40px 0 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+    .article-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .article-header h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .article-header p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 700px;
+    }
+
+    .article-body {
+      padding-bottom: 60px;
+    }
+    .article-body h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 48px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .article-body h2:first-child {
+      margin-top: 0;
+    }
+    .article-body h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 12px;
+    }
+    .article-body p {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      max-width: 750px;
+    }
+    .article-body ul, .article-body ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+      color: var(--text-muted);
+    }
+    .article-body li {
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .article-body code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 14px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .code-label {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px 4px 0 0;
+      margin-bottom: -1px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Comment styling in code */
+    .cm { color: var(--text-muted); }
+    .kw { color: #ff7b72; }
+    .an { color: #d2a8ff; }
+    .tp { color: #79c0ff; }
+    .st { color: #a5d6ff; }
+    .nm { color: #79c0ff; }
+
+    /* Migration table */
+    .migration-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 15px;
+    }
+    .migration-table th {
+      background: var(--surface);
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--border);
+    }
+    .migration-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .migration-table tr:last-child td { border-bottom: none; }
+    .migration-table .old { color: var(--text-muted); text-decoration: line-through; }
+    .migration-table .new { color: var(--accent); font-weight: 600; }
+
+    /* CTA box */
+    .cta-box {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 48px 0;
+      text-align: center;
+    }
+    .cta-box h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .cta-box p {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-box .tool-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      list-style: none;
+      padding: 0;
+    }
+    .cta-box .tool-list li {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      color: var(--accent);
+    }
+    .cta-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 28px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 16px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .cta-btn:hover { background: var(--accent-hover); }
+
+    /* TOC */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+    .toc h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .toc ol {
+      padding-left: 20px;
+      margin: 0;
+    }
+    .toc li {
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    .toc a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .article-header h1 { font-size: 28px; }
+      .site-nav .nav-links { gap: 12px; }
+      .site-nav .nav-links a { font-size: 12px; }
+      pre { padding: 16px; font-size: 13px; }
+      .cta-box { padding: 24px 16px; }
+    }
+    @media (max-width: 480px) {
+      .site-nav .nav-links { gap: 8px; }
+      .article-header h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="site-nav" aria-label="Main navigation">
+    <div class="container">
+      <a href="../" class="nav-brand">Godot <span>MCP Pro</span></a>
+      <ul class="nav-links">
+        <li><a href="../"><span class="en">Home</span><span class="ja">ホーム</span></a></li>
+        <li><a href="./"><span class="en">Guides</span><span class="ja">ガイド</span></a></li>
+        <li><a href="../#tools"><span class="en">Tools</span><span class="ja">ツール</span></a></li>
+        <li><a href="../#faq">FAQ</a></li>
+        <li><a href="https://github.com/youichi-uda/godot-mcp-pro" target="_blank" rel="noopener">GitHub</a></li>
+        <li>
+          <div class="lang-toggle" aria-label="Language switcher">
+            <button onclick="setLang('en')" id="lang-btn-en" class="active">EN</button>
+            <button onclick="setLang('ja')" id="lang-btn-ja">JA</button>
+          </div>
+        </li>
+        <li><a href="https://y1uda.itch.io/godot-mcp-pro" class="nav-cta" target="_blank" rel="noopener"><span class="en">Buy $15</span><span class="ja">$15で購入</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="../"><span class="en">Home</span><span class="ja">ホーム</span></a>
+        <span class="sep">&gt;</span>
+        <a href="./"><span class="en">Guides</span><span class="ja">ガイド</span></a>
+        <span class="sep">&gt;</span>
+        <span><span class="en">@export and Annotations</span><span class="ja">@exportとアノテーション</span></span>
+      </nav>
+
+      <!-- Article Header -->
+      <header class="article-header">
+        <h1>
+          <span class="en"><em>@export</em> and Annotations in Godot 4</span>
+          <span class="ja">Godot 4の<em>@export</em>とアノテーション完全ガイド</span>
+        </h1>
+        <p>
+          <span class="en">A complete reference to every GDScript annotation: @export variants, @onready, @tool, @icon, and more. Includes a Godot 3 to 4 migration cheat sheet.</span>
+          <span class="ja">GDScriptの全アノテーションを網羅的に解説します。@exportの各バリアント、@onready、@tool、@iconなど。Godot 3から4への移行チートシート付き。</span>
+        </p>
+      </header>
+
+      <!-- Table of Contents -->
+      <nav class="toc" aria-label="Table of Contents">
+        <h3><span class="en">Contents</span><span class="ja">目次</span></h3>
+        <ol>
+          <li><a href="#intro"><span class="en">Introduction: Keywords to Annotations</span><span class="ja">はじめに：キーワードからアノテーションへ</span></a></li>
+          <li><a href="#basic-export"><span class="en">Basic @export</span><span class="ja">基本的な@export</span></a></li>
+          <li><a href="#export-range"><span class="en">@export_range</span><span class="ja">@export_range（範囲指定）</span></a></li>
+          <li><a href="#export-enum"><span class="en">@export_enum</span><span class="ja">@export_enum（列挙型）</span></a></li>
+          <li><a href="#export-file-dir"><span class="en">@export_file and @export_dir</span><span class="ja">@export_fileと@export_dir</span></a></li>
+          <li><a href="#export-multiline"><span class="en">@export_multiline and @export_placeholder</span><span class="ja">@export_multilineと@export_placeholder</span></a></li>
+          <li><a href="#export-group"><span class="en">@export_group and @export_subgroup</span><span class="ja">@export_groupと@export_subgroup</span></a></li>
+          <li><a href="#export-category"><span class="en">@export_category</span><span class="ja">@export_category（カテゴリ）</span></a></li>
+          <li><a href="#export-node"><span class="en">@export with Node References</span><span class="ja">ノード参照の@export</span></a></li>
+          <li><a href="#export-flags"><span class="en">@export_flags</span><span class="ja">@export_flags（フラグ）</span></a></li>
+          <li><a href="#onready"><span class="en">@onready</span><span class="ja">@onready</span></a></li>
+          <li><a href="#tool"><span class="en">@tool</span><span class="ja">@tool</span></a></li>
+          <li><a href="#other"><span class="en">Other Annotations</span><span class="ja">その他のアノテーション</span></a></li>
+          <li><a href="#static-typing"><span class="en">Static Typing Best Practices</span><span class="ja">静的型付けのベストプラクティス</span></a></li>
+          <li><a href="#migration"><span class="en">Migration Cheat Sheet: Godot 3 to 4</span><span class="ja">移行チートシート：Godot 3から4へ</span></a></li>
+        </ol>
+      </nav>
+
+      <!-- Article Body -->
+      <article class="article-body">
+
+        <!-- 1. Introduction -->
+        <h2 id="intro">
+          <span class="en">Introduction: Keywords to Annotations</span>
+          <span class="ja">はじめに：キーワードからアノテーションへ</span>
+        </h2>
+        <p>
+          <span class="en">Godot 4 replaced several GDScript keywords with <code>@</code>-prefixed annotations. This was part of a larger effort to make GDScript syntax cleaner and more consistent. The three most important changes are:</span>
+          <span class="ja">Godot 4では、GDScriptの複数のキーワードが<code>@</code>プレフィックス付きのアノテーションに置き換えられました。これはGDScriptの構文をより明確で一貫性のあるものにするための大きな変更の一部です。最も重要な3つの変更は：</span>
+        </p>
+        <ul>
+          <li><code>export</code> &rarr; <code>@export</code></li>
+          <li><code>onready</code> &rarr; <code>@onready</code></li>
+          <li><code>tool</code> &rarr; <code>@tool</code></li>
+        </ul>
+        <p>
+          <span class="en">Annotations are placed on the line before (or on the same line as) the declaration they modify. Godot 4 also introduced many new annotation variants like <code>@export_range</code>, <code>@export_group</code>, and <code>@export_category</code> that did not exist in Godot 3. This guide covers all of them.</span>
+          <span class="ja">アノテーションは修飾する宣言の前の行（または同じ行）に配置します。Godot 4ではGodot 3には存在しなかった<code>@export_range</code>、<code>@export_group</code>、<code>@export_category</code>など、多くの新しいアノテーションバリアントも導入されました。このガイドではそれらすべてを解説します。</span>
+        </p>
+
+        <!-- 2. Basic @export -->
+        <h2 id="basic-export">
+          <span class="en">Basic @export</span>
+          <span class="ja">基本的な@export</span>
+        </h2>
+        <p>
+          <span class="en">The <code>@export</code> annotation exposes a variable in the Godot Inspector, letting you configure values without editing code. Godot automatically picks the right editor widget based on the variable's type.</span>
+          <span class="ja"><code>@export</code>アノテーションは変数をGodotインスペクターに公開し、コードを編集せずに値を設定できるようにします。Godotは変数の型に基づいて適切なエディタウィジェットを自動的に選択します。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@export</span> <span class="kw">var</span> speed: <span class="tp">float</span> = 300.0
+<span class="an">@export</span> <span class="kw">var</span> player_name: <span class="tp">String</span> = <span class="st">"Player"</span>
+<span class="an">@export</span> <span class="kw">var</span> health: <span class="tp">int</span> = 100
+<span class="an">@export</span> <span class="kw">var</span> color: <span class="tp">Color</span> = Color.WHITE
+<span class="an">@export</span> <span class="kw">var</span> texture: <span class="tp">Texture2D</span>
+<span class="an">@export</span> <span class="kw">var</span> scene: <span class="tp">PackedScene</span></code></pre>
+        <p>
+          <span class="en"><strong>Tip:</strong> Always add type annotations to exported variables. This ensures the Inspector shows the correct widget (e.g., a color picker for <code>Color</code>, a resource slot for <code>Texture2D</code>).</span>
+          <span class="ja"><strong>ヒント：</strong> エクスポートする変数には必ず型アノテーションを付けましょう。これによりインスペクターが正しいウィジェットを表示します（例：<code>Color</code>にはカラーピッカー、<code>Texture2D</code>にはリソーススロット）。</span>
+        </p>
+
+        <!-- 3. @export_range -->
+        <h2 id="export-range">
+          <span class="en">@export_range — Numeric Sliders</span>
+          <span class="ja">@export_range — 数値スライダー</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_range</code> restricts a numeric value to a minimum and maximum, displaying a slider in the Inspector. You can also specify a step size and hints like <code>"or_greater"</code> or <code>"or_less"</code>.</span>
+          <span class="ja"><code>@export_range</code>は数値を最小値と最大値に制限し、インスペクターにスライダーを表示します。ステップサイズや<code>"or_greater"</code>、<code>"or_less"</code>などのヒントも指定できます。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@export_range</span>(0, 100) <span class="kw">var</span> health: <span class="tp">int</span> = 100
+<span class="an">@export_range</span>(0.0, 1.0, 0.01) <span class="kw">var</span> volume: <span class="tp">float</span> = 0.8
+<span class="an">@export_range</span>(0, 1000, 1, <span class="st">"or_greater"</span>) <span class="kw">var</span> damage: <span class="tp">int</span> = 10</code></pre>
+        <p>
+          <span class="en">The <code>"or_greater"</code> hint allows typing values above the maximum while keeping the slider range focused. Similarly, <code>"or_less"</code> allows values below the minimum.</span>
+          <span class="ja"><code>"or_greater"</code>ヒントはスライダーの範囲を保ちつつ、最大値以上の値の手入力を許可します。同様に、<code>"or_less"</code>は最小値以下の値を許可します。</span>
+        </p>
+
+        <!-- 4. @export_enum -->
+        <h2 id="export-enum">
+          <span class="en">@export_enum — Dropdown Menus</span>
+          <span class="ja">@export_enum — ドロップダウンメニュー</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_enum</code> creates a dropdown in the Inspector. When used with <code>String</code>, the selected option name is stored. When used with <code>int</code>, you can assign explicit values.</span>
+          <span class="ja"><code>@export_enum</code>はインスペクターにドロップダウンを作成します。<code>String</code>型で使用すると選択されたオプション名が保存されます。<code>int</code>型で使用すると明示的な値を割り当てられます。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="cm"># Stores the string name: "Warrior", "Mage", or "Rogue"</span>
+<span class="an">@export_enum</span>(<span class="st">"Warrior"</span>, <span class="st">"Mage"</span>, <span class="st">"Rogue"</span>) <span class="kw">var</span> character_class: <span class="tp">String</span>
+
+<span class="cm"># Stores the integer value: 0, 1, or 2</span>
+<span class="an">@export_enum</span>(<span class="st">"Easy:0"</span>, <span class="st">"Normal:1"</span>, <span class="st">"Hard:2"</span>) <span class="kw">var</span> difficulty: <span class="tp">int</span> = 1</code></pre>
+
+        <!-- 5. @export_file / @export_dir -->
+        <h2 id="export-file-dir">
+          <span class="en">@export_file and @export_dir — File/Directory Paths</span>
+          <span class="ja">@export_fileと@export_dir — ファイル/ディレクトリパス</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_file</code> shows a file dialog in the Inspector. You can filter by file extension. <code>@export_dir</code> shows a directory selection dialog.</span>
+          <span class="ja"><code>@export_file</code>はインスペクターにファイルダイアログを表示します。拡張子でフィルタリングも可能です。<code>@export_dir</code>はディレクトリ選択ダイアログを表示します。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@export_file</span>(<span class="st">"*.tscn"</span>) <span class="kw">var</span> next_level: <span class="tp">String</span>
+<span class="an">@export_dir</span> <span class="kw">var</span> save_directory: <span class="tp">String</span></code></pre>
+        <p>
+          <span class="en">The filter string uses glob patterns. Multiple filters can be separated with commas: <code>"*.png,*.jpg"</code>.</span>
+          <span class="ja">フィルタ文字列はグロブパターンを使用します。複数のフィルタはカンマで区切れます：<code>"*.png,*.jpg"</code>。</span>
+        </p>
+
+        <!-- 6. @export_multiline / @export_placeholder -->
+        <h2 id="export-multiline">
+          <span class="en">@export_multiline and @export_placeholder</span>
+          <span class="ja">@export_multilineと@export_placeholder</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_multiline</code> provides a large text area for multi-line strings (great for dialogue or descriptions). <code>@export_placeholder</code> shows hint text inside the field when it is empty.</span>
+          <span class="ja"><code>@export_multiline</code>は複数行テキスト用の大きなテキストエリアを提供します（台詞や説明文に最適）。<code>@export_placeholder</code>はフィールドが空のときにヒントテキストを表示します。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@export_multiline</span> <span class="kw">var</span> description: <span class="tp">String</span>
+<span class="an">@export_placeholder</span>(<span class="st">"Enter name..."</span>) <span class="kw">var</span> player_name: <span class="tp">String</span></code></pre>
+
+        <!-- 7. @export_group / @export_subgroup -->
+        <h2 id="export-group">
+          <span class="en">@export_group and @export_subgroup — Organize Inspector Properties</span>
+          <span class="ja">@export_groupと@export_subgroup — インスペクタープロパティの整理</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_group</code> creates a collapsible group header in the Inspector. All <code>@export</code> variables that follow belong to that group until the next group or category. <code>@export_subgroup</code> nests within the current group.</span>
+          <span class="ja"><code>@export_group</code>はインスペクターに折りたたみ可能なグループヘッダーを作成します。次のグループやカテゴリまでの<code>@export</code>変数がそのグループに属します。<code>@export_subgroup</code>は現在のグループ内にネストします。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@export_group</span>(<span class="st">"Movement"</span>)
+<span class="an">@export</span> <span class="kw">var</span> speed: <span class="tp">float</span> = 300.0
+<span class="an">@export</span> <span class="kw">var</span> jump_force: <span class="tp">float</span> = 400.0
+
+<span class="an">@export_group</span>(<span class="st">"Combat"</span>)
+<span class="an">@export</span> <span class="kw">var</span> attack_damage: <span class="tp">int</span> = 10
+<span class="an">@export</span> <span class="kw">var</span> defense: <span class="tp">int</span> = 5
+
+<span class="an">@export_subgroup</span>(<span class="st">"Ranged"</span>)
+<span class="an">@export</span> <span class="kw">var</span> projectile_speed: <span class="tp">float</span> = 500.0</code></pre>
+        <p>
+          <span class="en">Groups and subgroups are purely organizational &mdash; they do not affect variable access in code, only how properties appear in the Inspector.</span>
+          <span class="ja">グループとサブグループは純粋に整理のためのものです。コードでの変数アクセスには影響せず、インスペクターでのプロパティ表示にのみ影響します。</span>
+        </p>
+
+        <!-- 8. @export_category -->
+        <h2 id="export-category">
+          <span class="en">@export_category — Bold Category Headers</span>
+          <span class="ja">@export_category — 太字カテゴリヘッダー</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_category</code> creates a bold, top-level category header in the Inspector. Unlike groups, categories cannot be collapsed and act as a strong visual separator between unrelated sets of properties.</span>
+          <span class="ja"><code>@export_category</code>はインスペクターに太字のトップレベルカテゴリヘッダーを作成します。グループとは異なり、カテゴリは折りたたみできず、関連性のないプロパティセット間の強い視覚的な区切りとして機能します。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@export_category</span>(<span class="st">"Player Stats"</span>)
+<span class="an">@export</span> <span class="kw">var</span> level: <span class="tp">int</span> = 1
+<span class="an">@export</span> <span class="kw">var</span> experience: <span class="tp">int</span> = 0</code></pre>
+
+        <!-- 9. @export node paths -->
+        <h2 id="export-node">
+          <span class="en">@export with Node References</span>
+          <span class="ja">ノード参照の@export</span>
+        </h2>
+        <p>
+          <span class="en">You can export a <code>NodePath</code> to let designers pick a node from the scene tree. In Godot 4.2+, you can directly export a typed node reference &mdash; no <code>NodePath</code> needed.</span>
+          <span class="ja"><code>NodePath</code>をエクスポートすると、デザイナーがシーンツリーからノードを選択できます。Godot 4.2以降では、型付きノード参照を直接エクスポートでき、<code>NodePath</code>は不要です。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="cm"># Classic NodePath export</span>
+<span class="an">@export</span> <span class="kw">var</span> target_path: <span class="tp">NodePath</span>
+
+<span class="cm"># Godot 4.2+: typed node export (direct reference, no NodePath needed)</span>
+<span class="an">@export</span> <span class="kw">var</span> sprite: <span class="tp">Sprite2D</span>
+<span class="an">@export</span> <span class="kw">var</span> collision: <span class="tp">CollisionShape2D</span></code></pre>
+        <p>
+          <span class="en">Typed node exports are the recommended approach in modern Godot 4. The Inspector shows a node picker filtered to the specified type, and you get full autocompletion in the script editor.</span>
+          <span class="ja">型付きノードエクスポートは最新のGodot 4で推奨されるアプローチです。インスペクターは指定された型でフィルタリングされたノードピッカーを表示し、スクリプトエディタで完全な自動補完が得られます。</span>
+        </p>
+
+        <!-- 10. @export_flags -->
+        <h2 id="export-flags">
+          <span class="en">@export_flags — Bitmask Checkboxes</span>
+          <span class="ja">@export_flags — ビットマスクチェックボックス</span>
+        </h2>
+        <p>
+          <span class="en"><code>@export_flags</code> creates a set of checkboxes where each option corresponds to a bit in an integer. Godot also provides built-in flag exports for physics and render layers.</span>
+          <span class="ja"><code>@export_flags</code>は各オプションが整数のビットに対応するチェックボックスセットを作成します。Godotには物理レイヤーやレンダーレイヤー用の組み込みフラグエクスポートも用意されています。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="cm"># Custom flags: Fire=1, Water=2, Earth=4, Wind=8</span>
+<span class="an">@export_flags</span>(<span class="st">"Fire"</span>, <span class="st">"Water"</span>, <span class="st">"Earth"</span>, <span class="st">"Wind"</span>) <span class="kw">var</span> elements: <span class="tp">int</span>
+
+<span class="cm"># Built-in physics layer flags</span>
+<span class="an">@export_flags_2d_physics</span> <span class="kw">var</span> collision_layers: <span class="tp">int</span>
+<span class="an">@export_flags_2d_render</span> <span class="kw">var</span> render_layers: <span class="tp">int</span>
+<span class="an">@export_flags_3d_physics</span> <span class="kw">var</span> collision_layers_3d: <span class="tp">int</span></code></pre>
+
+        <!-- 11. @onready -->
+        <h2 id="onready">
+          <span class="en">@onready — Deferred Initialization</span>
+          <span class="ja">@onready — 遅延初期化</span>
+        </h2>
+        <p>
+          <span class="en"><code>@onready</code> defers variable initialization until the node enters the scene tree (equivalent to assigning in <code>_ready()</code>). This is essential when referencing child nodes with <code>$</code>, because children are not available at parse time.</span>
+          <span class="ja"><code>@onready</code>はノードがシーンツリーに入るまで変数の初期化を遅延させます（<code>_ready()</code>で代入するのと同等）。子ノードはパース時にはまだ利用できないため、<code>$</code>で子ノードを参照する際に必須です。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="cm"># Godot 3 (old syntax):</span>
+<span class="cm"># onready var sprite = $Sprite2D</span>
+
+<span class="cm"># Godot 4:</span>
+<span class="an">@onready</span> <span class="kw">var</span> sprite: <span class="tp">Sprite2D</span> = $Sprite2D
+<span class="an">@onready</span> <span class="kw">var</span> anim: <span class="tp">AnimationPlayer</span> = $AnimationPlayer
+<span class="an">@onready</span> <span class="kw">var</span> label: <span class="tp">Label</span> = $UI/ScoreLabel</code></pre>
+        <p>
+          <span class="en"><strong>Best practice:</strong> Always type your <code>@onready</code> variables. This enables autocompletion and catches type errors at parse time instead of runtime.</span>
+          <span class="ja"><strong>ベストプラクティス：</strong> <code>@onready</code>変数には必ず型を付けましょう。自動補完が有効になり、実行時ではなくパース時に型エラーをキャッチできます。</span>
+        </p>
+
+        <!-- 12. @tool -->
+        <h2 id="tool">
+          <span class="en">@tool — Run Scripts in the Editor</span>
+          <span class="ja">@tool — エディタ内でスクリプトを実行</span>
+        </h2>
+        <p>
+          <span class="en"><code>@tool</code> makes a script execute inside the Godot editor (not just at runtime). This is powerful for creating custom previews, gizmos, and live-updating properties. Place it at the very top of the script, before <code>extends</code>.</span>
+          <span class="ja"><code>@tool</code>はスクリプトをGodotエディタ内で実行させます（ランタイムだけでなく）。カスタムプレビュー、ギズモ、リアルタイム更新されるプロパティの作成に強力です。スクリプトの最上部、<code>extends</code>の前に配置します。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@tool</span>
+<span class="kw">extends</span> <span class="tp">Node2D</span>
+
+<span class="an">@export</span> <span class="kw">var</span> radius: <span class="tp">float</span> = 100.0:
+    <span class="kw">set</span>(value):
+        radius = value
+        queue_redraw()  <span class="cm"># Redraw in editor when value changes</span>
+
+<span class="kw">func</span> _draw() -> <span class="tp">void</span>:
+    draw_circle(Vector2.ZERO, radius, Color.WHITE)</code></pre>
+        <p>
+          <span class="en"><strong>Warning:</strong> Be careful with <code>@tool</code> scripts. Code in <code>_process()</code> and <code>_physics_process()</code> will run in the editor. Use <code>Engine.is_editor_hint()</code> to guard game-only logic.</span>
+          <span class="ja"><strong>注意：</strong> <code>@tool</code>スクリプトは慎重に使いましょう。<code>_process()</code>や<code>_physics_process()</code>のコードはエディタ内でも実行されます。ゲーム専用のロジックは<code>Engine.is_editor_hint()</code>でガードしてください。</span>
+        </p>
+
+        <!-- 13. Other annotations -->
+        <h2 id="other">
+          <span class="en">Other Annotations</span>
+          <span class="ja">その他のアノテーション</span>
+        </h2>
+
+        <h3>@icon</h3>
+        <p>
+          <span class="en">Sets a custom icon for the script's node type in the Scene dock and Create Node dialog.</span>
+          <span class="ja">シーンドックや「ノード作成」ダイアログでスクリプトのノードタイプにカスタムアイコンを設定します。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@icon</span>(<span class="st">"res://icons/enemy.svg"</span>)
+<span class="kw">extends</span> <span class="tp">CharacterBody2D</span></code></pre>
+
+        <h3>@warning_ignore</h3>
+        <p>
+          <span class="en">Suppresses specific GDScript warnings for the next statement. Useful when you intentionally shadow a variable or have an unused parameter.</span>
+          <span class="ja">次のステートメントの特定のGDScript警告を抑制します。意図的に変数をシャドウする場合や未使用パラメータがある場合に便利です。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@warning_ignore</span>(<span class="st">"unused_parameter"</span>)
+<span class="kw">func</span> _on_body_entered(body: <span class="tp">Node2D</span>) -> <span class="tp">void</span>:
+    queue_free()
+
+<span class="an">@warning_ignore</span>(<span class="st">"shadowed_variable"</span>)
+<span class="kw">var</span> size: <span class="tp">int</span> = 10</code></pre>
+
+        <h3>@static_unload</h3>
+        <p>
+          <span class="en">Marks a script so Godot can unload it from memory when no instances exist. This can reduce memory usage for scripts that are only used temporarily. The script must not have any static variables or data that needs to persist.</span>
+          <span class="ja">インスタンスが存在しないときにスクリプトをメモリからアンロードできるようにマークします。一時的にのみ使用されるスクリプトのメモリ使用量を削減できます。永続化が必要な静的変数やデータがないスクリプトに使用してください。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="an">@static_unload</span>
+<span class="kw">extends</span> <span class="tp">RefCounted</span>
+
+<span class="cm"># This script can be safely unloaded when not in use</span></code></pre>
+
+        <!-- 14. Static Typing -->
+        <h2 id="static-typing">
+          <span class="en">Static Typing Best Practices</span>
+          <span class="ja">静的型付けのベストプラクティス</span>
+        </h2>
+        <p>
+          <span class="en">While not annotations, static type hints are closely related and strongly recommended in Godot 4. They improve autocompletion, enable compile-time error checking, and can improve performance.</span>
+          <span class="ja">アノテーションではありませんが、静的型ヒントは密接に関連しており、Godot 4で強く推奨されています。自動補完の向上、コンパイル時のエラーチェック、パフォーマンスの改善が期待できます。</span>
+        </p>
+        <div class="code-label">GDScript</div>
+<pre><code><span class="cm"># Variable type annotations</span>
+<span class="kw">var</span> speed: <span class="tp">float</span> = 300.0
+<span class="kw">var</span> player: <span class="tp">CharacterBody2D</span> = <span class="kw">null</span>
+<span class="kw">var</span> items: <span class="tp">Array</span>[<span class="tp">String</span>] = []
+<span class="kw">var</span> scores: <span class="tp">Dictionary</span> = {}
+
+<span class="cm"># Function return types and parameter types</span>
+<span class="kw">func</span> get_damage() -> <span class="tp">int</span>:
+    <span class="kw">return</span> attack - defense
+
+<span class="kw">func</span> apply_force(direction: <span class="tp">Vector2</span>, strength: <span class="tp">float</span>) -> <span class="tp">void</span>:
+    velocity += direction * strength
+
+<span class="cm"># Type inference with :=</span>
+<span class="kw">var</span> pos := Vector2(100, 200)  <span class="cm"># Inferred as Vector2</span></code></pre>
+        <p>
+          <span class="en"><strong>Note:</strong> Be careful with <code>:=</code> in <code>for</code> loops when iterating over untyped arrays. Use explicit type annotations instead: <code>for item: String in array</code>.</span>
+          <span class="ja"><strong>注意：</strong> 型なし配列のforループで<code>:=</code>を使う際は注意してください。代わりに明示的な型アノテーションを使いましょう：<code>for item: String in array</code>。</span>
+        </p>
+
+        <!-- 15. Migration Cheat Sheet -->
+        <h2 id="migration">
+          <span class="en">Migration Cheat Sheet: Godot 3 to 4</span>
+          <span class="ja">移行チートシート：Godot 3から4へ</span>
+        </h2>
+        <p>
+          <span class="en">Quick reference for converting Godot 3 export syntax to Godot 4 annotations:</span>
+          <span class="ja">Godot 3のエクスポート構文をGodot 4のアノテーションに変換するクイックリファレンス：</span>
+        </p>
+        <div style="overflow-x:auto;">
+        <table class="migration-table">
+          <thead>
+            <tr>
+              <th>Godot 3</th>
+              <th>Godot 4</th>
+              <th><span class="en">Notes</span><span class="ja">備考</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="old"><code>export var x</code></td>
+              <td class="new"><code>@export var x</code></td>
+              <td><span class="en">Basic export</span><span class="ja">基本エクスポート</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>export(int, 0, 100) var hp</code></td>
+              <td class="new"><code>@export_range(0, 100) var hp: int</code></td>
+              <td><span class="en">Range with type hint</span><span class="ja">型ヒント付き範囲</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>export(String, "A", "B") var x</code></td>
+              <td class="new"><code>@export_enum("A", "B") var x: String</code></td>
+              <td><span class="en">Enum dropdown</span><span class="ja">列挙ドロップダウン</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>export(String, FILE) var path</code></td>
+              <td class="new"><code>@export_file var path: String</code></td>
+              <td><span class="en">File picker</span><span class="ja">ファイルピッカー</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>export(String, MULTILINE) var text</code></td>
+              <td class="new"><code>@export_multiline var text: String</code></td>
+              <td><span class="en">Multi-line text area</span><span class="ja">複数行テキスト</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>export(int, FLAGS, ...) var f</code></td>
+              <td class="new"><code>@export_flags(...) var f: int</code></td>
+              <td><span class="en">Bitmask flags</span><span class="ja">ビットマスクフラグ</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>onready var x = $Node</code></td>
+              <td class="new"><code>@onready var x: Type = $Node</code></td>
+              <td><span class="en">Deferred init</span><span class="ja">遅延初期化</span></td>
+            </tr>
+            <tr>
+              <td class="old"><code>tool</code></td>
+              <td class="new"><code>@tool</code></td>
+              <td><span class="en">Editor execution</span><span class="ja">エディタ実行</span></td>
+            </tr>
+            <tr>
+              <td><span class="en" style="color:var(--text-muted); font-style:italic;">N/A</span><span class="ja" style="color:var(--text-muted); font-style:italic;">なし</span></td>
+              <td class="new"><code>@export_group("...")</code></td>
+              <td><span class="en">New in Godot 4</span><span class="ja">Godot 4で新規追加</span></td>
+            </tr>
+            <tr>
+              <td><span class="en" style="color:var(--text-muted); font-style:italic;">N/A</span><span class="ja" style="color:var(--text-muted); font-style:italic;">なし</span></td>
+              <td class="new"><code>@export_category("...")</code></td>
+              <td><span class="en">New in Godot 4</span><span class="ja">Godot 4で新規追加</span></td>
+            </tr>
+            <tr>
+              <td><span class="en" style="color:var(--text-muted); font-style:italic;">N/A</span><span class="ja" style="color:var(--text-muted); font-style:italic;">なし</span></td>
+              <td class="new"><code>@export_subgroup("...")</code></td>
+              <td><span class="en">New in Godot 4</span><span class="ja">Godot 4で新規追加</span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-box">
+          <h3>
+            <span class="en">Godot MCP Pro Understands All @export Annotations</span>
+            <span class="ja">Godot MCP Proは全@exportアノテーションに対応</span>
+          </h3>
+          <p>
+            <span class="en">Godot MCP Pro can create scripts with properly typed exports, read and modify existing export annotations, and inspect exported properties on any node in your scene &mdash; all through AI.</span>
+            <span class="ja">Godot MCP Proは適切に型付けされたエクスポートを持つスクリプトの作成、既存のエクスポートアノテーションの読み取りと変更、シーン内の任意のノードのエクスポートプロパティの検査が可能です &mdash; すべてAI経由で。</span>
+          </p>
+          <ul class="tool-list">
+            <li>create_script</li>
+            <li>edit_script</li>
+            <li>read_script</li>
+            <li>get_node_properties</li>
+            <li>get_scene_exports</li>
+            <li>update_property</li>
+          </ul>
+          <a href="https://y1uda.itch.io/godot-mcp-pro" class="cta-btn" target="_blank" rel="noopener">
+            <span class="en">Get Godot MCP Pro &mdash; $15</span>
+            <span class="ja">Godot MCP Proを入手 &mdash; $15</span>
+          </a>
+        </div>
+
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="en">&copy; 2026 <a href="https://godot-mcp.abyo.net/">Godot MCP Pro</a>. Built for Godot developers.</span>
+      <span class="ja">&copy; 2026 <a href="https://godot-mcp.abyo.net/">Godot MCP Pro</a>. Godot開発者のために。</span>
+    </div>
+  </footer>
+
+  <script>
+  function setLang(lang) {
+    var root = document.documentElement;
+    root.className = root.className.replace(/lang-(en|ja)/g, '').trim() + ' lang-' + lang;
+    root.setAttribute('lang', lang);
+    document.getElementById('lang-btn-en').className = lang === 'en' ? 'active' : '';
+    document.getElementById('lang-btn-ja').className = lang === 'ja' ? 'active' : '';
+    try { localStorage.setItem('lang', lang); } catch(e) {}
+  }
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var lang = params.get('lang');
+    if (!lang) { try { lang = localStorage.getItem('lang'); } catch(e) {} }
+    if (!lang && navigator.language && navigator.language.startsWith('ja')) { lang = 'ja'; }
+    if (lang === 'ja') { setLang('ja'); }
+  })();
+  </script>
+
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1e9b5c937c2c4c14afc83451e1195533","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>

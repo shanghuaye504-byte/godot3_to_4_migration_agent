@@ -1,0 +1,28 @@
+# Topics that are considered migration-relevant in official blog posts (type D).
+# Used by process_official_blog.py.
+# See rag/vault/tier_b_prose/CHUNKING.md §3.1 and §6.5.
+#
+# An empty list causes every block to be kept, so this list can safely be
+# trimmed or expanded without silently dropping content.
+
+topics:
+  - OS
+  - DisplayServer
+  - Time
+  - Engine
+  - RPC
+  - "@rpc"
+  - Tween
+  - create_tween
+  - Multiplayer
+  - CharacterBody
+  - move_and_slide
+  - FileAccess
+  - DirAccess
+  - Node3D
+  - Node2D
+  - TileMap
+  - Shader
+  - NavigationServer
+  - RenderingServer
+  - InputMap

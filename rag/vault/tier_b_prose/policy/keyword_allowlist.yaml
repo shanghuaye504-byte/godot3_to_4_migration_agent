@@ -1,0 +1,76 @@
+# Keywords that make a block likely worth keeping.
+# Used by process_official_gdscript_doc.py.
+# See rag/vault/tier_b_prose/CHUNKING.md §3.1 and §6.3.
+#
+# These keywords are used to populate match_tokens and to highlight
+# migration-relevant blocks. A block is NEVER dropped just because it does
+# not contain these keywords.
+
+keywords:
+  # Lifecycle / deprecation signals
+  - deprecated
+  - breaking
+
+  # Coroutines
+  - yield
+  - await
+
+  # GDScript annotations
+  - "@export"
+  - "@onready"
+  - "@tool"
+  - "@rpc"
+  - export
+  - onready
+  - tool
+
+  # File / directory API
+  - FileAccess
+  - DirAccess
+
+  # OS singleton split
+  - OS
+  - DisplayServer
+  - Time
+  - Engine
+
+  # Physics / nodes
+  - move_and_slide
+  - CharacterBody
+  - KinematicBody
+  - RigidBody
+  - Spatial
+  - MeshInstance
+  - Node3D
+  - Node2D
+
+  # Animation / tweening
+  - Tween
+  - create_tween
+
+  # Networking / multiplayer
+  - Multiplayer
+  - rpc
+  - signal
+  - connect
+  - Callable
+  - UDP
+  - ENet
+
+  # Common migration APIs
+  - PackedScene
+  - call_deferred
+  - EditorPlugin
+  - super._ready
+  - super._process
+  - TileMap
+  - NavigationServer
+  - RenderingServer
+  - InputMap
+  - Shader
+  - GPUParticles
+
+  # Properties
+  - setget
+  - set
+  - get

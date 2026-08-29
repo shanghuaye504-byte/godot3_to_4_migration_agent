@@ -1,0 +1,3 @@
+{"block_id":"b0001","type":"heading","text":"body by TheYellowArchitect","heading_path":[],"level":1,"language":null,"subtype":"TheYellowArchitect"}
+{"block_id":"b0002","type":"paragraph","text":"https://docs.godotengine.org/en/latest/development/file_formats/gdscript_grammar.html?highlight=setget#gdscript-grammar","heading_path":["body by TheYellowArchitect"],"level":null,"language":null,"subtype":null}
+{"block_id":"b0003","type":"paragraph","text":"Basically, convert the above `setget` to use `set` and `get`","heading_path":["body by TheYellowArchitect"],"level":null,"language":null,"subtype":null}

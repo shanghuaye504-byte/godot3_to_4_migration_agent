@@ -1,0 +1,10 @@
+# GitHub maintainer logins.
+#
+# Previously used by process_github.py to auto-keep comments from these
+# authors. Type E is now human-in-the-loop: every surviving block goes to
+# review_queue.jsonl and a maintainer decides what to keep.
+#
+# Kept empty here to make that explicit; the file is no longer read by the
+# pipeline but is retained for documentation/reference purposes.
+
+logins: []

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/head.js" async></script>
+<link rel="stylesheet" href="/shared/nav.css">
+<link rel="stylesheet" href="/shared/blog.css">
+
+  <title>Fix: RPC Call Not Working with ENet Multiplayer in Godot | Bugnet Blog</title>
+  <meta name="description" content="Fix RPC calls that silently fail in Godot ENet multiplayer. Covers multiplayer authority, RPC modes, peer configuration, and common networking mistakes.">
+  <link rel="canonical" href="https://bugnet.io/blog/fix-godot-rpc-call-not-working-enet-multiplayer">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Fix: RPC Call Not Working with ENet Multiplayer in Godot">
+  <meta property="og:description" content="Fix RPC calls that silently fail in Godot ENet multiplayer. Covers multiplayer authority, RPC modes, peer configuration, and common networking mistakes.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://bugnet.io/blog/fix-godot-rpc-call-not-working-enet-multiplayer">
+  <meta property="og:site_name" content="Bugnet">
+  <meta property="og:image" content="https://bugnet.io/shared/og.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fix: RPC Call Not Working with ENet Multiplayer in Godot">
+  <meta name="twitter:description" content="Fix RPC calls that silently fail in Godot ENet multiplayer. Covers multiplayer authority, RPC modes, peer configuration, and common networking mistakes.">
+  <meta name="twitter:image" content="https://bugnet.io/shared/og.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Fix: RPC Call Not Working with ENet Multiplayer in Godot",
+    "author": {
+      "@type": "Person",
+      "name": "James Okafor"
+    },
+    "datePublished": "2026-04-07",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Bugnet"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Why does my RPC call silently fail in Godot?", "acceptedAnswer": {"@type": "Answer", "text": "The most common cause is a missing or incorrect @rpc annotation on the function. In Godot 4, every function called via rpc() must have the @rpc annotation specifying the mode (any_peer, authority), transfer mode (reliable, unreliable), and call_local setting. Without the annotation, the call is silently dropped with no error."}},
+      {"@type": "Question", "name": "What is multiplayer authority in Godot?", "acceptedAnswer": {"@type": "Answer", "text": "Multiplayer authority determines which peer owns a node and is allowed to send certain RPCs on it. By default, the server (peer ID 1) is the authority for all nodes. You can transfer authority to a client using set_multiplayer_authority(). RPCs annotated with authority mode will only execute if called by the node's authority."}},
+      {"@type": "Question", "name": "How do you debug RPC issues in Godot multiplayer?", "acceptedAnswer": {"@type": "Answer", "text": "Enable verbose multiplayer logging by setting the multiplayer/debug project setting. Add print statements at both the call site and the RPC function to verify execution. Check that the node paths match exactly on all peers, that the multiplayer authority is set correctly, and that the ENet peer is connected before calling rpc()."}}
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Fix RPC Calls Not Working with ENet Multiplayer in Godot",
+    "step": [
+      {"@type": "HowToStep", "name": "Add the correct @rpc annotation", "text": "Annotate your RPC function with @rpc specifying the mode, transfer type, and whether to call locally. For example: @rpc(\"any_peer\", \"reliable\", \"call_local\")."},
+      {"@type": "HowToStep", "name": "Verify node paths and multiplayer authority", "text": "Ensure the node exists at the same path on all peers. Check that set_multiplayer_authority() is called correctly so the right peer is allowed to invoke the RPC."},
+      {"@type": "HowToStep", "name": "Confirm the ENet connection is established", "text": "Check that create_server() or create_client() succeeded and that the peer_connected signal has fired before attempting any RPC calls."}
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <div data-include="/shared/nav.html"></div>
+
+  <!-- ARTICLE -->
+  <article class="article-wrapper">
+
+    <a href="/blog" class="back-link">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="4" y2="8"/><line x1="4" y1="8" x2="10" y2="14"/></svg>
+      Back to Blog
+    </a>
+
+    <header class="article-header">
+      <span class="category" style="background: rgba(232, 98, 74, 0.12); color: var(--coral);">Godot Fix</span>
+      <h1>Fix: RPC Call Not Working with ENet Multiplayer in Godot</h1>
+      <div class="article-meta">
+        <span class="author-name">James Okafor</span>
+        <span class="separator"></span>
+        <span>Engineering</span>
+        <span class="separator"></span>
+        <time datetime="2026-04-07">Apr 7, 2026</time>
+        <span class="separator"></span>
+        <span>6 min read</span>
+      </div>
+    </header>
+
+    <div class="article-body">
+
+      <div class="synopsis">
+        <p><strong>Quick answer:</strong> RPC calls in Godot silently fail when the function is missing the <code>@rpc</code> annotation, the node path doesn&rsquo;t match on all peers, or the multiplayer authority is misconfigured. Add <code>@rpc("any_peer", "reliable")</code> to your function, ensure identical scene trees across peers, and verify the ENet connection is established before calling <code>rpc()</code>.</p>
+      </div>
+
+      <p class="lead">You&rsquo;ve set up ENetMultiplayerPeer, connected a client to the server, and called <code>my_function.rpc()</code>&mdash;but nothing happens on the other side. No error in the console, no crash, just silence. RPC failures in Godot&rsquo;s multiplayer system are notoriously quiet, which makes them frustrating to debug. The good news is that the problem almost always falls into one of a few categories, and each has a straightforward fix.</p>
+
+      <h2>The @rpc Annotation</h2>
+
+      <p>In Godot 4, the <code>@rpc</code> annotation replaced the old <code>remote</code>, <code>puppet</code>, and <code>master</code> keywords. If your function doesn&rsquo;t have an <code>@rpc</code> annotation, calling <code>.rpc()</code> on it will silently do nothing. There is no runtime error or warning&mdash;the call is simply discarded.</p>
+
+      <p>The annotation syntax is:</p>
+
+<pre><code>@rpc("mode", "transfer_mode", "call_local_setting", channel)
+
+# Examples:
+@rpc("any_peer", "reliable", "call_local")
+func take_damage(amount: int):
+    health -= amount
+
+@rpc("authority", "unreliable")
+func update_position(pos: Vector3):
+    global_position = pos</code></pre>
+
+      <p>The parameters control who can call the function and how:</p>
+
+      <ul>
+        <li><strong>Mode</strong>: <code>"authority"</code> means only the node&rsquo;s multiplayer authority can call this RPC. <code>"any_peer"</code> means any connected peer can call it. If a non-authority peer tries to call an <code>"authority"</code> RPC, the call is silently dropped.</li>
+        <li><strong>Transfer mode</strong>: <code>"reliable"</code> guarantees delivery (like TCP). <code>"unreliable"</code> sends without confirmation (like UDP). <code>"unreliable_ordered"</code> drops old packets but preserves order. Use reliable for important events and unreliable for frequent updates like position.</li>
+        <li><strong>Call local</strong>: <code>"call_local"</code> executes the function on the calling peer as well as remote peers. <code>"call_remote"</code> (the default) only executes on remote peers. Forgetting this is a common source of &ldquo;the action works for other players but not for me.&rdquo;</li>
+      </ul>
+
+      <h2>Node Path Mismatches</h2>
+
+      <p>Godot&rsquo;s RPC system identifies nodes by their path in the scene tree. When you call <code>rpc()</code> on a node, Godot sends the node&rsquo;s path to the remote peer, which looks up the same path in its own scene tree and executes the function there. If the node doesn&rsquo;t exist at that path on the remote peer, the RPC is silently dropped.</p>
+
+      <p>This is the most common issue when spawning players or objects dynamically. If the server creates a player node at <code>/root/Game/Players/Player_2</code> but the client hasn&rsquo;t received the spawn message yet, any RPC sent to that node will fail on the client.</p>
+
+      <p>The fix is to use Godot&rsquo;s <code>MultiplayerSpawner</code> node, which synchronizes spawning across all peers. Add a <code>MultiplayerSpawner</code> as a child of the node that contains your spawnable objects, configure the spawn path and allowed scenes, and let the spawner handle replication:</p>
+
+<pre><code># Server-side spawning with MultiplayerSpawner
+func spawn_player(peer_id: int):
+    var player = player_scene.instantiate()
+    player.name = str(peer_id)
+    # Set the authority to the owning client
+    player.set_multiplayer_authority(peer_id)
+    $Players.add_child(player)
+    # MultiplayerSpawner automatically replicates to clients</code></pre>
+
+      <p>If you&rsquo;re not using <code>MultiplayerSpawner</code>, you need to ensure that the node exists on all peers before sending RPCs. A common pattern is to have the server send an RPC to all clients telling them to create the node, wait for acknowledgment, and only then begin sending RPCs to that node.</p>
+
+      <h2>Multiplayer Authority Configuration</h2>
+
+      <p>Every node in a multiplayer scene has a multiplayer authority&mdash;the peer ID that &ldquo;owns&rdquo; the node. By default, the server (peer ID 1) is the authority for all nodes. If your RPC is annotated with <code>"authority"</code> mode but a client is trying to call it, the call will fail because the client is not the authority.</p>
+
+      <p>Set the authority correctly when spawning player-controlled nodes:</p>
+
+<pre><code>func spawn_player(peer_id: int):
+    var player = player_scene.instantiate()
+    player.name = str(peer_id)
+    player.set_multiplayer_authority(peer_id)  # The client owns their player
+    $Players.add_child(player)
+
+# In the player script:
+func _ready():
+    # Only process input if we are the authority
+    set_process_input(is_multiplayer_authority())
+
+@rpc("authority", "reliable", "call_local")
+func fire_weapon():
+    # Only the owning client can call this
+    var bullet = bullet_scene.instantiate()
+    get_parent().add_child(bullet)</code></pre>
+
+      <p>A common mistake is setting authority after adding the node to the scene tree. In some cases, <code>_ready()</code> fires before <code>set_multiplayer_authority()</code> is called, causing early RPCs to use the wrong authority. Always set the authority before calling <code>add_child()</code>.</p>
+
+      <h2>Verifying the Connection</h2>
+
+      <p>RPCs require an active ENet connection. If you call <code>rpc()</code> before the connection is fully established, the call is lost. Always wait for the appropriate signal before sending RPCs:</p>
+
+<pre><code>var peer = ENetMultiplayerPeer.new()
+
+func host_game():
+    peer.create_server(7777)
+    multiplayer.multiplayer_peer = peer
+    multiplayer.peer_connected.connect(_on_peer_connected)
+
+func join_game(address: String):
+    peer.create_client(address, 7777)
+    multiplayer.multiplayer_peer = peer
+    multiplayer.connected_to_server.connect(_on_connected)
+
+func _on_connected():
+    print("Connected! Safe to send RPCs now.")
+    # Now RPCs will work
+    request_game_state.rpc_id(1)
+
+func _on_peer_connected(id: int):
+    print("Peer %d connected" % id)
+    # Safe to send RPCs to this specific peer
+    send_welcome.rpc_id(id, get_game_state())</code></pre>
+
+      <p>Also check the return value of <code>create_server()</code> and <code>create_client()</code>. They return an <code>Error</code> enum&mdash;if the port is already in use or the address is invalid, the function returns an error code but doesn&rsquo;t crash. Always verify: <code>if peer.create_server(7777) != OK: push_error("Failed to create server")</code>.</p>
+
+      <h2>Debugging Tips</h2>
+
+      <p>When an RPC isn&rsquo;t working, add print statements at both the call site and the function body to determine which side is failing. If the call site prints but the function body doesn&rsquo;t, the RPC is being dropped in transit. If neither prints, the calling code isn&rsquo;t being reached at all.</p>
+
+      <p>Check the multiplayer peer state with <code>multiplayer.multiplayer_peer.get_connection_status()</code>. It should return <code>CONNECTION_CONNECTED</code>. If it returns <code>CONNECTION_DISCONNECTED</code> or <code>CONNECTION_CONNECTING</code>, the connection isn&rsquo;t ready for RPCs.</p>
+
+      <p>For complex multiplayer setups, use Godot&rsquo;s built-in <code>MultiplayerSynchronizer</code> alongside RPCs. The synchronizer handles continuous state replication (positions, rotations, animations) while RPCs handle one-off events (damage, item pickups, chat messages). Mixing the two correctly avoids many of the node path and authority issues that cause RPC failures.</p>
+
+      <span class="handwritten-note">Godot RPCs fail silently by design&mdash;check annotations, paths, and authority before assuming the network is broken.</span>
+
+    </div>
+
+    <div data-include="/shared/blog-cta.html"></div>
+    <div data-include="/shared/blog-popup.html"></div>
+
+  </article>
+
+  <div data-include="/shared/footer.html"></div>
+
+<script src="/shared/includes.js" defer></script>
+<script src="/shared/nav.js" defer></script>
+<script src="/cookie-consent.js" defer></script>
+</body>
+</html>

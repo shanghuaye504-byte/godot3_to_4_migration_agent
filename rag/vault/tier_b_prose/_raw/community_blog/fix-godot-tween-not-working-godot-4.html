@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/head.js" async></script>
+<link rel="stylesheet" href="/shared/nav.css">
+<link rel="stylesheet" href="/shared/blog.css">
+
+  <title>Fix: Godot Tween Not Working in Godot 4 (SceneTreeTween Migration) | Bugnet Blog</title>
+  <meta name="description" content="Fix Tween not working after migrating to Godot 4. Covers create_tween() replacement, Tween chaining, kill() and re-creation.">
+  <link rel="canonical" href="https://bugnet.io/blog/fix-godot-tween-not-working-godot-4">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Fix: Godot Tween Not Working in Godot 4 (SceneTreeTween Migration)">
+  <meta property="og:description" content="Fix Tween not working after migrating to Godot 4. Covers create_tween() replacement, Tween chaining, kill() and re-creation.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://bugnet.io/blog/fix-godot-tween-not-working-godot-4">
+  <meta property="og:site_name" content="Bugnet">
+  <meta property="og:image" content="https://bugnet.io/shared/og.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fix: Godot Tween Not Working in Godot 4 (SceneTreeTween Migration)">
+  <meta name="twitter:description" content="Fix Tween not working after migrating to Godot 4. Covers create_tween() replacement, Tween chaining, kill() and re-creation.">
+  <meta name="twitter:image" content="https://bugnet.io/shared/og.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Fix: Godot Tween Not Working in Godot 4 (SceneTreeTween Migration)",
+    "author": {
+      "@type": "Person",
+      "name": "Alex Petrov"
+    },
+    "datePublished": "2026-01-26",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Bugnet"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Why does my Tween not work after upgrading to Godot 4?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Godot 4 removed the Tween node entirely. You must now use create_tween() to create Tween objects procedurally instead of adding a Tween node to the scene tree."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I loop a Tween in Godot 4?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use the set_loops() method on the Tween object. Call tween.set_loops(0) for infinite loops or tween.set_loops(n) for a specific number of repetitions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I stop and restart a Tween in Godot 4?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Call tween.kill() to stop the current tween, then create a new one with create_tween(). Godot 4 tweens are one-shot by design and cannot be restarted once finished or killed."
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Fix Tween Not Working in Godot 4",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Remove the old Tween node",
+        "text": "Delete any Tween node from your scene tree. Godot 4 no longer uses Tween as a node."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Replace with create_tween()",
+        "text": "Use create_tween() in your script to create a new Tween object procedurally."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Chain tween methods",
+        "text": "Use method chaining with tween_property(), tween_callback(), and tween_interval() instead of the old interpolate_property() calls."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Handle re-creation for repeating tweens",
+        "text": "Kill the existing tween with kill() and create a new one each time you need to restart the animation."
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <div data-include="/shared/nav.html"></div>
+
+  <!-- ARTICLE -->
+<article class="article-wrapper">
+
+    <a href="/blog" class="back-link">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="4" y2="8"/><line x1="4" y1="8" x2="10" y2="14"/></svg>
+      Back to Blog
+    </a>
+
+    <header class="article-header">
+      <span class="category">Godot Fix</span>
+      <h1>Fix: Godot Tween Not Working in Godot 4 (SceneTreeTween Migration)</h1>
+      <div class="article-meta">
+        <span class="author-name">Alex Petrov</span>
+        <span class="separator"></span>
+        <span>Senior Engineer</span>
+        <span class="separator"></span>
+        <span>Jan 26, 2026</span>
+        <span class="separator"></span>
+        <span>7 min read</span>
+      </div>
+    </header>
+
+    <div class="article-body">
+
+
+      <div class="synopsis">
+        <p><strong>Quick answer:</strong> Godot 4 removed the Tween node entirely. You must now use create_tween() to create Tween objects procedurally instead of adding a Tween node to the scene tree.</p>
+      </div>
+
+      <p class="lead">Here is how to fix Godot tween not working Godot 4. You upgraded your project to Godot 4, and now every Tween in your game is broken. The Tween node you carefully placed in the scene tree is gone from the class list, <code>interpolate_property()</code> throws errors, and your UI animations sit frozen on screen. This is one of the most common migration issues in Godot 4, and the fix requires rethinking how tweens work entirely.</p>
+
+      <h2>The Symptom</h2>
+
+      <p>After migrating a Godot 3.x project to Godot 4, you see errors like <code>Invalid call. Nonexistent function 'interpolate_property' in base 'Tween'</code> or <code>Cannot find class "Tween" as a node type</code>. If you had Tween nodes in your scene tree, they may have been silently removed during the conversion process. Scripts that reference <code>$Tween</code> fail with null access errors. Tweens that previously animated properties like <code>modulate</code>, <code>rect_position</code>, or <code>rect_scale</code> no longer run at all.</p>
+
+      <p>In some cases, the project converter renames references but leaves behind broken code that compiles without errors yet does nothing at runtime. You press play, and the fade-in that used to greet the player simply never happens. The button hover effect that scaled up? Static. The health bar that smoothly depleted? Jumps instantly to its target value.</p>
+
+      <h2>What Causes This</h2>
+
+      <p>Godot 4 completely replaced the Tween system. In Godot 3, <code>Tween</code> was a node you added to the scene tree, configured with <code>interpolate_property()</code> and started with <code>start()</code>. In Godot 4, the Tween node no longer exists. Instead, tweens are lightweight objects created procedurally with <code>create_tween()</code>.</p>
+
+      <p>The old API looked like this:</p>
+
+<pre><code><span class="cm"># Godot 3 &mdash; the old way (no longer works)</span>
+<span class="kw">var</span> tween = $Tween
+tween.<span class="fn">interpolate_property</span>(
+  self, <span class="st">"modulate:a"</span>,
+  0.0, 1.0, 0.5,
+  Tween.TRANS_SINE, Tween.EASE_IN_OUT
+)
+tween.<span class="fn">start</span>()</code></pre>
+
+      <p>Every part of this API changed. The node reference is gone because Tween is no longer a node. <code>interpolate_property()</code> was replaced by <code>tween_property()</code>. The transition and easing are now set via method chaining. And you do not call <code>start()</code> because tweens start automatically upon creation.</p>
+
+      <p>The property names also changed in Godot 4. What was <code>rect_position</code> is now just <code>position</code> for Control nodes. What was <code>rect_scale</code> is now <code>scale</code>. If your old tween targeted these renamed properties, the tween silently does nothing even if the syntax is correct.</p>
+
+      <h2>The Fix</h2>
+
+      <p><strong>Step 1: Remove the Tween node from your scene.</strong> Open each scene that had a Tween child node and delete it. You no longer need it. If your script grabs a reference with <code>$Tween</code> or <code>onready var tween = $Tween</code>, remove those lines too.</p>
+
+      <p><strong>Step 2: Create tweens procedurally with <code>create_tween()</code>.</strong> In any node script, you can call <code>create_tween()</code> to get a fresh Tween object. This tween is bound to the node that created it and will automatically be killed when that node exits the tree.</p>
+
+<pre><code><span class="cm"># Godot 4 &mdash; fade in a sprite</span>
+<span class="kw">func</span> <span class="fn">fade_in</span>():
+  <span class="kw">var</span> tween = <span class="fn">create_tween</span>()
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"modulate:a"</span>, 1.0, 0.5)</code></pre>
+
+      <p><strong>Step 3: Use method chaining for transitions and easing.</strong> Instead of passing transition and easing types as arguments, chain <code>set_trans()</code> and <code>set_ease()</code> on the tween or on individual tweeners:</p>
+
+<pre><code><span class="cm"># Godot 4 &mdash; chained transition and easing</span>
+<span class="kw">func</span> <span class="fn">animate_button_hover</span>():
+  <span class="kw">var</span> tween = <span class="fn">create_tween</span>()
+  tween.<span class="fn">set_trans</span>(Tween.TRANS_SINE)
+  tween.<span class="fn">set_ease</span>(Tween.EASE_IN_OUT)
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"scale"</span>, Vector2(1.1, 1.1), 0.2)</code></pre>
+
+      <p><strong>Step 4: Chain multiple animations.</strong> In Godot 4, tweeners run sequentially by default. To run them in parallel, call <code>set_parallel()</code> on the tween. You can also mix sequential and parallel steps:</p>
+
+<pre><code><span class="cm"># Sequential: move then fade out</span>
+<span class="kw">func</span> <span class="fn">move_and_fade</span>():
+  <span class="kw">var</span> tween = <span class="fn">create_tween</span>()
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"position"</span>, Vector2(500, 300), 0.5)
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"modulate:a"</span>, 0.0, 0.3)
+
+<span class="cm"># Parallel: move and fade at the same time</span>
+<span class="kw">func</span> <span class="fn">move_and_fade_parallel</span>():
+  <span class="kw">var</span> tween = <span class="fn">create_tween</span>().<span class="fn">set_parallel</span>()
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"position"</span>, Vector2(500, 300), 0.5)
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"modulate:a"</span>, 0.0, 0.3)</code></pre>
+
+      <p><strong>Step 5: Handle looping and re-creation.</strong> Godot 4 tweens are one-shot by default. For looping, use <code>set_loops()</code>. For tweens that need to restart &mdash; like a button hover that plays every time the mouse enters &mdash; kill the old tween and create a new one:</p>
+
+<pre><code><span class="kw">var</span> hover_tween: Tween
+
+<span class="kw">func</span> <span class="fn">_on_mouse_entered</span>():
+  <span class="cm"># Kill the previous tween if it exists</span>
+  <span class="kw">if</span> hover_tween <span class="kw">and</span> hover_tween.<span class="fn">is_running</span>():
+    hover_tween.<span class="fn">kill</span>()
+  hover_tween = <span class="fn">create_tween</span>()
+  hover_tween.<span class="fn">tween_property</span>(self, <span class="st">"scale"</span>, Vector2(1.05, 1.05), 0.15)
+
+<span class="kw">func</span> <span class="fn">_on_mouse_exited</span>():
+  <span class="kw">if</span> hover_tween <span class="kw">and</span> hover_tween.<span class="fn">is_running</span>():
+    hover_tween.<span class="fn">kill</span>()
+  hover_tween = <span class="fn">create_tween</span>()
+  hover_tween.<span class="fn">tween_property</span>(self, <span class="st">"scale"</span>, Vector2.ONE, 0.15)</code></pre>
+
+      <p><strong>Step 6: Use callbacks and intervals.</strong> The old <code>interpolate_callback()</code> and <code>interpolate_deferred_callback()</code> are replaced by <code>tween_callback()</code> and <code>tween_interval()</code>:</p>
+
+<pre><code><span class="cm"># Run a callback after the tween finishes</span>
+<span class="kw">func</span> <span class="fn">fade_and_free</span>():
+  <span class="kw">var</span> tween = <span class="fn">create_tween</span>()
+  tween.<span class="fn">tween_property</span>(self, <span class="st">"modulate:a"</span>, 0.0, 0.3)
+  tween.<span class="fn">tween_callback</span>(<span class="fn">queue_free</span>)</code></pre>
+
+      <h2>Why This Works</h2>
+
+      <p>The new Tween system in Godot 4 was designed to be simpler and more performant. By removing the node requirement, tweens no longer occupy space in the scene tree and do not trigger the overhead associated with node lifecycle management. Creating them procedurally means you never have stale references to a Tween node that might have been freed.</p>
+
+      <p>The method chaining API reduces boilerplate significantly. What used to take five lines with explicit parameters now takes one or two lines. Tweens automatically start when created, so you cannot forget to call <code>start()</code>. And because they are bound to the creating node, they are automatically cleaned up when the node leaves the tree &mdash; no more orphaned tweens running in the background.</p>
+
+      <p>The kill-and-recreate pattern for restarting tweens may feel heavier than calling <code>start()</code> again, but it is actually more predictable. In Godot 3, restarting a running tween could produce unexpected intermediate states. In Godot 4, killing and recreating guarantees a clean slate every time.</p>
+
+      <h2>Related Issues</h2>
+
+      <p>If your AnimationPlayer tracks are also failing to update node properties after migration, see <a href="/blog/fix-animationplayer-property-track-not-updating">Fix: AnimationPlayer Property Track Not Updating Node Properties</a> &mdash; property names changed across the board, not just in tweens.</p>
+
+      <p>For flickering sprite animations that might be competing with tweens for the same properties, check <a href="/blog/fix-sprite-animation-flickering-between-frames-godot">Fix: Sprite Animation Flickering Between Frames in Godot</a>.</p>
+
+      <p>If your AnimationTree blend values are not transitioning smoothly and you suspect the tween-based approach you were using to interpolate blend positions is broken, see <a href="/blog/fix-godot-animationtree-blend-not-transitioning">Fix: Godot AnimationTree Blend Values Not Transitioning Smoothly</a> for the correct approach using <code>set()</code> with lerp in <code>_process()</code>.</p>
+
+      <span class="handwritten-note">Tweens changed completely. The new way is better once you learn it.</span>
+
+    </div>
+
+    <div data-include="/shared/blog-cta.html"></div>
+    <div data-include="/shared/blog-popup.html"></div>
+
+  </article>
+
+  <div data-include="/shared/footer.html"></div>
+
+<script src="/shared/includes.js" defer></script>
+<script src="/shared/nav.js" defer></script>
+<script src="/cookie-consent.js" defer></script>
+</body>
+</html>

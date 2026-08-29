@@ -1,0 +1,18 @@
+# Keywords used by process_community.py to prioritize community blog/gist
+# blocks for the review queue.
+#
+# When this list is empty or the file is missing, every non-heading block
+# that survives noise filtering becomes a candidate. This prevents a policy
+# gap from silently dropping useful community content.
+
+keywords:
+  - error
+  - "godot 4"
+  - "not working"
+  - migration
+  - silent
+  - deprecated
+  - breaking
+  - yield
+  - await
+  - Tween

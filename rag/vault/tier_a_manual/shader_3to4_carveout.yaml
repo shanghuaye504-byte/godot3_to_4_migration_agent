@@ -1,0 +1,79 @@
+# Manual carve-out from upgrading_to_godot_4.rst "Updating shaders".
+# These four rows are human-classified (build/README.md §6.4), not auto-extracted.
+# source is always official_prose_3to4_shader.
+
+shader_carveouts:
+
+  - id: SHADER-3TO4-001
+    kind: particle_processor_split
+    symbol_kind: shader
+    change: rewrite
+    trigger:
+      symbol: "vertex"
+    match_tokens: ["vertex", "start", "process"]
+    since_version: "4.0"
+    detection_method: agent_retrieval
+    agent_action: apply_and_warn
+    action: >
+      Particle shaders no longer use vertex(); split initialization vs per-frame
+      logic into start() and process().
+    semantic_risk: false
+    confidence: verified
+    source: official_prose_3to4_shader
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+
+  - id: SHADER-3TO4-002
+    kind: ndc_z_range
+    symbol_kind: shader
+    change: behavior
+    trigger:
+      symbol: "SCREEN_UV"
+    match_tokens: ["SCREEN_UV"]
+    since_version: "4.0"
+    detection_method: agent_retrieval
+    agent_action: apply_and_warn
+    action: >
+      Forward+/Mobile NDC Z-range is [0,1] instead of [-1,1]. Reconstruct NDC
+      from SCREEN_UV and depth with the new range; Compatibility renderer is
+      unchanged.
+    semantic_risk: true
+    verifier_blind: true
+    confidence: verified
+    source: official_prose_3to4_shader
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+
+  - id: SHADER-3TO4-003
+    kind: custom_light_model
+    symbol_kind: shader
+    change: behavior
+    trigger:
+      symbol: "light("
+    match_tokens: ["light("]
+    since_version: "4.0"
+    detection_method: agent_retrieval
+    agent_action: apply_and_warn
+    action: >
+      The lighting model changed. Custom light() functions may need edits to
+      keep the same visual result. No 1:1 symbol pair.
+    semantic_risk: true
+    confidence: verified
+    source: official_prose_3to4_shader
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+
+  - id: SHADER-3TO4-004
+    kind: reverse_z
+    symbol_kind: shader
+    change: behavior
+    trigger:
+      symbol: "Reverse-Z"
+    match_tokens: ["Reverse-Z", "reverse Z"]
+    since_version: "4.3"
+    detection_method: agent_retrieval
+    agent_action: apply_and_warn
+    action: >
+      Reverse-Z depth is enabled from 4.3 and may break advanced shaders.
+    semantic_risk: true
+    verifier_blind: true
+    confidence: verified
+    source: official_prose_3to4_shader
+    source_url: "https://godotengine.org/article/introducing-reverse-z/"

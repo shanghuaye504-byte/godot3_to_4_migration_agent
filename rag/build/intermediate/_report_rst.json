@@ -1,0 +1,75 @@
+{
+  "files": [
+    "upgrading_to_godot_4.1.rst",
+    "upgrading_to_godot_4.2.rst",
+    "upgrading_to_godot_4.3.rst",
+    "upgrading_to_godot_4.4.rst",
+    "upgrading_to_godot_4.5.rst",
+    "upgrading_to_godot_4.6.rst",
+    "upgrading_to_godot_4.7.rst"
+  ],
+  "rule_count": 444,
+  "unclassified_count": 7,
+  "unclassified": [
+    {
+      "file": "upgrading_to_godot_4.1.rst",
+      "since": "4.1",
+      "owner": "SubViewportContainer",
+      "snippet": "When input events should reach SubViewports and their children, SubViewportContainer.mouse_filter now needs to be MOUSE_FILTER_STOP or MOUSE_FILTER_PASS. See GH-79271 for details.",
+      "heading": "Upgrading from Godot 4.0 to Godot 4.1 > Behavior changes"
+    },
+    {
+      "file": "upgrading_to_godot_4.1.rst",
+      "since": "4.1",
+      "owner": "Viewport",
+      "snippet": "Viewport nodes, that have Physics Picking enabled, now automatically set InputEvents as handled. See GH-79897 for workarounds.",
+      "heading": "Upgrading from Godot 4.0 to Godot 4.1 > Behavior changes"
+    },
+    {
+      "file": "upgrading_to_godot_4.5.rst",
+      "since": "4.5",
+      "owner": "RichTextLabel",
+      "snippet": "Method add_image replaced size_in_percent parameter by width_in_percent and height_in_percent",
+      "heading": "Upgrading from Godot 4.4 to Godot 4.5 > Breaking changes > Text"
+    },
+    {
+      "file": "upgrading_to_godot_4.5.rst",
+      "since": "4.5",
+      "owner": "RichTextLabel",
+      "snippet": "Method update_image replaced size_in_percent parameter by width_in_percent and height_in_percent",
+      "heading": "Upgrading from Godot 4.4 to Godot 4.5 > Breaking changes > Text"
+    },
+    {
+      "file": "upgrading_to_godot_4.5.rst",
+      "since": "4.5",
+      "owner": "OpenXRBindingModifierEditor",
+      "snippet": "Type OpenXRBindingModifierEditor changed API type from Core to Editor",
+      "heading": "Upgrading from Godot 4.4 to Godot 4.5 > Breaking changes > XR"
+    },
+    {
+      "file": "upgrading_to_godot_4.5.rst",
+      "since": "4.5",
+      "owner": "OpenXRInteractionProfileEditor",
+      "snippet": "Type OpenXRInteractionProfileEditor changed API type from Core to Editor",
+      "heading": "Upgrading from Godot 4.4 to Godot 4.5 > Breaking changes > XR"
+    },
+    {
+      "file": "upgrading_to_godot_4.5.rst",
+      "since": "4.5",
+      "owner": "OpenXRInteractionProfileEditorBase",
+      "snippet": "Type OpenXRInteractionProfileEditorBase changed API type from Core to Editor",
+      "heading": "Upgrading from Godot 4.4 to Godot 4.5 > Breaking changes > XR"
+    }
+  ],
+  "prose_counts": {
+    "upgrading_to_godot_4.1.rst.prose.jsonl": 4,
+    "upgrading_to_godot_4.2.rst.prose.jsonl": 3,
+    "upgrading_to_godot_4.3.rst.prose.jsonl": 14,
+    "upgrading_to_godot_4.4.rst.prose.jsonl": 9,
+    "upgrading_to_godot_4.5.rst.prose.jsonl": 12,
+    "upgrading_to_godot_4.6.rst.prose.jsonl": 9,
+    "upgrading_to_godot_4.7.rst.prose.jsonl": 9,
+    "upgrading_to_godot_4.rst.updating_shaders.prose.jsonl": 1
+  },
+  "target_version": "4.7.1"
+}

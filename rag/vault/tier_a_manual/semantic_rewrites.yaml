@@ -1,0 +1,315 @@
+# =============================================================================
+# A 层规则字典 —— 人工补充部分(vault/tier_a_manual/known_traps_and_rewrites.yaml)
+#
+# 这份文件不是给 agent 直接检索用的原始文档，而是 build 阶段的编译输入。
+# build/build_tier_a.py 读取这份文件后，按下面统一的字段结构写入 A 层 SQLite。
+# 数据字段全部使用英文；只有本类 "#" 注释可以使用中文。
+#
+# 字段说明（所有条目通用）：
+#   id                : 唯一编号，供报告和评测集引用
+#   kind              : 规则类型，见下方 kind 枚举说明（写入数据库的 rule_kind 列）
+#   trigger           : 用来匹配的关键信息（symbol / 报错子串 / 文件模式）
+#   since_version     : 该规则从哪个版本起生效；不涉及版本演化的填 null
+#   detection_method  : 这条规则由系统里的哪个环节负责处理，决定它是否会被 agent 检索到
+#                        - agent_retrieval        : 正常走 retrieve_migration_rule，agent 可查到并参考
+#                        - agent_retrieval_or_escalate : agent 可查，但查不到任何可用规则时必须 escalate，不许瞎改
+#                        - static_scan_post_l0     : 不进检索，L0 转换后由独立脚本扫描，直接写入报告，不经过 agent
+#                        - verify_error_filter     : 不进检索，在 verify 产出报错列表之后、进入 agent 循环之前被过滤/标注
+#                        - not_actively_handled    : 已评估，判定不值得建检测，仅作为知识存档（不入库）
+#                        - preflight_probe_recommended : 动手前建议先跑一次探针实验验证，而不是直接假设成立（不入库）
+#   action            : 命中后系统应该做什么（写入数据库的 system_action 列）
+#   semantic_risk     : true 表示"表面修复正确，但语义/数值可能出错"，命中时必须带警告文本返回
+#   confidence        : verified（已核实来源）/ needs_review（建议人工在动手前再确认一次）
+#   source_url        : 依据来源，方便你复核和面试时引用
+#   notes             : 给未来的你或 judge 模块看的补充说明
+# =============================================================================
+
+known_traps:
+
+  # --- 问题1：数值语义陷阱，无报错信号 ---
+  - id: TRAP-001
+    kind: semantic_risk_numeric
+    trigger:
+      symbol: "RectangleShape2D"
+      match_scope: ["*.tscn", "*.tres", "*.gd"]
+    since_version: null
+    detection_method: static_scan_post_l0
+    action: >
+      After L0 conversion, a standalone scanner checks the project for
+      RectangleShape2D. On hit, emit a needs_human_review report row with the
+      original extents/size values and a warning. Do not enter the agent loop
+      and do not spend LLM tokens.
+    semantic_risk: true
+    confidence: verified
+    source_url: "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976"
+    notes: >
+      The extents-to-size rename is applied correctly by the converter. The
+      problem is that extents was half-extents and size is full width/height,
+      and the value is never rescaled, so collision shapes silently change
+      size. verify does not error on this; it is a primary human-review /
+      judge check.
+
+  # --- 问题3：project.godot 设置丢失，无报错信号 ---
+  - id: TRAP-002
+    kind: converter_gap
+    trigger:
+      symbol: "project.godot"
+      fields_to_diff: ["window/size/viewport_width", "window/size/viewport_height"]
+    since_version: null
+    detection_method: static_scan_post_l0
+    action: >
+      Snapshot the known fragile keys in project.godot before and after L0
+      conversion, then diff them. If any key goes from present to missing,
+      emit a needs_human_review record. Pure script diff, no LLM involved.
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://github.com/godotengine/godot/issues/66125"
+    notes: >
+      Fix PR (#74040) has landed in some versions. If the target Godot
+      version is newer than that fix, this trap may no longer reproduce.
+      Re-run an actual conversion at build time to confirm whether the gap
+      still exists instead of assuming it unconditionally.
+
+  # --- 问题2：shader 报错有信号，但可能查无规则 ---
+  - id: TRAP-003
+    kind: verifier_visible_but_no_rule_guarantee
+    trigger:
+      match_scope: ["*.gdshader", "*.tres(shader_type)"]
+      error_source: "godot --headless --import"
+    since_version: null
+    detection_method: agent_retrieval_or_escalate
+    action: >
+      Shader errors are not silent and enter the agent loop like any other
+      verify error. The agent looks up A/B-layer rules by symbol. If a
+      recorded shader migration rule is found (from the shaders_renames cpp
+      array, the Rendering sections of upgrading_to_godot_4.x.rst, or the
+      Updating-shaders carve-out from upgrading_to_godot_4.rst), fix as
+      usual. If no rule is found, do not let the agent guess at a shader
+      fix; escalate directly to needs_human_review.
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://github.com/godotengine/godot/issues/63673"
+    notes: >
+      Do not index the Godot engine's C++ source. The error reflects a
+      change in the shader-language spec, not an engine-implementation
+      detail; indexing C++ source is high cost and low signal for this. This
+      is a different concern from "should shader data itself be indexed" —
+      shader rename/rewrite data is indexed normally, same as any other
+      symbol_kind. Shader knowledge coverage depends entirely on how much of
+      the official docs/renames tables were parsed into the A/B layers; a
+      miss here is a knowledge-base coverage gap signal, not a reason for the
+      agent to try harder.
+
+  # --- 问题4：注释文本误替换 ---
+  - id: TRAP-004
+    kind: cosmetic_only
+    trigger:
+      match_scope: ["*.gd(comments)"]
+    since_version: null
+    detection_method: not_actively_handled
+    action: >
+      Do not build detection logic. Evaluated as: this only affects comment
+      readability, not compilation or runtime behavior. Lowest ROI on the
+      whole trap list; deliberately deprioritized.
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://github.com/godotengine/godot/issues/73505"
+    notes: "Interview talking point: identified but deliberately deprioritized after a cost/benefit assessment, not an oversight."
+
+  # --- 问题6：verify 已知假阳性（autoload） ---
+  - id: TRAP-005
+    kind: guard_false_positive
+    trigger:
+      error_pattern: "Identifier not found|hides an autoload singleton"
+      cross_check: "identifier in project.godot::autoload_list"
+    since_version: null
+    detection_method: verify_error_filter
+    action: >
+      After verify produces the error list, and before it enters the
+      agent's view, cross-check identifiers against the autoload list parsed
+      by the C layer. On match, tag as a known false positive and drop it
+      from the agent's queue (or tag it with an ignore_reason so it does not
+      count toward retry limits). This costs zero agent decision budget.
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://github.com/godotengine/godot/issues/78587"
+    notes: "Filter at the verify layer, not via an agent tool call. Same outcome either way, but filtering here is cheaper in tokens."
+
+  # --- 问题6：verify 已知假阳性（addon 单例） ---
+  - id: TRAP-006
+    kind: guard_false_positive
+    trigger:
+      error_pattern: "Identifier not found"
+      cross_check: "identifier in project.godot::enabled_plugins singleton list"
+    since_version: null
+    detection_method: verify_error_filter
+    action: "Same as TRAP-005; merge into the same known-false-positive filter, do not implement separately."
+    semantic_risk: false
+    confidence: needs_review
+    source_url: "https://github.com/godotengine/godot/issues/111515"
+    notes: >
+      This issue's content and current status were not re-verified in this
+      pass. Open it yourself before adoption to confirm the description
+      still holds before wiring it into the filter.
+
+  # --- 问题7：UID，非修复任务，仅需预检确认 ---
+  - id: TRAP-007
+    kind: informational_not_a_fix_task
+    trigger:
+      symbol: "*.uid"
+      condition: "since_version >= 4.4"
+    since_version: 4.4
+    detection_method: preflight_probe_recommended
+    action: >
+      No agent fix needed. Sidecar .uid files are generated automatically
+      the first time --import runs; for a brand-new migration project that
+      has never been opened on 4.4+ before, there is no precondition for an
+      old-vs-new UID conflict. The only thing that needs manual confirmation:
+      before starting, run a full "convert -> first import" pass on a
+      minimal 3.x test project and confirm the target Godot version does not
+      trigger the historically known UID-import-time ERROR (seen during 4.4
+      beta/dev; the target version ships much later and has most likely
+      already fixed it, but this has not been directly re-verified).
+    semantic_risk: false
+    confidence: needs_review
+    source_url: "https://github.com/godotengine/godot/issues/101677"
+    notes: "The only entry that should be settled by actually running a probe experiment yourself, not by assuming this document's assumption still holds."
+
+
+# =============================================================================
+# 语义级重构规则（无法压缩成简单改名映射，人工补充）
+# 全部走 agent_retrieval：能查到就参考，agent 仍需结合上下文自行改写代码，
+# 不是查表就能机械替换的一对一映射。
+# =============================================================================
+
+semantic_rewrites:
+
+  - id: REWRITE-001
+    kind: coroutine_rewrite
+    trigger: { symbol: "yield" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Rewrite yield as await. Statement order often needs adjusting too, since the coroutine resume-point semantics differ from yield."
+    semantic_risk: true
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: "Real forum case: logic originally on lines 6-11 had to move between lines 15-16. Pure regex replacement cannot handle this."
+
+  - id: REWRITE-002
+    kind: api_restructure
+    trigger: { symbol: "Tween" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Tween creation and chaining were redesigned as a whole; rewrite against the new API instead of renaming calls line by line."
+    semantic_risk: true
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: null
+
+  - id: REWRITE-003
+    kind: class_and_method_restructure
+    trigger: { symbol: "KinematicBody.move_and_slide" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: >
+      KinematicBody becomes CharacterBody2D/3D; drive motion via the
+      velocity property instead. move_and_slide() no longer takes
+      arguments. Requires a multi-line rewrite, not a rename.
+    semantic_risk: true
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: "One of the highest-error, highest-line-count real-world cases. High priority, do not drop."
+
+  - id: REWRITE-004
+    kind: signal_connection_syntax
+    trigger: { symbol: "connect(signal_name, target, method_name)" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Replace string-based signal connections with Callable objects, e.g. connect(target.method_name)."
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: null
+
+  - id: REWRITE-005
+    kind: property_accessor_syntax
+    trigger: { symbol: "setget" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Replace setget syntax with standard get/set function syntax (get/set blocks under the property)."
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: null
+
+  - id: REWRITE-006
+    kind: class_split
+    trigger: { symbol: "File" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "File is split into FileAccess (mostly static methods); Directory is split into DirAccess."
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: null
+
+  - id: REWRITE-007
+    kind: class_split
+    trigger: { symbol: "OS" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Some OS methods are split across Time / DisplayServer / Engine; the new owner must be decided per method."
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: null
+
+  - id: REWRITE-008
+    kind: annotation_syntax
+    trigger: { symbol: "tool|onready|export" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Old keyword annotations (tool/onready/export(...)) become @-prefixed annotations (@tool/@onready/@export)."
+    semantic_risk: false
+    confidence: verified
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/migrating/upgrading_to_godot_4.html"
+    notes: null
+
+  - id: REWRITE-009
+    kind: editor_plugin_api
+    trigger: { symbol: "EditorPlugin virtual methods (e.g. _forward_canvas_gui_input)" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "EditorPlugin virtual method names and signatures changed; check each one against the official class reference."
+    semantic_risk: false
+    confidence: needs_review
+    source_url: "https://docs.godotengine.org/en/stable/classes/class_editorplugin.html"
+    notes: "Target repos are often addons, so this is expected to hit often; verify coverage completeness at build time."
+
+  - id: REWRITE-010
+    kind: network_rpc_syntax
+    trigger: { symbol: "master|puppet|remotesync" }
+    since_version: 4.0
+    detection_method: agent_retrieval
+    action: "Old networking keywords (master/puppet/remotesync) become @rpc(...) annotation syntax."
+    semantic_risk: false
+    confidence: needs_review
+    source_url: "https://docs.godotengine.org/en/stable/tutorials/networking/high_level_multiplayer.html"
+    notes: "Expected to hit rarely (depends on whether the repo uses multiplayer); decide whether to keep this at build time based on actual corpus scan results."
+
+
+# =============================================================================
+# 工程说明（不是规则条目，写给 build 脚本维护者看，不编译进数据库）
+# =============================================================================
+build_pipeline_notes:
+  large_file_handling: >
+    The official converter silently skips files above a size/line threshold
+    (roughly 4MB or 100k lines), and no command-line flag is currently known
+    to override it; confirm with --help or the converter source before
+    assuming otherwise. The fix does not require detecting "is this file
+    skipped": after L0, replay the compiled A-layer rename table (parsed
+    from renames_map_3_to_4.cpp) over every file unconditionally. Files
+    already processed by the official converter no longer contain the old
+    symbol names, so the replay is a no-op on them with no side effects and
+    no LLM cost; only the skipped large files are actually touched by this
+    pass. This design avoids a dedicated "is this a large file" branch.

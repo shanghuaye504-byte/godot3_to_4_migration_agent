@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/head.js" async></script>
+<link rel="stylesheet" href="/shared/nav.css">
+<link rel="stylesheet" href="/shared/blog.css">
+
+  <title>Fix: Godot CharacterBody2D move_and_slide Not Moving | Bugnet Blog</title>
+  <meta name="description" content="Fix CharacterBody2D not moving when calling move_and_slide in Godot 4. Covers velocity assignment, physics process, and floor detection.">
+  <link rel="canonical" href="https://bugnet.io/blog/fix-godot-characterbody2d-move-and-slide-not-moving">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Fix: Godot CharacterBody2D move_and_slide Not Moving">
+  <meta property="og:description" content="Fix CharacterBody2D not moving when calling move_and_slide in Godot 4. Covers velocity assignment, physics process, and floor detection.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://bugnet.io/blog/fix-godot-characterbody2d-move-and-slide-not-moving">
+  <meta property="og:site_name" content="Bugnet">
+  <meta property="og:image" content="https://bugnet.io/shared/og.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fix: Godot CharacterBody2D move_and_slide Not Moving">
+  <meta name="twitter:description" content="Fix CharacterBody2D not moving when calling move_and_slide in Godot 4. Covers velocity assignment, physics process, and floor detection.">
+  <meta name="twitter:image" content="https://bugnet.io/shared/og.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Fix: Godot CharacterBody2D move_and_slide Not Moving",
+    "author": {
+      "@type": "Person",
+      "name": "James Okafor"
+    },
+    "datePublished": "2026-03-25",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Bugnet"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Why does move_and_slide not move my CharacterBody2D in Godot 4?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "In Godot 4, move_and_slide reads from the velocity property of CharacterBody2D. If you never assign a value to velocity before calling move_and_slide, the body will not move. Unlike Godot 3, the method no longer accepts a velocity argument directly."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Should I call move_and_slide in _process or _physics_process?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Always call move_and_slide inside _physics_process. The method relies on the physics engine's fixed timestep. Calling it in _process leads to inconsistent movement because frame rates vary, and the physics server may not be in sync."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does my character slide down slopes when idle in Godot 4?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "If you apply gravity every frame but only zero out velocity when input is pressed, gravity accumulates when the character is idle on a slope. Use is_on_floor() to skip gravity application when grounded, or set floor_snap_length to keep the body attached to the surface."
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Fix CharacterBody2D move_and_slide Not Moving in Godot 4",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Set velocity before calling move_and_slide",
+        "text": "Assign a non-zero value to the CharacterBody2D's velocity property before each move_and_slide call."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Use _physics_process instead of _process",
+        "text": "Move your movement code from _process to _physics_process so it runs on the fixed physics timestep."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Configure floor detection properties",
+        "text": "Set up_direction, floor_snap_length, and floor_max_angle to match your game's needs for proper floor and slope handling."
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <div data-include="/shared/nav.html"></div>
+
+  <!-- ARTICLE -->
+<article class="article-wrapper">
+
+    <a href="/blog" class="back-link">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="4" y2="8"/><line x1="4" y1="8" x2="10" y2="14"/></svg>
+      Back to Blog
+    </a>
+
+    <header class="article-header">
+      <span class="category" style="background: rgba(232, 98, 74, 0.12); color: var(--coral);">Godot Fix</span>
+      <h1>Fix: Godot CharacterBody2D move_and_slide Not Moving</h1>
+      <div class="article-meta">
+        <span class="author-name">James Okafor</span>
+        <span class="separator"></span>
+        <span>Engineering</span>
+        <span class="separator"></span>
+        <span>Mar 25, 2026</span>
+        <span class="separator"></span>
+        <span>5 min read</span>
+      </div>
+    </header>
+
+    <div class="article-body">
+
+
+      <div class="synopsis">
+        <p><strong>Quick answer:</strong> In Godot 4, move_and_slide reads from the velocity property of CharacterBody2D. If you never assign a value to velocity before calling move_and_slide, the body will not move. Unlike Godot 3, the method no longer accepts a velocity argument directly.</p>
+      </div>
+
+      <p class="lead">Here is how to fix Godot CharacterBody2D move and slide not moving. You have a CharacterBody2D in your scene, you are calling <code>move_and_slide()</code> every frame, and your character refuses to move a single pixel. No errors in the Output panel, no crashes &mdash; just a body frozen in place. This is one of the most reported issues when migrating to Godot 4, and it almost always traces back to how velocity assignment changed between engine versions. Let us fix it.</p>
+
+      <h2>The Symptom</h2>
+
+      <p>Your CharacterBody2D sits motionless in the scene despite your movement code running. You have confirmed that <code>_physics_process</code> is being called by adding a print statement. Input is registering correctly when you test with <code>Input.is_action_pressed()</code>. Yet the character simply does not move when you call <code>move_and_slide()</code>.</p>
+
+      <p>This is especially confusing if you are coming from Godot 3, where <code>move_and_slide()</code> accepted a velocity vector as a parameter. In Godot 4, the API changed significantly: the method takes no arguments and instead reads from the node&rsquo;s built-in <code>velocity</code> property. If you are passing velocity as an argument, your code may appear to compile (or you might get a subtle warning you missed), but the character will not move because the internal velocity remains at zero.</p>
+
+      <p>Another variant of this symptom is the character moving erratically or at wildly inconsistent speeds. This typically happens when movement code is placed in <code>_process()</code> instead of <code>_physics_process()</code>, causing the physics engine to receive updates at unpredictable intervals.</p>
+
+      <p>A third variant is the character moving horizontally but falling through the floor, or moving on flat ground but sliding uncontrollably on slopes. These point to floor detection configuration issues rather than a velocity assignment problem, but they often appear together when setting up a new character controller.</p>
+
+      <h2>Why move_and_slide Ignores Your Input</h2>
+
+      <p>In Godot 3, the standard pattern was to compute a velocity vector and pass it directly to <code>move_and_slide()</code>:</p>
+
+<pre><code><span class="cm"># Godot 3 pattern - DOES NOT WORK in Godot 4</span>
+<span class="kw">var</span> velocity = Vector2.ZERO
+
+<span class="kw">func</span> <span class="fn">_physics_process</span>(delta):
+  velocity.x = Input.<span class="fn">get_axis</span>(<span class="st">"move_left"</span>, <span class="st">"move_right"</span>) * speed
+  velocity = <span class="fn">move_and_slide</span>(velocity, Vector2.UP)</code></pre>
+
+      <p>In Godot 4, <code>move_and_slide()</code> no longer accepts parameters. It reads from the <code>velocity</code> property that is built into every CharacterBody2D node. If you declare a local variable called <code>velocity</code>, it shadows the built-in property, meaning your assignments go to the local variable while the node&rsquo;s actual velocity stays at <code>Vector2.ZERO</code>. The method reads the node property, finds zero, and does nothing.</p>
+
+      <p>This is the single most common cause. The fix is straightforward: do not declare a local <code>velocity</code> variable. Assign directly to the inherited property.</p>
+
+      <p>The second most common cause is calling <code>move_and_slide()</code> from <code>_process()</code> instead of <code>_physics_process()</code>. While this will not prevent movement entirely, it causes the physics engine to process movement at variable frame rates. On fast machines the character may seem fine; on slower machines or during frame drops, movement becomes jittery, and collision detection can fail because the body moves too far in a single step.</p>
+
+      <p>The third cause involves the <code>up_direction</code> property. CharacterBody2D uses <code>up_direction</code> to determine what counts as a floor, wall, or ceiling. If <code>up_direction</code> is set incorrectly (for example, to <code>Vector2.ZERO</code>), floor detection breaks completely. The character may move but will never register as being on the floor, which breaks jump logic and gravity handling.</p>
+
+      <h2>The Correct Pattern</h2>
+
+      <p>Here is the standard Godot 4 character movement setup that works reliably:</p>
+
+<pre><code><span class="kw">extends</span> CharacterBody2D
+
+<span class="kw">const</span> SPEED = 300.0
+<span class="kw">const</span> JUMP_VELOCITY = -400.0
+
+<span class="cm"># Get the gravity from the project settings</span>
+<span class="kw">var</span> gravity = ProjectSettings.<span class="fn">get_setting</span>(<span class="st">"physics/2d/default_gravity"</span>)
+
+<span class="kw">func</span> <span class="fn">_physics_process</span>(delta):
+  <span class="cm"># Apply gravity only when airborne</span>
+  <span class="kw">if not</span> <span class="fn">is_on_floor</span>():
+    velocity.y += gravity * delta
+
+  <span class="cm"># Handle jump</span>
+  <span class="kw">if</span> Input.<span class="fn">is_action_just_pressed</span>(<span class="st">"jump"</span>) <span class="kw">and</span> <span class="fn">is_on_floor</span>():
+    velocity.y = JUMP_VELOCITY
+
+  <span class="cm"># Horizontal movement</span>
+  <span class="kw">var</span> direction = Input.<span class="fn">get_axis</span>(<span class="st">"move_left"</span>, <span class="st">"move_right"</span>)
+  <span class="kw">if</span> direction:
+    velocity.x = direction * SPEED
+  <span class="kw">else</span>:
+    velocity.x = <span class="fn">move_toward</span>(velocity.x, 0, SPEED)
+
+  <span class="fn">move_and_slide</span>()</code></pre>
+
+      <p>Notice that there is no <code>var velocity</code> declaration at the top. The script extends CharacterBody2D, which already has a <code>velocity</code> property. Every assignment like <code>velocity.x = direction * SPEED</code> writes directly to the node&rsquo;s property, and <code>move_and_slide()</code> reads from it automatically.</p>
+
+      <p>Also note that gravity is only applied when <code>is_on_floor()</code> returns false. If you apply gravity unconditionally, the downward velocity accumulates while the character is on the ground. This can cause the character to &ldquo;snap&rdquo; through thin platforms or behave strangely when walking off ledges.</p>
+
+      <p>The <code>move_toward()</code> call on the else branch provides smooth deceleration when the player releases the movement keys, rather than an abrupt stop. Adjust the third parameter to control how quickly the character decelerates.</p>
+
+      <h2>Configuring Floor Detection</h2>
+
+      <p>Even with correct velocity assignment, movement can feel broken if floor detection is not configured properly. CharacterBody2D has several properties that control how it interacts with surfaces:</p>
+
+<pre><code><span class="cm"># Configure floor detection in _ready or the Inspector</span>
+<span class="kw">func</span> <span class="fn">_ready</span>():
+  up_direction = Vector2.UP          <span class="cm"># (0, -1) - standard for 2D platformers</span>
+  floor_snap_length = 8.0            <span class="cm"># Snap to floor within 8 pixels</span>
+  floor_max_angle = <span class="fn">deg_to_rad</span>(46)  <span class="cm"># Slopes up to 46 degrees count as floor</span>
+  floor_stop_on_slope = <span class="kw">true</span>         <span class="cm"># Prevent sliding down slopes when idle</span>
+  floor_constant_speed = <span class="kw">true</span>        <span class="cm"># Maintain speed on slopes</span></code></pre>
+
+      <p>The <code>floor_snap_length</code> property is particularly important. It controls how far below the character the engine will look for a floor surface. If your character briefly loses floor contact when walking over small bumps or at the edges of platforms, increasing this value usually solves the problem. A value of 4 to 16 pixels works well for most 2D platformers.</p>
+
+      <p>The <code>floor_max_angle</code> determines what the engine considers a &ldquo;floor&rdquo; versus a &ldquo;wall.&rdquo; The default is 45 degrees (about 0.785 radians). Surfaces steeper than this threshold are treated as walls, meaning <code>is_on_floor()</code> returns false even if the character is resting on them. If your game has steep ramps the player should walk on, increase this value.</p>
+
+      <p>The <code>floor_stop_on_slope</code> property, when true, prevents the character from sliding down slopes when no horizontal input is applied. Without this, gravity causes a slow downhill drift on any non-flat surface, which looks and feels wrong in most platformers.</p>
+
+      <p>The <code>floor_constant_speed</code> property ensures the character moves at the same speed regardless of slope angle. Without it, characters move slower going uphill and faster going downhill, which may or may not be desirable depending on your game.</p>
+
+      <h2>Common Mistakes and Edge Cases</h2>
+
+      <p>Beyond the velocity shadowing issue, there are several other mistakes that cause move_and_slide to behave unexpectedly:</p>
+
+      <p><strong>Multiplying velocity by delta twice.</strong> The <code>move_and_slide()</code> method already accounts for the physics timestep internally. If you also multiply your velocity by <code>delta</code>, movement will be frame-rate dependent and much slower than expected. Only multiply acceleration or gravity by delta, not the final velocity you assign.</p>
+
+<pre><code><span class="cm"># WRONG - double delta application</span>
+velocity.x = direction * SPEED * delta  <span class="cm"># Too slow!</span>
+
+<span class="cm"># CORRECT - move_and_slide handles delta internally</span>
+velocity.x = direction * SPEED</code></pre>
+
+      <p><strong>Resetting velocity before move_and_slide.</strong> If your code sets <code>velocity = Vector2.ZERO</code> at the top of every <code>_physics_process</code> call, you discard any velocity that <code>move_and_slide</code> calculated on the previous frame. This breaks gravity accumulation and any momentum-based movement. Instead, only modify the components you need to change.</p>
+
+      <p><strong>Using a kinematic body without a CollisionShape2D.</strong> A CharacterBody2D without a collision shape child can still have velocity applied, but <code>move_and_slide</code> will not detect any collisions. The body may appear to move but will pass through all geometry. Godot shows a yellow warning icon on the node when it has no collision shape, but this is easy to overlook.</p>
+
+      <p><strong>Conflicting scripts on parent and child nodes.</strong> If both a parent node and the CharacterBody2D have scripts that call <code>move_and_slide</code>, or if a parent script moves the body by setting its <code>position</code> directly, the results will conflict with the physics engine&rsquo;s calculations. Only one script should be responsible for calling <code>move_and_slide</code>, and you should avoid setting <code>position</code> directly on a CharacterBody2D during normal gameplay.</p>
+
+      <blockquote>
+        <p>"The Godot 4 migration killed my character controller. Once I deleted the local velocity variable, everything started working. The move_and_slide API change is the single most common migration issue I see in the community."</p>
+      </blockquote>
+
+      <h2>Related Issues</h2>
+
+      <p>If your character moves but jitters against walls, see our guide on <a href="/blog/fix-godot-characterbody2d-jittering-sliding-walls">CharacterBody2D jittering and wall sliding</a>. For characters that slide down slopes when idle, check <a href="/blog/fix-characterbody3d-sliding-down-slopes-idle-godot">slope sliding fixes</a>. If your character falls through the floor entirely, the problem is likely collision shape configuration &mdash; our <a href="/blog/fix-godot-collision-layer-mask-not-working">collision layer and mask guide</a> covers the setup in detail.</p>
+
+      <span class="handwritten-note">Delete the local velocity variable. That is the fix 90% of the time.</span>
+
+    </div>
+
+    <div data-include="/shared/blog-cta.html"></div>
+    <div data-include="/shared/blog-popup.html"></div>
+
+  </article>
+
+  <div data-include="/shared/footer.html"></div>
+
+<script src="/shared/includes.js" defer></script>
+<script src="/shared/nav.js" defer></script>
+<script src="/cookie-consent.js" defer></script>
+</body>
+</html>

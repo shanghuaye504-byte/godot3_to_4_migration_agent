@@ -1,0 +1,102 @@
+{
+  "built_at": "2026-08-26T17:12:06.666574+00:00",
+  "schema_version": "2",
+  "manifest": {
+    "godot_version": "4.7.1",
+    "docs_checkout": "vault-snapshot-4.7",
+    "api_from": "4.0.4",
+    "api_to": "4.7.1",
+    "schema_version": "2"
+  },
+  "files": {
+    "vault/manifest.json": {
+      "sha256": "0ca58237d5d10c47851f6cf78960457e829b549c2b46992d81ef0a386411820f",
+      "bytes": 141
+    },
+    "vault/tier_a_manual/semantic_rewrites.yaml": {
+      "sha256": "b0ff67f9dba96b07a8d5fd313348ceda94267b89ee1b23cd1d0310f11e6fd862",
+      "bytes": 16026
+    },
+    "vault/tier_a_manual/shader_3to4_carveout.yaml": {
+      "sha256": "94806dd467ca2a6e3efeba2aece26cd058b56c7ef00e1f27b9f2b3f35e498268",
+      "bytes": 2633
+    },
+    "vault/tier_a_official/extension_api_4.0.json": {
+      "sha256": "ee6fee77c59057aad8c9c5e848827ac1c487ffb29712b3c50009876fe0dd5fe0",
+      "bytes": 5181689
+    },
+    "vault/tier_a_official/extension_api_target.json": {
+      "sha256": "c5dbd0c117e67f96bd9fef2c2e2023913e1d750d072ad2417a559e698211800b",
+      "bytes": 6965057
+    },
+    "vault/tier_a_official/renames_map_3_to_4.cpp": {
+      "sha256": "27676906a8313015af9865c9c45d9493d557a8242788025144c2cb790e06e47d",
+      "bytes": 107804
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.1.rst": {
+      "sha256": "e10c561827554d2e9823edbfd1181123a266a7eef966eda515ea3740a64ec12e",
+      "bytes": 26053
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.2.rst": {
+      "sha256": "5a763539738f408600612b8a1a7031f0b73f356bf9c48c8c52200969cb5dac42",
+      "bytes": 30760
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.3.rst": {
+      "sha256": "7e599b95ba6bca5f86032ef61d28bde4b67508347928ca2944e764c7f765fdf1",
+      "bytes": 32137
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.4.rst": {
+      "sha256": "519706f57192a05f43621f6a0d03e07f07947673d21d097095c2b8b1882c7dc8",
+      "bytes": 20372
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.5.rst": {
+      "sha256": "fe748a6554e1fc30ca8d0fc6b6ad011c571340a66992b61e0e6ea94b5078923c",
+      "bytes": 28775
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.6.rst": {
+      "sha256": "94a110e3683de46f1d39f42ef162df0fdcad6f3782ee793343b8663b690b88a9",
+      "bytes": 31290
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.7.rst": {
+      "sha256": "345fe03c608ce248a834496ff84d3ed93566ce22e61570c933e87c236b9af259",
+      "bytes": 29651
+    },
+    "vault/tier_a_official/upgrading_to_godot_4.rst": {
+      "sha256": "943823e8e8805aa175a8ef5b0802cc5c6eb18c5cbb9dc6fcb58c2f611773e2da",
+      "bytes": 50259
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.1.rst.prose.jsonl": {
+      "sha256": "2a1bbd86585e22bf4acbce28e678719e2ee86137c967914fbc4311683a8bbf6d",
+      "bytes": 4235
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.2.rst.prose.jsonl": {
+      "sha256": "9e09ed7c187abc318b52f43c6ed1d56f41068e45b98f93b0147c2aa8777a2157",
+      "bytes": 3338
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.3.rst.prose.jsonl": {
+      "sha256": "b2b3f666c366a28244d7306475a3e5b1ee3fe5f680cae7c382f97adbc521ee1e",
+      "bytes": 8557
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.4.rst.prose.jsonl": {
+      "sha256": "10a8b353b22a9829b82b6b7fe2447b2c25829d3922c54d758918e624ce0e9aab",
+      "bytes": 4421
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.5.rst.prose.jsonl": {
+      "sha256": "0700410bed0c785a84bdee8a89c118b052d108fec6807e5d6366f4cc9af6b469",
+      "bytes": 11847
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.6.rst.prose.jsonl": {
+      "sha256": "e50abd992513f0cd287b06da46630f66a46904b6a1c65e801697bb2c1df053f6",
+      "bytes": 7461
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.7.rst.prose.jsonl": {
+      "sha256": "447b305d92183fe2c8f8dbacbf5b6ef1ab556e9d9f22a86364f7057be63701de",
+      "bytes": 7397
+    },
+    "vault/tier_b_prose/upgrading_to_godot_4.rst.updating_shaders.prose.jsonl": {
+      "sha256": "38a1fcf3cd7d117dddce68e6c33485260c2abdefda30e791a9f5c6093768506d",
+      "bytes": 1831
+    }
+  },
+  "row_count": 8260
+}

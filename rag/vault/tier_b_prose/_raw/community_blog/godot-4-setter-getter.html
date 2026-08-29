@@ -1,0 +1,815 @@
+
+
+<!doctype html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.28.0 by Michael Rose
+  Copyright 2013-2026 Michael Rose - mademistakes.com | @mmistakes
+  Copyright 2024-2026 iBug - ibugone.com | @iBug
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+-->
+
+<html lang="en-US" class="no-js">
+  <head>
+    
+<meta charset="utf-8">
+
+
+<!-- begin _includes/seo.html --><title>Bite-Sized Godot: Setters and getters in Godot 4 / GDScript 2 - The Shaggy Dev</title>
+<meta name="description" content="Setter and getter functions in Godot 4 have received a nice overhaul. Let’s take a look at what’s new.">
+
+
+  <meta name="author" content="Jason McCollum">
+  
+  <meta property="article:author" content="Jason McCollum">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="The Shaggy Dev">
+<meta property="og:title" content="Bite-Sized Godot: Setters and getters in Godot 4 / GDScript 2">
+<meta property="og:url" content="https://shaggydev.com//2022/09/27/godot-4-setter-getter/">
+
+
+  <meta property="og:description" content="Setter and getter functions in Godot 4 have received a nice overhaul. Let’s take a look at what’s new.">
+
+
+
+  <meta property="og:image" content="https://shaggydev.com//media/images/icon.png">
+  
+
+
+
+  <meta name="twitter:site" content="@theshaggydev">
+  <meta name="twitter:title" content="Bite-Sized Godot: Setters and getters in Godot 4 / GDScript 2">
+  <meta name="twitter:description" content="Setter and getter functions in Godot 4 have received a nice overhaul. Let’s take a look at what’s new.">
+  <meta name="twitter:url" content="https://shaggydev.com//2022/09/27/godot-4-setter-getter/">
+
+  
+    <meta name="twitter:card" content="summary">
+    
+      <meta name="twitter:image" content="https://shaggydev.com//media/images/icon.png">
+      
+    
+  
+
+  
+
+
+
+
+
+  <meta property="article:published_time" content="2022-09-27T00:00:00+00:00">
+
+
+
+
+
+  
+
+  
+
+
+<link rel="canonical" href="https://shaggydev.com//2022/09/27/godot-4-setter-getter/">
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="The Shaggy Dev Feed">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  window.enable_copy_code_button = true;
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css"></noscript>
+
+
+
+    <script defer data-domain="shaggydev.com" src="https://plausible.io/js/script.outbound-links.js"></script>
+<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  </head>
+
+  <body class="layout--single wide" dir="ltr">
+    
+<nav class="skip-links" aria-label="Skip links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav" aria-label="Primary navigation">
+        
+          <a class="site-logo" href="/"><img src="/media/images/icon.png" alt="The Shaggy Dev"></a>
+        
+        <a class="site-title" href="/">
+          The Shaggy Dev
+          
+        </a>
+        <ul class="visible-links"><li class="masthead__menu-item">
+              <a
+                href="/all/"
+                
+                
+              >All Posts</a>
+            </li><li class="masthead__menu-item">
+              <a
+                href="/tags/"
+                
+                
+              >Posts by Tag</a>
+            </li><li class="masthead__menu-item">
+              <a
+                href="/games/"
+                
+                
+              >Games</a>
+            </li></ul>
+        
+        <button class="search__toggle" type="button">
+          <span class="visually-hidden">Toggle search</span>
+          <i class="fas fa-search"></i>
+        </button>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+
+
+
+<div id="main" role="main">
+  
+
+  <div class="sidebar sticky">
+  
+
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="https://shaggydev.com//">
+        <img src="/media/images/icon.png" alt="Jason McCollum" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="https://shaggydev.com//" itemprop="url">Jason McCollum</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>Software developer. Game developer. YouTuber. Musician.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+
+      
+        
+          
+            <li><a href="https://shaggydev.com" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Shaggy Dev</span></a></li>
+          
+        
+          
+            <li><a href="https://store.steampowered.com/developer/mccollumgames" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-steam" aria-hidden="true"></i><span class="label">Steam</span></a></li>
+          
+        
+          
+            <li><a href="https://theshaggydev.itch.io/" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-itch-io" aria-hidden="true"></i><span class="label">Itch</span></a></li>
+          
+        
+          
+        
+          
+            <li><a href="https://www.youtube.com/@TheShaggyDev" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-youtube" aria-hidden="true"></i><span class="label">YouTube</span></a></li>
+          
+        
+          
+            <li><a href="https://bsky.app/profile/theshaggydev.bsky.social" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-bluesky" aria-hidden="true"></i><span class="label">Bluesky</span></a></li>
+          
+        
+          
+        
+          
+            <li><a href="https://github.com/theshaggydev" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+        
+          
+            <li><a href="https://discord.com/invite/udafrsSzcy" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-discord" aria-hidden="true"></i><span class="label">Discord</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  
+  </div>
+
+
+
+  <article class="page h-entry" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Bite-Sized Godot: Setters and getters in Godot 4 / GDScript 2">
+    <meta itemprop="description" content="Setter and getter functions in Godot 4 have received a nice overhaul. Let’s take a look at what’s new.">
+    <meta itemprop="datePublished" content="2022-09-27T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title p-name" itemprop="headline">
+            <a href="https://shaggydev.com//2022/09/27/godot-4-setter-getter/" itemprop="url">Bite-Sized Godot: Setters and getters in Godot 4 / GDScript 2
+</a>
+          </h1>
+          
+
+
+  <p class="page__meta">
+    
+      
+      <span class="page__meta-date">
+        <i class="far fa-calendar-alt" aria-hidden="true"></i>
+        
+        <time datetime="2022-09-27T00:00:00+00:00">September 27, 2022</time>
+      </span>
+    
+
+    <span class="page__meta-sep"></span>
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          5 minute read
+        
+      </span>
+    
+  </p>
+
+
+        </header>
+      
+
+      <section class="page__content e-content" itemprop="text">
+        
+        
+<!-- Courtesy of embedresponsively.com -->
+
+<div class="responsive-video-container">
+    <iframe src="https://www.youtube-nocookie.com/embed/5R1xgo-wz1Y" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+  </div>
+
+<p><a href="https://github.com/theshaggydev/the-shaggy-dev-projects/tree/main/projects/godot-4/setget"><strong>Sample project</strong></a></p>
+
+<p>As my first content update for Godot 4, I’d like to demonstrate the new syntax for setter and getter functions, as it’s pretty different from the <a href="/2022/01/04/setget/">setget syntax of Godot 3</a>. If you’re new to setter and getter functions, I’ll also demonstrate why this is something you should care about.</p>
+
+<p>As you may recall, setter and getter functions are used to run custom logic when data is written to or read from in our code. In Godot 3, we used the <code class="language-plaintext highlighter-rouge">setget</code> keyword, followed by the name of our setter and getter functions:</p>
+
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">health</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="k">setget</span> <span class="n">_set_health</span><span class="p">,</span> <span class="n">_get_health</span>
+
+<span class="k">func</span> <span class="nf">_set_health</span><span class="p">(</span><span class="n">new_value</span><span class="p">:</span> <span class="kt">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">void</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">setting'</span><span class="p">)</span>
+	<span class="n">health</span> <span class="o">=</span> <span class="n">new_value</span>
+
+<span class="k">func</span> <span class="nf">_get_health</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">float</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">reading'</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">health</span>
+</code></pre></div></div>
+
+<p>In Godot 4, the <code class="language-plaintext highlighter-rouge">setget</code> keyword is gone and we instead have two options for defining our setter and getter functions. The first option is quite similar to Godot 3, but instead of the syntax <code class="language-plaintext highlighter-rouge">setget setter, getter</code> we just place a colon and assign our functions to the <code class="language-plaintext highlighter-rouge">set</code> and <code class="language-plaintext highlighter-rouge">get</code> properties:</p>
+
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">health</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">:</span> <span class="n">set</span> <span class="o">=</span> <span class="n">_set_health</span><span class="p">,</span> <span class="n">get</span> <span class="o">=</span> <span class="n">_get_health</span>
+
+<span class="k">func</span> <span class="nf">_set_health</span><span class="p">(</span><span class="n">new_value</span><span class="p">:</span> <span class="kt">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">void</span><span class="p">:</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">setting'</span><span class="p">)</span>
+	<span class="n">health</span> <span class="o">=</span> <span class="n">new_value</span>
+
+<span class="k">func</span> <span class="nf">_get_health</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">float</span><span class="p">:</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">reading'</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">health</span>
+</code></pre></div></div>
+
+<p>The other option, and the one I’ll use for the rest of this demonstration, is to define the <code class="language-plaintext highlighter-rouge">set</code> and <code class="language-plaintext highlighter-rouge">get</code> functions right after declaring the variable:</p>
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">health</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">:</span>
+	<span class="n">set</span><span class="p">(</span><span class="n">new_value</span><span class="p">):</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">setting'</span><span class="p">)</span>
+		<span class="n">health</span> <span class="o">=</span> <span class="n">new_value</span>
+	<span class="n">get</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">reading'</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">health</span>
+</code></pre></div></div>
+
+<p>These two options, on top of being a bit more readable, also make it a lot clearer when a setter or getter function is excluded, since you can just choose not define the relevant function:</p>
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">health</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">:</span>
+	<span class="n">get</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">getter only'</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">health</span>
+
+<span class="k">var</span> <span class="n">mana</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mi">50</span><span class="p">:</span> <span class="n">set</span> <span class="o">=</span> <span class="n">_set_mana</span>
+
+<span class="k">func</span> <span class="nf">_set_mana</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="kt">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">void</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">'</span><span class="s1">setter only'</span><span class="p">)</span>
+    <span class="n">mana</span> <span class="o">=</span> <span class="n">value</span>
+</code></pre></div></div>
+
+<p>So why care about setter and getter functions? As an example, let’s say we have a game where the player’s health should always be a float between 0 and 100. Using a setter, we can make sure the value is clamped to this range before being applied to the variable.</p>
+
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">const</span> <span class="n">MIN_HEALTH</span> <span class="p">:</span><span class="o">=</span> <span class="mf">0.0</span>
+<span class="k">const</span> <span class="n">MAX_HEALTH</span> <span class="p">:</span><span class="o">=</span> <span class="mf">100.0</span>
+
+<span class="k">var</span> <span class="n">health</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">:</span>
+	<span class="n">set</span><span class="p">(</span><span class="n">new_value</span><span class="p">):</span>
+		<span class="n">health</span> <span class="o">=</span> <span class="nb">clamp</span><span class="p">(</span><span class="n">new_value</span><span class="p">,</span> <span class="n">MIN_HEALTH</span><span class="p">,</span> <span class="n">MAX_HEALTH</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Another common use includes emitting a signal every time a value is updated so that other objects that depend on that data can always be up to date, such as our updating our UI:</p>
+
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">signal</span> <span class="n">mana_updated</span><span class="p">(</span><span class="n">new_value</span><span class="p">)</span>
+
+<span class="k">var</span> <span class="n">mana</span><span class="p">:</span> <span class="kt">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">:</span>
+	<span class="n">set</span><span class="p">(</span><span class="n">new_value</span><span class="p">):</span>
+		<span class="n">mana</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">emit_signal</span><span class="p">(</span><span class="s2">'</span><span class="s1">mana_updated'</span><span class="p">,</span> <span class="n">mana</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>For getter functions, I personally don’t use them that much, but a common use case is to conditionally calculate an expensive value if it’s not already available from a cache (which can also be combined with a setter function so you know when the cache needs to be invalidated):</p>
+
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">expensive_variable</span><span class="p">:</span>
+	<span class="n">get</span><span class="p">:</span>
+		<span class="k">if</span> <span class="o">!</span><span class="n">cache</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="s2">'</span><span class="s1">expensive_variable'</span><span class="p">):</span>
+			<span class="n">cache</span><span class="p">[</span><span class="s2">'</span><span class="s1">expensive_variable'</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculate_expensive_variable</span><span class="p">()</span>
+		<span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="s2">'</span><span class="s1">expensive_variable'</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>You can also use getter functions to do things like transforming internal data for an external resource or to hide a long or complex path to a resource.</p>
+
+<div class="language-gdscript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">formValue</span><span class="p">:</span>
+	<span class="n">get</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">form</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">value</span>
+</code></pre></div></div>
+
+<p>And that’s setter and getter functions in Godot 4. Not much too them but they can come in handy. As one last note, you may recall that in Godot 3, setter and getter functions were not internally called by default, but that is no longer the case in Godot 4. Your setter and getter functions will now always get called regardless of who’s operating on the data.</p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+  
+    
+
+
+
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fas fa-fw fa-tags" aria-hidden="true"></i> Tags: </strong>
+    <span itemprop="keywords">
+    
+      <a href="/tags/#gdscript" class="page__taxonomy-item p-category" rel="tag">gdscript</a><span class="sep">, </span>
+    
+      <a href="/tags/#godot" class="page__taxonomy-item p-category" rel="tag">godot</a>
+    
+    </span>
+  </p>
+
+
+  
+
+  
+
+
+        
+
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2022-09-27T00:00:00+00:00">September 27, 2022</time></p>
+
+
+      </footer>
+
+      
+
+      
+
+  <nav class="pagination" aria-label="Post pagination">
+    
+      <a href="/2022/09/15/godot-4-beta/" class="pagination--pager" title="Godot 4 beta + site update">Previous</a>
+    
+    
+      <a href="/2022/10/24/gdscript1-to-gdscript2/" class="pagination--pager" title="8 changes to GDScript in Godot 4 you’ll want to know about">Next</a>
+    
+  </nav>
+
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    
+
+<div class="page__related">
+  
+  <h2 class="page__related-title">You may also enjoy</h2>
+  <div class="grid__wrapper">
+    
+      
+      
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc p-name" itemprop="headline">
+      
+        <a class="u-url" href="/2026/04/08/godot-custom-resources/" rel="permalink">A brief look at custom resources in Godot 4
+</a>
+      
+    </h2>
+    
+
+
+  <p class="page__meta">
+    
+      
+      <span class="page__meta-date">
+        <i class="far fa-fw fa-calendar-alt" aria-hidden="true"></i>
+        
+        <time datetime="2026-04-08T00:00:00+00:00">April 8, 2026</time>
+      </span>
+    
+
+    <span class="page__meta-sep"></span>
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-fw fa-clock" aria-hidden="true"></i>
+        
+          12 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt p-summary" itemprop="description">Custom resources are a great way to extend your game’s functionality in Godot. Let’s look at what they are, how to use them, and a few gotchas you’ll want to...</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc p-name" itemprop="headline">
+      
+        <a class="u-url" href="/2026/02/12/udd-postmortem/" rel="permalink">Unto Deepest Depths: A postmortem and reflection on the game’s development
+</a>
+      
+    </h2>
+    
+
+
+  <p class="page__meta">
+    
+      
+      <span class="page__meta-date">
+        <i class="far fa-fw fa-calendar-alt" aria-hidden="true"></i>
+        
+        <time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time>
+      </span>
+    
+
+    <span class="page__meta-sep"></span>
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-fw fa-clock" aria-hidden="true"></i>
+        
+          30 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt p-summary" itemprop="description">With Unto Deepest Depths now out, let’s talk about the game’s development cycle, how it changed along the way, and lessons learned.
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc p-name" itemprop="headline">
+      
+        <a class="u-url" href="/2025/11/03/godot-refcounted/" rel="permalink">A brief introduction to the RefCounted class in Godot 4
+</a>
+      
+    </h2>
+    
+
+
+  <p class="page__meta">
+    
+      
+      <span class="page__meta-date">
+        <i class="far fa-fw fa-calendar-alt" aria-hidden="true"></i>
+        
+        <time datetime="2025-11-03T00:00:00+00:00">November 3, 2025</time>
+      </span>
+    
+
+    <span class="page__meta-sep"></span>
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-fw fa-clock" aria-hidden="true"></i>
+        
+          8 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt p-summary" itemprop="description">Nodes are the bread and butter of Godot, but there’s more to the engine than just nodes. Here’s a simple, straightforward way to “just write some code” in Go...</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc p-name" itemprop="headline">
+      
+        <a class="u-url" href="/2025/09/25/godot-custom-monitoring/" rel="permalink">Custom Monitoring in Godot 4
+</a>
+      
+    </h2>
+    
+
+
+  <p class="page__meta">
+    
+      
+      <span class="page__meta-date">
+        <i class="far fa-fw fa-calendar-alt" aria-hidden="true"></i>
+        
+        <time datetime="2025-09-25T00:00:00+00:00">September 25, 2025</time>
+      </span>
+    
+
+    <span class="page__meta-sep"></span>
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-fw fa-clock" aria-hidden="true"></i>
+        
+          7 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt p-summary" itemprop="description">While Godot comes with plenty of tools to help you understand your game’s behavior and performance, you sometimes need to gather game-specific metrics, and t...</p>
+  </article>
+</div>
+
+    
+  </div>
+</div>
+
+  
+  
+</div>
+
+      
+    </div>
+
+    
+      <div class="search-content">
+        
+<div class="search-content__inner-wrap"><form class="search-content__form" onkeydown="return event.key != 'Enter';" role="search">
+    <label class="sr-only" for="search">
+      Enter your search term...
+    </label>
+    <input type="search" id="search" class="search-input" tabindex="-1" placeholder="Enter your search term..." />
+  </form>
+  <div id="results" class="results"></div></div>
+
+      </div>
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        
+
+
+<div class="page__footer-follow">
+  <ul class="social-icons">
+    
+      <li><strong>Follow:</strong></li>
+    
+
+    
+      
+        
+      
+        
+          <li><a href="https://www.youtube.com/@TheShaggyDev" rel="nofollow noopener noreferrer"><i class="fab fa-youtube" aria-hidden="true"></i> YouTube</a></li>
+        
+      
+        
+          <li><a href="https://bsky.app/profile/theshaggydev.bsky.social" rel="nofollow noopener noreferrer"><i class="fab fa-bluesky" aria-hidden="true"></i> Bluesky</a></li>
+        
+      
+        
+          <li><a href="https://discord.com/invite/udafrsSzcy" rel="nofollow noopener noreferrer"><i class="fab fa-discord" aria-hidden="true"></i> Discord</a></li>
+        
+      
+    
+
+    
+      <li><a href="/feed.xml"><i class="fas fa-fw fa-square-rss" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+
+<div class="page__footer-copyright">&copy; 2026 <a href="https://shaggydev.com/">The Shaggy Dev</a>. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/jekyll-themes/minimal-mistakes/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+
+  <script src="/assets/js/main.min.js"></script>
+
+
+
+
+
+<script src="/assets/js/lunr/lunr.min.js"></script>
+<script src="/assets/js/lunr/lunr-store.js"></script>
+<script src="/assets/js/lunr/lunr-en.js"></script>
+
+
+
+
+
+
+
+
+  </body>
+</html>
