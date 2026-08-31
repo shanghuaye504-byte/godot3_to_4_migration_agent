@@ -214,9 +214,9 @@ flowchart TD
     F --> I
     G --> I
     H --> I
-    I --> J[single chunker in chunk_and_embed.py]
+    I --> J[chunk_prose.py]
     L --> J
-    J --> K[build_tier_b.py -> corpus.lance]
+    J --> K[embed_prose.py -> corpora/strategy/corpus.lance]
 ```
 
 ## 七、下一步建议
@@ -226,6 +226,6 @@ IR schema、漏斗工作流、切块算法、与 `ProseChunk` 的映射以 [CHUN
 1. **类型 A 已完成**：8 篇官方升级指南的 `*.prose.jsonl` 不要再动；chunker 会 lift。下一步把类型 B 的 3 篇官方 GDScript rst 解析进 `ir/*.ir.json`（块级 IR，不是再写一份 `*.prose.jsonl`）。
 2. **类型 F/G 需要人工介入**：先把 README 标明的句子写入 `curation/*.yaml`，再由编译脚本生成 IR。不要把社区 HTML 整篇送给 LLM，也不要指望自动 parser 直接 `keep=true`。
 3. **类型 E 已改为 API Markdown**：`_raw/github_*/*.md` 是真相源；`process_github.py` 不再联网。
-4. **统一出口是 IR，不是 prose.jsonl**：类型 B–G 的字段按 [CHUNKING.md](CHUNKING.md) 第 3 节；类型 A 继续用现有 `heading_path` / `text` / `since_version` / `source_file` / `source`。`chunk_and_embed.py` 读这两类输入，切块后才映射到 `ProseChunk`。
+4. **统一出口是 IR，不是 prose.jsonl**：类型 B–G 的字段按 [CHUNKING.md](CHUNKING.md) 第 3 节；类型 A 继续用现有 `heading_path` / `text` / `since_version` / `source_file` / `source`。`chunk_prose.py` 读这两类输入，切块后才映射到 `ProseChunk`。
 5. **如果你要给这批语料也标注 `since_version`**，表 2.2 里第 1/2/3/4/5/8/9/10 条都属于"3→4"这个大版本变更，第 6/7 条同属 3→4（`File`/`Directory` 拆分和 `OS` 拆分都是 4.0 就完成的），可以统一标 `since_version=4.0`，不需要拆更细。
 

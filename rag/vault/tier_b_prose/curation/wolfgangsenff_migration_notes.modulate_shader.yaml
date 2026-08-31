@@ -1,0 +1,21 @@
+source_file: wolfgangsenff_migration_notes.html
+source_url: https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976
+source: community_prose
+source_type: gist
+since_version: "4.0"
+confidence: needs_review
+title: CanvasItem modulate is now the shader input, not a post-process
+match_tokens:
+  - modulate
+  - ShaderMaterial
+  - COLOR
+excerpts:
+  - heading_path:
+      - Nodes
+    text: |
+      In Godot 3, modulate was independent of the shader material and affected
+      whatever the shader produced in COLOR. In Godot 4, modulate is the input
+      of the shader material, and whatever is written to COLOR in the shader is
+      the final result. Migrated sprites that both set modulate and write COLOR
+      in a custom shader will look wrong without a parse error. See
+      godotengine/godot#49781.

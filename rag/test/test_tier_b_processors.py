@@ -178,9 +178,9 @@ def test_process_github_keeps_opening_post(tmp_path) -> None:
             ),
         ],
     )
-    doc = process_github.process_file(path, "github_issue")
-    assert doc is not None
-    texts = " ".join(b.text for b in doc.blocks)
+    items = process_github.process_file(path, "github_issue")
+    assert items
+    texts = " ".join(item.text for item in items)
     assert "convert the above setget" in texts
     assert "Please reload" not in texts
 
@@ -205,10 +205,10 @@ def test_process_github_keeps_maintainer_and_code(tmp_path) -> None:
             ),
         ],
     )
-    doc = process_github.process_file(path, "github_pr")
-    assert doc is not None
-    assert doc.source == "github_pr"
-    texts = " ".join(b.text for b in doc.blocks)
+    items = process_github.process_file(path, "github_pr")
+    assert items
+    assert all(item.doc_id.startswith("github_pr/") for item in items)
+    texts = " ".join(item.text for item in items)
     assert "fire and forget" in texts
     assert "create_tween" in texts
     assert "+1" not in texts
@@ -235,9 +235,9 @@ var tween := get_tree().create_tween()
 """
     path = tmp_path / "godot_pull_41794.md.blocks.jsonl"
     write_blocks_jsonl(assign_block_ids(parse_markdown(md)), path)
-    doc = process_github.process_file(path, "github_pr")
-    assert doc is not None
-    texts = " ".join(b.text for b in doc.blocks)
+    items = process_github.process_file(path, "github_pr")
+    assert items
+    texts = " ".join(item.text for item in items)
     assert "Tweens are no longer nodes" in texts
     assert "fire and forget" in texts
     assert "create_tween" in texts
@@ -264,7 +264,7 @@ def test_process_community_writes_queue_not_ir(tmp_path, monkeypatch) -> None:
             _b("b0002", "Subscribe to our newsletter today for more tips.", heading=["Footer"]),
         ],
     )
-    n = process_community.process_bucket("community_blog")
+    n = process_community.process_bucket("community_blog", [])
     assert n >= 1
     assert queue.exists()
     assert not list(tmp_path.rglob("*.ir.json"))

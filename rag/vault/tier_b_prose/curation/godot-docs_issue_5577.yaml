@@ -1,0 +1,33 @@
+source_file: godot-docs_issue_5577.md
+source_url: https://github.com/godotengine/godot-docs/issues/5577
+source: github_issue
+source_type: github_issue
+since_version: "4.0"
+confidence: needs_review
+title: "Issue #5577 — string connect() error vs Callable form"
+match_tokens:
+  - connect
+  - Callable
+  - timeout
+excerpts:
+  - heading_path:
+      - body by SimonImming
+    text: |
+      The Step by Step tutorial used a deprecated syntax for connecting signals.
+      This code does not work in Godot 4 and produces:
+      Invalid argument for "connect()" function: argument 2 should be Callable
+      but is res://Sprite2D.gd.
+      Invalid argument for "connect()" function: argument 3 should be Array but
+      is String.
+      The correct Class Reference form is timer.timeout.connect(_on_Timer_timeout).
+    code: |
+      # Godot 3 (broken in 4)
+      func _ready():
+          var timer = get_node("Timer")
+          timer.connect("timeout", self, "_on_Timer_timeout")
+
+      # Godot 4
+      func _ready():
+          var timer = get_node("Timer")
+          timer.timeout.connect(_on_Timer_timeout)
+    language: gdscript

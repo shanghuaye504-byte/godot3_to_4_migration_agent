@@ -41,6 +41,7 @@ _GITHUB_NOISE_RE = re.compile(
     r"|same[!.,]?"
     r"|subscribed"
     r"|fyi"
+    r"|there\s+was\s+an\s+error\s+while\s+loading[\s\S]*"
     r")\s*$",
     re.IGNORECASE,
 )

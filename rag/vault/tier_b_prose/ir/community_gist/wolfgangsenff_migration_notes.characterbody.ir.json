@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "doc_id": "gist/wolfgangsenff_migration_notes.characterbody",
+  "source": "community_prose",
+  "source_file": "wolfgangsenff_migration_notes.html",
+  "source_url": "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976",
+  "source_type": "gist",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "CharacterBody2D move_and_slide uses built-in velocity",
+  "keep": true,
+  "match_tokens": [
+    "CharacterBody2D",
+    "KinematicBody2D",
+    "move_and_slide",
+    "velocity"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "KinematicBody2D has been renamed to CharacterBody2D. move_and_slide now\nno longer takes any parameters, and uses the built-in velocity property\nto control where it is going. Passing a local velocity (the Godot 3\npattern) is a silent no-op in Godot 4.",
+      "heading_path": [
+        "KinematicBody2D"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "code",
+      "text": "# Before (Godot 3)\nvar velocity = Vector2.ZERO\nfunc _process(delta):\n    velocity = velocity.move_towards(direction * 200)\n    velocity = move_and_slide(velocity)\n\n# Now (Godot 4)\nfunc _process(delta):\n    velocity = velocity.move_towards(direction * 200)\n    move_and_slide()",
+      "heading_path": [
+        "KinematicBody2D"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

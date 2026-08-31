@@ -1,0 +1,793 @@
+{
+  "schema_version": 1,
+  "doc_id": "rst/signals_step_by_step.rst",
+  "source": "official_doc",
+  "source_file": "signals_step_by_step.rst",
+  "source_url": "https://github.com/godotengine/godot-docs/blob/master/getting_started/step_by_step/signals.rst",
+  "source_type": "rst",
+  "since_version": "4.0",
+  "confidence": "verified",
+  "title": "Using signals",
+  "keep": true,
+  "match_tokens": [
+    "class_callable",
+    "class_signal",
+    "doc_scripting_player_input",
+    "Button <class_button>",
+    "doc_scripting_first_script",
+    "Scene > New Scene",
+    "2D Scene",
+    "Node2D <class_Node2D>",
+    "Add Child Node",
+    "Text",
+    "Inspector",
+    "F6",
+    "Cmd + R",
+    "Signals",
+    "Connect",
+    "Script",
+    "Node.set_process()\n<class_Node_method_set_process>",
+    "Timer <class_Timer>",
+    "Ctrl + F1",
+    "Ctrl + Cmd + 1",
+    "Autostart",
+    "Node._ready() <class_Node_private_method__ready>",
+    "Node.get_node() <class_Node_method_get_node>",
+    "tool",
+    "OS",
+    "Time",
+    "Engine",
+    "Node2D",
+    "Tween",
+    "signal",
+    "connect",
+    "Callable",
+    "set",
+    "get"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "heading",
+      "text": "Using signals",
+      "heading_path": [],
+      "level": 1,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "paragraph",
+      "text": "In this lesson, we will look at signals. They are messages that nodes emit when\nsomething specific happens to them, like a button being pressed. Other nodes can\nconnect to that signal and call a function when the event occurs.",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0003",
+      "type": "paragraph",
+      "text": "Signals are a delegation mechanism built into Godot that allows one game object to\nreact to a change in another without them referencing one another. Using signals\nlimits coupling and keeps your\ncode flexible.",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0004",
+      "type": "paragraph",
+      "text": "For example, you might have a life bar on the screen that represents the\nplayer's health. When the player takes damage or uses a healing potion, you want\nthe bar to reflect the change. To do so, in Godot, you would use signals.",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0005",
+      "type": "paragraph",
+      "text": "Like methods (:ref:`class_callable`), signals are a first-class type since Godot\n4.0. This means you can pass them around as method arguments directly without\nhaving to pass them as strings, which allows for better autocompletion and is\nless error-prone. See the :ref:`class_signal` class reference for a list of\nwhat you can do with the Signal type directly.",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0006",
+      "type": "paragraph",
+      "text": "We will now use a signal to make our Godot icon from the previous lesson\n(:ref:`doc_scripting_player_input`) move and stop by pressing a button.",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0008",
+      "type": "heading",
+      "text": "Scene setup",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0009",
+      "type": "paragraph",
+      "text": "To add a button to our game, we will create a new scene which will include\nboth a :ref:`Button <class_button>` and the sprite_2d.tscn scene we created in\nthe :ref:`doc_scripting_first_script` lesson.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0010",
+      "type": "paragraph",
+      "text": "Create a new scene by going to the menu :menu:`Scene > New Scene`.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0011",
+      "type": "paragraph",
+      "text": "In the Scene dock, click the :button:`2D Scene` button. This will add\na :ref:`Node2D <class_Node2D>` as our root.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0012",
+      "type": "paragraph",
+      "text": "In the FileSystem dock, click and drag the sprite_2d.tscn file you saved\npreviously onto the Node2D to instantiate it.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0013",
+      "type": "paragraph",
+      "text": "We want to add another node as a sibling of the Sprite2D. To do so, right-click\non Node2D and select :button:`Add Child Node`.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0014",
+      "type": "paragraph",
+      "text": "Search for the :ref:`Button <class_button>` node and add it.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0015",
+      "type": "paragraph",
+      "text": "The node is small by default. Click and drag on the bottom-right handle of the\nButton in the viewport to resize it.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0016",
+      "type": "paragraph",
+      "text": "If you don't see the handles, ensure the select tool is active in the toolbar.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0017",
+      "type": "paragraph",
+      "text": "Click and drag on the button itself to move it closer to the sprite.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0018",
+      "type": "paragraph",
+      "text": "You can also write a label on the Button by editing its :inspector:`Text` property\nin the :ui:`Inspector`. Enter Toggle motion.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0019",
+      "type": "paragraph",
+      "text": "Your scene tree and viewport should look like this.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0020",
+      "type": "paragraph",
+      "text": "Save your newly created scene as node_2d.tscn, if you haven't already.\nYou can then run it with :kbd:`F6` (:kbd:`Cmd + R` on macOS).\nAt the moment, the button will be visible, but nothing will happen if you\npress it.",
+      "heading_path": [
+        "Using signals",
+        "Scene setup"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0021",
+      "type": "heading",
+      "text": "Connecting a signal in the editor",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0022",
+      "type": "paragraph",
+      "text": "Here, we want to connect the Button's \"pressed\" signal to our Sprite2D, and we\nwant to call a new function that will toggle its motion on and off. We need to\nhave a script attached to the Sprite2D node, which we do from the previous\nlesson.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0023",
+      "type": "paragraph",
+      "text": "You can connect signals in the :ui:`Signals` dock. Select the Button node and, on the\nright side of the editor, click on the tab named :ui:`Signals` next to the\n:ui:`Inspector`.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0024",
+      "type": "paragraph",
+      "text": "The dock displays a list of signals available on the selected node.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0025",
+      "type": "paragraph",
+      "text": "Double-click the \"pressed\" signal to open the node connection window.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0026",
+      "type": "paragraph",
+      "text": "There, you can connect the signal to the Sprite2D node. The node needs a\nreceiver method, a function that Godot will call when the Button emits the\nsignal. The editor generates one for you. By convention, we name these callback\nmethods \"_on_node_name_signal_name\". Here, it'll be \"_on_button_pressed\".",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0028",
+      "type": "admonition",
+      "text": "If you are using an external editor (such as VS Code), this\nautomatic code generation might not work. In this case, you need to connect\nthe signal via code as explained in the next section.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0029",
+      "type": "paragraph",
+      "text": "Click the :button:`Connect` button to complete the signal connection and jump to the\n:ui:`Script` workspace. You should see the new method with a connection icon in the\nleft margin.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0030",
+      "type": "paragraph",
+      "text": "If you click the icon, a window pops up and displays information about the\nconnection. This feature is only available when connecting nodes in the editor.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0031",
+      "type": "paragraph",
+      "text": "Let's replace the line with the pass keyword with code that'll toggle the\nnode's motion.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0032",
+      "type": "paragraph",
+      "text": "Our Sprite2D moves thanks to code in the _process() function. Godot provides\na method to toggle processing on and off: :ref:`Node.set_process()\n<class_Node_method_set_process>`. Another method of the Node class,\nis_processing(), returns true if idle processing is active. We can use\nthe not keyword to invert the value.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0033",
+      "type": "paragraph",
+      "text": "This function will toggle processing and, in turn, the icon's motion on and off\nupon pressing the button.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0034",
+      "type": "paragraph",
+      "text": "Before trying the game, we need to simplify our _process() function to move\nthe node automatically and not wait for user input. Replace it with the\nfollowing code, which we saw two lessons ago:",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0035",
+      "type": "paragraph",
+      "text": "Your complete sprite_2d.gd code should look like the following.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0036",
+      "type": "paragraph",
+      "text": "Run the current scene by pressing :kbd:`F6` (:kbd:`Cmd + R` on macOS),\nand click the button to see the sprite start and stop.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal in the editor"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0037",
+      "type": "heading",
+      "text": "Connecting a signal via code",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0038",
+      "type": "paragraph",
+      "text": "You can connect signals via code instead of using the editor. This is necessary\nwhen you create nodes or instantiate scenes inside of a script.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0039",
+      "type": "paragraph",
+      "text": "Let's use a different node here. Godot has a :ref:`Timer <class_Timer>` node\nthat's useful to implement skill cooldown times, weapon reloading, and more.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0040",
+      "type": "paragraph",
+      "text": "Head back to the 2D workspace. You can either click the \"2D\" text at the top of\nthe window or press :kbd:`Ctrl + F1` (:kbd:`Ctrl + Cmd + 1` on macOS).",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0041",
+      "type": "paragraph",
+      "text": "In the Scene dock, right-click on the Sprite2D node and add a new child node.\nSearch for Timer and add the corresponding node. Your scene should now look like\nthis.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0042",
+      "type": "paragraph",
+      "text": "With the Timer node selected, go to the :ui:`Inspector` and enable the :inspector:`Autostart`\nproperty.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0043",
+      "type": "paragraph",
+      "text": "Click the script icon next to Sprite2D to jump back to the scripting workspace.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0044",
+      "type": "paragraph",
+      "text": "We need to do two operations to connect the nodes via code:",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0045",
+      "type": "list",
+      "text": "- Get a reference to the Timer from the Sprite2D.\n- Call the connect() method on the Timer's \"timeout\" signal.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0046",
+      "type": "admonition",
+      "text": "To connect to a signal via code, you need to call the connect()\nmethod of the signal you want to listen to. In this case, we want to\nlisten to the Timer's \"timeout\" signal.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0047",
+      "type": "paragraph",
+      "text": "We want to connect the signal when the scene is instantiated, and we can do that\nusing the :ref:`Node._ready() <class_Node_private_method__ready>` built-in function,\nwhich is called automatically by the engine when a node is fully instantiated.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0048",
+      "type": "paragraph",
+      "text": "To get a reference to a node relative to the current one, we use the method\n:ref:`Node.get_node() <class_Node_method_get_node>`. We can store the reference\nin a variable.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0049",
+      "type": "paragraph",
+      "text": "The function get_node() looks at the Sprite2D's children and gets nodes by\ntheir name. For example, if you renamed the Timer node to \"BlinkingTimer\" in the\neditor, you would have to change the call to get_node(\"BlinkingTimer\").",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0050",
+      "type": "paragraph",
+      "text": "We can now connect the Timer to the Sprite2D in the _ready() function.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0051",
+      "type": "paragraph",
+      "text": "The line reads like so: we connect the Timer's \"timeout\" signal to the node to\nwhich the script is attached. When the Timer emits timeout, we want to call\nthe function _on_timer_timeout(), that we need to define. Let's add it at the\nbottom of our script and use it to toggle our sprite's visibility.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0052",
+      "type": "admonition",
+      "text": "By convention, we name these callback methods in GDScript as\n\"_on_node_name_signal_name\" and in C# as \"OnNodeNameSignalName\".\nHere, it'll be \"_on_timer_timeout\" for GDScript and OnTimerTimeout() for C#.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0053",
+      "type": "paragraph",
+      "text": "The visible property is a boolean that controls the visibility of our node.\nThe line visible = not visible toggles the value. If visible is\ntrue, it becomes false, and vice-versa.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0054",
+      "type": "paragraph",
+      "text": "If you run the Node2D scene now, you will see that the sprite blinks on and off, at one\nsecond intervals.",
+      "heading_path": [
+        "Using signals",
+        "Connecting a signal via code"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0055",
+      "type": "heading",
+      "text": "Complete script",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0056",
+      "type": "paragraph",
+      "text": "That's it for our little moving and blinking Godot icon demo!\nHere is the complete sprite_2d.gd file for reference.",
+      "heading_path": [
+        "Using signals",
+        "Complete script"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0057",
+      "type": "heading",
+      "text": "Custom signals",
+      "heading_path": [
+        "Using signals"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0058",
+      "type": "admonition",
+      "text": "This section is a reference on how to define and use your own signals,\nand does not build upon the project created in previous lessons.",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0059",
+      "type": "paragraph",
+      "text": "You can define custom signals in a script. Say, for example, that you want to\nshow a game over screen when the player's health reaches zero. To do so, you\ncould define a signal named \"died\" or \"health_depleted\" when their health\nreaches 0.",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0060",
+      "type": "admonition",
+      "text": "As signals represent events that just occurred, we generally use an\naction verb in the past tense in their names.",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0061",
+      "type": "paragraph",
+      "text": "Your signals work the same way as built-in ones: they appear in the :ui:`Signals` tab and\nyou can connect to them like any other.",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0062",
+      "type": "paragraph",
+      "text": "To emit a signal in your scripts, call emit() on the signal.",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0063",
+      "type": "paragraph",
+      "text": "A signal can optionally declare one or more arguments. Specify the argument\nnames between parentheses:",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0064",
+      "type": "admonition",
+      "text": "The signal arguments show up in the editor's Signals dock, and Godot can use\nthem to generate callback functions for you. However, you can still emit any\nnumber of arguments when you emit signals. So it's up to you to emit the\ncorrect values.",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0065",
+      "type": "paragraph",
+      "text": "To emit values along with the signal, add them as extra arguments to the\nemit() function:",
+      "heading_path": [
+        "Using signals",
+        "Custom signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

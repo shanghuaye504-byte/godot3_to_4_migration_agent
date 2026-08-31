@@ -1,0 +1,44 @@
+# rag/retriever/retriever.yaml
+# 与本目录脚本同路径。运行时唯一调参入口。
+# 权威说明：[docs/config.md](docs/config.md)
+# 改了会影响召回的键都会进 cache_key 的 config_hash；request_id 不算进缓存。
+#
+# 不要把权重 / recall_k / rerank_k / 通道 / 阈值写进 RetrievalQuery。
+# Agent 契约不膨胀；评测改这份文件或 RetrieverConfig 副本。
+
+tier_a:
+  # A 层 SQL LIMIT。字典查表，默认 8。
+  top_k: 8
+
+tier_b:
+  # B 层内部通道：hybrid | bm25 | vector
+  # 这不是 RetrievalMode（那个管开不开 A / 开不开 B）。
+  channels: hybrid
+
+  bm25:
+    k: 3          # 关键词一路召回条数。默认收小，上线后再扫。
+    weight: 1.0   # 加权 RRF 的 w_bm25。等权时保持 1.0 即经典 RRF。
+
+  vector:
+    k: 10         # 向量一路召回条数。
+    weight: 1.0
+
+  fusion:
+    method: rrf
+    rrf_k: 60     # Cormack 默认。第一阶段评测不扫这个键。
+
+  # 两路融合后、重排前的候选数。
+  recall_k: 10
+  # 重排后交给 Agent 的 B 层条数。
+  rerank_k: 3
+
+  # RRF 上界归一化之后、重排之前的截断。null = 不截断。
+  score_threshold: null
+
+  # 只填注册名。真正模型与超参闭包在 callable 内部，对 retriever 透明。
+  reranker: identity
+
+observability:
+  # A 层失败 JSONL；轨迹采样也写这里（默认 0 = 不落轨迹，hook 仍调用 NoOp）。
+  log_dir: artifacts/logs/retriever
+  sample_rate: 0.0

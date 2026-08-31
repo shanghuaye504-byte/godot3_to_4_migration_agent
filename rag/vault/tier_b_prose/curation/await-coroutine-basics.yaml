@@ -1,0 +1,38 @@
+source_file: await-coroutine-basics.html
+source_url: https://uhiyama-lab.com/en/notes/godot/await-coroutine-basics/
+source: community_prose
+source_type: community_blog
+since_version: "4.0"
+confidence: needs_review
+title: Await coroutine basics — Godot 3 yield migration
+match_tokens:
+  - yield
+  - await
+  - _process
+excerpts:
+  - heading_path:
+      - Migrating from Godot 3's yield
+    text: |
+      Code that used yield() in Godot 3 becomes await in Godot 4.
+      Godot 4 lets you wait in the form object.signal_name instead of writing
+      signal names as strings.
+    code: |
+      # Godot 3                                      # Godot 4
+      yield(get_tree().create_timer(1.0), "timeout") # await get_tree().create_timer(1.0).timeout
+      yield($AnimationPlayer, "animation_finished")  # await $AnimationPlayer.animation_finished
+      yield(button, "pressed")                       # await button.pressed
+    language: gdscript
+  - heading_path:
+      - Common Pitfalls
+      - Starting an await every frame inside _process()
+    text: |
+      This one is genuinely dangerous. You create a new wait every frame, and a
+      second later a huge pile of them resumes all at once. For repeating work,
+      use a Timer node or a state variable instead.
+    code: |
+      # Bad: a new wait starts every single frame
+      func _process(delta: float) -> void:
+          # _process() runs every frame, so the pending waits pile up fast
+          await get_tree().create_timer(1.0).timeout
+          spawn_enemy()
+    language: gdscript

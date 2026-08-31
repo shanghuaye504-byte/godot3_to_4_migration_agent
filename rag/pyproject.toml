@@ -5,21 +5,23 @@ description = "Godot 3->4 migration agent: A-layer rule dictionary (SQLite) + B-
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  # 运行时依赖：worker 镜像要带，只服务 rag.retriever。保持又轻又稳定，
-  # 不要往这里加 build/ 才用得到的东西（那些进下面的 build 依赖组）。
+  # 运行时依赖：worker 镜像要带，只服务 rag.retriever。
+  # pyyaml：读 retriever.yaml；fastembed：B 层 query_embed（与建库 passage_embed 同模型）。
+  # 版本下限与原先 build 组声明对齐，避免换不兼容大版本。
   "pydantic>=2.7",
   "lancedb>=0.37",
+  "pyyaml>=6.0",
+  "fastembed>=0.3",
 ]
 
 [dependency-groups]
 # 只在本机跑 build/ 编译脚本时需要，worker 镜像不装这些。
 # uv sync --group build 装这一组；生产环境用 `uv build --wheel` 出的 wheel 不会带上它们。
+# pyyaml / fastembed 已是运行时依赖，这里不再重复声明；`uv sync --group build` 仍能用到它们。
 build = [
   "docutils>=0.21",
-  "pyyaml>=6.0",
   "requests>=2.32",   # 占位：给未来"定期从官方仓库拉取"刷新 vault 用，build_all.sh 还没实现这段
   "gitpython>=3.1",   # 占位：同上，clone/checkout godot-docs 指定 tag
-  "fastembed>=0.3",   # build-time embedding for corpus.lance (BAAI/bge-small-en-v1.5)
   "beautifulsoup4>=4.12",  # HTML parsing for tier_b_prose
   "trafilatura>=1.12",     # optional: robust article-body extraction
 ]
@@ -44,7 +46,7 @@ build-backend = "setuptools.build_meta"
 #   - `rag/` 目录下所有直接放的 .py 文件（如未来的 version_codec.py）自动变成
 #     `rag.xxx` 模块，不需要逐个声明。
 #   - 只有显式列在 `packages` 里的子目录（这里只有 retriever）会被当成子包打
-#     进去；`build/`、`vault/`、`artifacts/`、`eval/` 因为没有被列进来，
+#     进去；`build/`、`vault/`、`artifacts/`、`eval/`、`test/` 因为没有被列进来，
 #     不会出现在 `uv build --wheel` 产出的 wheel 里（已用
 #     `uv build --wheel` + `unzip -l` 实测确认，见下方「怎么验证」）。
 #   - 本地 `uv sync` / `pip install -e .` 是可编辑安装，Python 的隐式命名空间
@@ -57,12 +59,15 @@ packages = ["rag", "rag.retriever"]
 # setuptools 打包时的临时脚手架目录默认叫 `build/`，和我们自己的 `rag/build/`
 # 撞名——重定向到 `.setuptools-build/`，见同目录下的 setup.cfg 注释。
 
+[tool.setuptools.package-data]
+"rag.retriever" = ["retriever.yaml"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
 
 [tool.pytest.ini_options]
-testpaths = ["eval"]
+testpaths = ["test"]
 
 # --- 怎么用 ------------------------------------------------------------------
 # 本机开发（装运行时 + build 依赖 + 测试工具，可编辑模式）：
@@ -70,8 +75,8 @@ testpaths = ["eval"]
 #
 # 注意：`dev` 是 uv 里有历史默认行为的特殊组名——不加任何参数的 `uv sync` 也会把
 # `dev` 组一起装上（pytest/ruff 会跟着来），只有自定义组名（这里的 `build`）才
-# 需要显式 `--group build` 才会装。想要"只装运行时依赖"（模拟 worker 镜像会
-# 装的那一份，不带 docutils/pyyaml/requests/gitpython/pytest/ruff）：
+# 需要显式 `--group build` 才会装。想要"只装运行时依赖"（模拟 worker 镜像：
+# pydantic/lancedb/pyyaml/fastembed，不带 docutils/requests/gitpython/pytest/ruff）：
 #   cd rag && uv sync --no-default-groups
 #
 # 出生产用的 wheel（Docker 镜像里安装这个，不要 -e，不要带 vault/build/artifacts 源码）：

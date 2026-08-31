@@ -1,0 +1,29 @@
+source_file: wolfgangsenff_migration_notes.html
+source_url: https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976
+source: community_prose
+source_type: gist
+since_version: "4.0"
+confidence: needs_review
+title: Parent _ready / _process are no longer called automatically
+match_tokens:
+  - EditorPlugin
+  - super._ready
+  - _ready
+  - _process
+excerpts:
+  - heading_path:
+      - Gist comments
+      - Parent virtuals need super
+    text: |
+      Parent engine methods such as _ready, _process etc are not called
+      automatically anymore; you have to manually call them using super._ready().
+      This is completely different from Godot 3 and does not raise an error —
+      the parent implementation (including EditorPlugin and other engine
+      virtuals) simply never runs. Addon and subclass scripts that overrode
+      _ready without calling super will look "migrated" but silently skip
+      parent setup.
+    code: |
+      func _ready() -> void:
+          super._ready()
+          # subclass / EditorPlugin setup
+    language: gdscript

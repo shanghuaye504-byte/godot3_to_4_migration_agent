@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "doc_id": "community_blog/fix-nonexistent-function-connecting-signals-godot.html",
+  "source": "community_prose",
+  "source_file": "fix-nonexistent-function-connecting-signals-godot.html",
+  "source_url": "https://bugnet.io/blog/fix-nonexistent-function-connecting-signals-godot",
+  "source_type": "community_blog",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Signal connect conversion fails when the method name is a variable",
+  "keep": true,
+  "match_tokens": [
+    "connect",
+    "Callable",
+    "Nonexistent function"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "In Godot 3, connect() took three arguments: connect(\"signal\", target, \"method\").\nIn Godot 4 this became Callables. Writing connect(\"signal\", Callable(target, \"method\"))\nstill resolves the string method name at runtime, so any mismatch — including\ncase, underscores, or the method living on a different node — raises\nNonexistent function only when the connection runs.",
+      "heading_path": [
+        "What Causes This"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "paragraph",
+      "text": "The official 3-to-4 migrator cannot always determine the correct Callable\nform, especially when the target or method comes from a variable rather\nthan a literal string. Direct method references\n(enemy.died.connect(_on_enemy_died)) are checked at parse time; leftover\nstring Callables stay as unpredictable runtime failures.",
+      "heading_path": [
+        "Why This Works"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0003",
+      "type": "code",
+      "text": "# Error-prone leftover after auto-migration\nenemy.connect(\"died\", Callable(self, \"_on_enemy_died\"))\n\n# Godot 4 — parse-time checked\nenemy.died.connect(_on_enemy_died)",
+      "heading_path": [
+        "Why This Works"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "doc_id": "github_pr/godot_pull_65271.md",
+  "source": "github_pr",
+  "source_file": "godot_pull_65271.md",
+  "source_url": "https://github.com/godotengine/godot/pull/65271",
+  "source_type": "github_pr",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "PR #65271 — FileAccess.open is static and there is no close()",
+  "keep": true,
+  "match_tokens": [
+    "FileAccess",
+    "DirAccess",
+    "File",
+    "Directory",
+    "close"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "This PR removes File/Directory from core binds and binds FileAccess /\nDirAccess instead. The new classes have almost the same API as the old\nones, but there are some changes. Most notable changes are open() being\nstatic and lack of a close() method. Migrated code that does file.close()\nor `var f = File.new(); f.open(...)` will not map 1:1; open() now returns\nthe FileAccess object, and lifetime is handled without an explicit close.",
+      "heading_path": [
+        "body by KoBeWi"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

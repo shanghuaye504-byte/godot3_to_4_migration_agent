@@ -1,0 +1,35 @@
+source_file: fix-nonexistent-function-connecting-signals-godot.html
+source_url: https://bugnet.io/blog/fix-nonexistent-function-connecting-signals-godot
+source: community_prose
+source_type: community_blog
+since_version: "4.0"
+confidence: needs_review
+title: Signal connect conversion fails when the method name is a variable
+match_tokens:
+  - connect
+  - Callable
+  - Nonexistent function
+excerpts:
+  - heading_path:
+      - What Causes This
+    text: |
+      In Godot 3, connect() took three arguments: connect("signal", target, "method").
+      In Godot 4 this became Callables. Writing connect("signal", Callable(target, "method"))
+      still resolves the string method name at runtime, so any mismatch — including
+      case, underscores, or the method living on a different node — raises
+      Nonexistent function only when the connection runs.
+  - heading_path:
+      - Why This Works
+    text: |
+      The official 3-to-4 migrator cannot always determine the correct Callable
+      form, especially when the target or method comes from a variable rather
+      than a literal string. Direct method references
+      (enemy.died.connect(_on_enemy_died)) are checked at parse time; leftover
+      string Callables stay as unpredictable runtime failures.
+    code: |
+      # Error-prone leftover after auto-migration
+      enemy.connect("died", Callable(self, "_on_enemy_died"))
+
+      # Godot 4 — parse-time checked
+      enemy.died.connect(_on_enemy_died)
+    language: gdscript

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "doc_id": "gist/wolfgangsenff_migration_notes.logical_tests",
+  "source": "community_prose",
+  "source_file": "wolfgangsenff_migration_notes.html",
+  "source_url": "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976",
+  "source_type": "gist",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "No implicit object truthiness; array.slice is exclusive",
+  "keep": true,
+  "match_tokens": [
+    "if object",
+    "array.slice",
+    "is_instance_valid"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "You can no longer test an object's nullness simply by saying \"if object:\",\nnor with not like \"if not object:\". There is no longer any implicit\nconversion between these. Use is_instance_valid(object) or an explicit\ncomparison against null.",
+      "heading_path": [
+        "Logical tests"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "paragraph",
+      "text": "The end of array.slice() is no longer inclusive of the final element; it\nhas been changed to an exclusive ending. Off-by-one bugs after a mechanical\n3→4 rename will parse cleanly.",
+      "heading_path": [
+        "Logical tests"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

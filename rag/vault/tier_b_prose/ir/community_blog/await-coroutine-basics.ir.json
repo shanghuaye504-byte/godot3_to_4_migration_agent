@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "doc_id": "community_blog/await-coroutine-basics.html",
+  "source": "community_prose",
+  "source_file": "await-coroutine-basics.html",
+  "source_url": "https://uhiyama-lab.com/en/notes/godot/await-coroutine-basics/",
+  "source_type": "community_blog",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Await coroutine basics — Godot 3 yield migration",
+  "keep": true,
+  "match_tokens": [
+    "yield",
+    "await",
+    "_process"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "Code that used yield() in Godot 3 becomes await in Godot 4.\nGodot 4 lets you wait in the form object.signal_name instead of writing\nsignal names as strings.",
+      "heading_path": [
+        "Migrating from Godot 3's yield"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "code",
+      "text": "# Godot 3                                      # Godot 4\nyield(get_tree().create_timer(1.0), \"timeout\") # await get_tree().create_timer(1.0).timeout\nyield($AnimationPlayer, \"animation_finished\")  # await $AnimationPlayer.animation_finished\nyield(button, \"pressed\")                       # await button.pressed",
+      "heading_path": [
+        "Migrating from Godot 3's yield"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    },
+    {
+      "block_id": "b0003",
+      "type": "paragraph",
+      "text": "This one is genuinely dangerous. You create a new wait every frame, and a\nsecond later a huge pile of them resumes all at once. For repeating work,\nuse a Timer node or a state variable instead.",
+      "heading_path": [
+        "Common Pitfalls",
+        "Starting an await every frame inside _process()"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0004",
+      "type": "code",
+      "text": "# Bad: a new wait starts every single frame\nfunc _process(delta: float) -> void:\n    # _process() runs every frame, so the pending waits pile up fast\n    await get_tree().create_timer(1.0).timeout\n    spawn_enemy()",
+      "heading_path": [
+        "Common Pitfalls",
+        "Starting an await every frame inside _process()"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

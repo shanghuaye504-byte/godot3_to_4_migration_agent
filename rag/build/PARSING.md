@@ -211,5 +211,5 @@ def parse_doctree(rst_text: str, source_path: str):
 ## 6. 不在这份文档里回答的问题
 
 - 每个字段具体叫什么、`source` 允许哪些取值、`detection_method` 怎么分流 → [build/README.md](README.md)。
-- 解析完的行怎么被检索、A/B 两层怎么融合 → [retriever/README.md](../retriever/README.md)。
+- 解析完的行怎么被检索、A/B 两层怎么融合 → [retriever/docs/](../retriever/docs/README.md)。
 - `rag` 包怎么装、`uv` 依赖组怎么分 → [rag/README.md](../README.md)「开发环境」一节 + [`rag/pyproject.toml`](../pyproject.toml)。

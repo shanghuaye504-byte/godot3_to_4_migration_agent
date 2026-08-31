@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>RAG Retriever 离线评测</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 32px; color: #111827; }
+    h1, h2 { font-weight: 650; }
+    .meta { color: #6b7280; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 28px; }
+    th, td { border-bottom: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+    .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
+    .card .label { color: #6b7280; font-size: 12px; }
+    .card .value { font-size: 28px; font-weight: 700; }
+    .bar { position: relative; height: 18px; background: #f3f4f6; border-radius: 999px; min-width: 120px; }
+    .bar .fill { display: block; height: 100%; border-radius: 999px; }
+    .bar .num { position: absolute; inset: 0 8px; font-size: 12px; line-height: 18px; }
+    .note { background: #f9fafb; border-radius: 8px; padding: 12px 14px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>RAG Retriever 离线评测</h1>
+  <p class="meta">生成时间 2026-08-31 10:35:53 · 0.1s · 粗召回 20+20 0.3:0.7 · identity vs minilm_l6</p>
+  <h2>A Recall / B @3</h2>
+  <div class="cards">
+    <div class="card"><div class="label">Recall@5</div><div class="value">0.883</div></div>
+    <div class="card"><div class="label">Recall@8</div><div class="value">0.923</div></div>
+    <div class="card"><div class="label">Recall@15</div><div class="value">0.993</div></div>
+    <div class="card"><div class="label">MRR@3 identity</div><div class="value">0.872</div></div>
+    <div class="card"><div class="label">MRR@3 minilm</div><div class="value">0.844</div></div>
+  </div>
+  <h2>B identity vs minilm_l6</h2>
+  <table>
+    <tr><th>K</th><th>Prec_GT id</th><th>Prec_GT mini</th><th>ΔPrec</th><th>MRR id</th><th>MRR mini</th><th>ΔMRR</th></tr>
+    <tr><td>2</td><td><div class="bar"><span class="fill" style="width:83.3%;background:#94a3b8"></span><span class="num">0.833</span></div></td><td><div class="bar"><span class="fill" style="width:78.3%;background:#2563eb"></span><span class="num">0.783</span></div></td><td>-0.0500</td><td><div class="bar"><span class="fill" style="width:85.0%;background:#c4b5fd"></span><span class="num">0.850</span></div></td><td><div class="bar"><span class="fill" style="width:80.0%;background:#7c3aed"></span><span class="num">0.800</span></div></td><td>-0.0500</td></tr><tr><td>3</td><td><div class="bar"><span class="fill" style="width:90.0%;background:#94a3b8"></span><span class="num">0.900</span></div></td><td><div class="bar"><span class="fill" style="width:88.3%;background:#2563eb"></span><span class="num">0.883</span></div></td><td>-0.0167</td><td><div class="bar"><span class="fill" style="width:87.2%;background:#c4b5fd"></span><span class="num">0.872</span></div></td><td><div class="bar"><span class="fill" style="width:84.4%;background:#7c3aed"></span><span class="num">0.844</span></div></td><td>-0.0278</td></tr><tr><td>5</td><td><div class="bar"><span class="fill" style="width:96.7%;background:#94a3b8"></span><span class="num">0.967</span></div></td><td><div class="bar"><span class="fill" style="width:90.0%;background:#2563eb"></span><span class="num">0.900</span></div></td><td>-0.0667</td><td><div class="bar"><span class="fill" style="width:87.2%;background:#c4b5fd"></span><span class="num">0.872</span></div></td><td><div class="bar"><span class="fill" style="width:84.4%;background:#7c3aed"></span><span class="num">0.844</span></div></td><td>-0.0278</td></tr>
+  </table>
+  <h2>结论</h2>
+  <div class="note">**结论：生产保持 `identity`，不要上 MiniLM。** 粗召回 RRF 已经把 GT 排得很靠前；cross-encoder 改序的净效果是负的，会把部分已在前 3 的 GT 挤出短名单。
+- K=3（生产默认短名单）：Prec_GT identity `0.900` → minilm `0.883`（-0.0167）； MRR `0.872` → `0.844`（-0.0278）。
+- K=2：Prec_GT -0.0500， MRR -0.0500。 K=5：Prec_GT -0.0667， MRR -0.0278。
+- 第一命中名次（未命中按 21）：identity 平均 1.30，minilm 1.40。 提升 3 条，下降 5 条，不变 22 条； 改了第一名 8/30。
+- Prec_GT@3 逐条：提升 0，下降 1，不变 29。 变差：b_0017。
+- 分 query 类型 @3：报错 Prec_GT `0.933` → `0.900`；语义 `0.867` → `0.867`。
+- 耗时：identity 0.00s / 30 条， minilm_l6 0.00s / 30 条（含首次加载）。
+- Prec_GT@3 唯一变差的 `b_0017` 是 composite：GT 是 gist 里两条不相关迁移（`EditorPlugin` 要 `super._ready()`，以及 `modulate`/`COLOR`）。RRF 两条都在前 3；MiniLM 主题塌缩，用同类官方 class 页挤掉第二条。
+</div>
+</body>
+</html>

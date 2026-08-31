@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "doc_id": "github_pr/godot_pull_41794.md",
+  "source": "github_pr",
+  "source_file": "godot_pull_41794.md",
+  "source_url": "https://github.com/godotengine/godot/pull/41794",
+  "source_type": "github_pr",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "PR #41794 — Tweens are no longer nodes (fire and forget)",
+  "keep": true,
+  "match_tokens": [
+    "Tween",
+    "create_tween",
+    "Tweener",
+    "interpolate_property"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "Tweens are no longer nodes. They are References, with very similar logic\nto SceneTreeTimers, designed in a \"fire and forget\" manner. You create a\nTween with get_tree().create_tween(), which results in an empty Tween.\ntween_property is the equivalent of the old interpolate_property;\ntween_interval waits (a timer); tween_callback is interpolate_callback;\ntween_method is interpolate_method. You can call as many tweening methods\nas you want; they are sequenced one after another. Parallel tweening is\nexplicit via a dedicated method. Tweens are intended for fire-and-forget\nuse: create_tween() inside a Node automatically binds the Tween, and\nbind_node(node) makes the Tween skip processing when the node is not in\nthe tree and removes it when the node is freed. You can stop (reset),\npause, resume and kill a Tween.",
+      "heading_path": [
+        "body by KoBeWi"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "code",
+      "text": "var tween := get_tree().create_tween()\ntween.tween_property($icon, \"position\", Vector2(340, 100), 4)\ntween.tween_property($icon, \"modulate\", Color.red, 1)",
+      "heading_path": [
+        "body by KoBeWi"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

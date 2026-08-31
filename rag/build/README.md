@@ -64,7 +64,7 @@ rag/
 │   ├── tier_a_manual/              # YAML（陷阱 + 语义重构 + 工程说明）
 │   └── tier_b_prose/               # 散文原材料：人工维护的原文 + build 解析 4.x rst 时
 │                                   #   自动抽出的非结构化段落（*.prose.jsonl，按标题预分段）
-│                                   #   下一阶段 chunk_and_embed.py / build_tier_b.py 只读这里
+│                                   #   下一阶段 chunk_prose.py / embed_prose.py / build_tier_b.py 只读这里
 ├── build/                          # 工厂：脚本 + 中间产物
 │   ├── README.md                   # 本文件（协议）
 │   ├── parse_renames_cpp.py
@@ -82,7 +82,8 @@ rag/
     ├── agent_context/
     │   └── upgrading_to_godot_4.rst
     ├── corpus.lance/               # B 层（另一份协议）
-    └── manifest.lock.json
+    └── manifest.lock.json          # 出厂回执（vault 逐文件 sha256）。和 vault/manifest.json、
+                                    #   检索 cache_key 的关系见 docs/hash_and_manifest.md
 ```
 
 约定：
@@ -149,7 +150,7 @@ YAML 又引入第四种形状：`trigger` 可能是符号、文件 glob、报错
 | `until_version_code` | INTEGER NULL | 同上                                                                       |
 
 
-**禁止**用字符串比版本（`"4.10" < "4.9"` 会错）。SQL 侧只比较 `*_code`。Python 侧的换算函数放在 `rag/version_codec.py`（包根目录，只有一个纯函数 `version_to_code(v: str | None) -> int`，零依赖）——不要放进 `build/` 或 `retriever/` 各自的 `schemas.py`。原因是 worker 镜像不带 `build/`，但 `build_tier_a.py` 写 `since_version_code` 用的算法必须和 `retriever` 换算 `target_version_code` 用的算法逐字节一致，否则 `since_version_code <= target_version_code` 这条最关键的过滤会在两端悄悄跑出不同结果。放在包根目录，两侧各自 `from rag.version_codec import version_to_code`，只有一份实现。检索侧的完整契约见 [rag/retriever/README.md](../retriever/README.md)。
+**禁止**用字符串比版本（`"4.10" < "4.9"` 会错）。SQL 侧只比较 `*_code`。Python 侧的换算函数放在 `rag/version_codec.py`（包根目录，只有一个纯函数 `version_to_code(v: str | None) -> int`，零依赖）——不要放进 `build/` 或 `retriever/` 各自的 `schemas.py`。原因是 worker 镜像不带 `build/`，但 `build_tier_a.py` 写 `since_version_code` 用的算法必须和 `retriever` 换算 `target_version_code` 用的算法逐字节一致，否则 `since_version_code <= target_version_code` 这条最关键的过滤会在两端悄悄跑出不同结果。放在包根目录，两侧各自 `from rag.version_codec import version_to_code`，只有一份实现。检索侧的完整契约见 [rag/retriever/docs/](../retriever/docs/README.md) 与 [ARCHITECTURE.md](../retriever/ARCHITECTURE.md)。
 
 JSON 差集只有 4.0 和目标两份快照，**不知道中间哪一版改的**，所以 `since_version=4.0` 只表示「相对 4.0 已经成立」。精确生效点由 rst 行提供（`4.1`…`4.7`）。两行并存是故意的，见第 7 节。
 
@@ -238,7 +239,7 @@ CREATE TABLE meta (
 );
 ```
 
-`meta` 至少写入：`schema_version`、`godot_version`、`docs_checkout`、`api_from`、`api_to`、`built_at`。前三项版本必须和 Day 1 锁定的目标一致，评测才能复现。`schema_version` 是本文件的协议版本号（当前 `"2"`），retriever 连接数据库时**第一件事**就是断言这个值等于代码里写死的期望值，不一致就在启动时直接抛错，不要等到某一行 `MigrationRule.model_validate` 失败才发现——那时已经晚了，而且大概率不止一行出错。详见 [rag/retriever/README.md](../retriever/README.md) 第 8 节。
+`meta` 至少写入：`schema_version`、`godot_version`、`docs_checkout`、`api_from`、`api_to`、`built_at`。前三项版本必须和 Day 1 锁定的目标一致，评测才能复现。`schema_version` 是本文件的协议版本号（当前 `"2"`），retriever 连接数据库时**第一件事**就是断言这个值等于代码里写死的期望值，不一致就在启动时直接抛错，不要等到某一行 `MigrationRule.model_validate` 失败才发现——那时已经晚了，而且大概率不止一行出错。详见 [rag/retriever/docs/router-runtime.md](../retriever/docs/router-runtime.md) 与 [tier-a.md](../retriever/docs/tier-a.md)。
 
 非结构化散文不进这张库，写入 `vault/tier_b_prose/`，作为**下一阶段** LanceDB（B 层）编译的原材料。SQLite 只放能精确查的行。
 
@@ -341,7 +342,7 @@ Build 时做的唯一合并是：解析每一份，把该份里的每条变更�
 2. **Changed defaults 表** → `change=default`，`semantic_risk=1`，`payload.old_default` / `new_default`。编译能过、运行默认值变了，和数值陷阱同一类性质，但无法为每一条都写扫描脚本，所以仍进 Agent 可检索集合：只有查询里出现该符号时才返回。
 3. **Behavior changes** → 能抽出类名/方法的，进 A 层（`change=behavior`，`semantic_risk=1`，`verifier_blind=1`），段落同时进 B 层。抽不出符号的整段只进 B 层。
 
-`source=official_prose`。跟随表格的说明句复制进 `warning`；独立散文（抽不出符号、整段只能当说明看的部分）写入 `vault/tier_b_prose/`，按标题预分段（`heading_path` / `text` / `since_version` / `source_file`），作为**下一阶段** B 层编译（`chunk_and_embed.py` + `build_tier_b.py`）要读的原材料——本阶段的 parser 只负责把它从 rst 里搬出来落盘，不在这一步切分成 embedding 用的定长块，也不生成向量。
+`source=official_prose`。跟随表格的说明句复制进 `warning`；独立散文（抽不出符号、整段只能当说明看的部分）写入 `vault/tier_b_prose/`，按标题预分段（`heading_path` / `text` / `since_version` / `source_file`），作为**下一阶段** B 层编译（`chunk_prose.py` + `embed_prose.py` + `build_tier_b.py`）要读的原材料——本阶段的 parser 只负责把它从 rst 里搬出来落盘，不在这一步切分成 embedding 用的定长块，也不生成向量。
 
 ### 6.4 `upgrading_to_godot_4.rst` 的例外：`Updating shaders` 小节要单独抽出来入库
 
@@ -591,8 +592,8 @@ YAML 语义重构（Agent 可检索）：
 
 ## 11. 和运行时契约的关系
 
-以后 `rag/retriever/schemas.py` 里的 Pydantic `MigrationRule` 必须与第 5 节列 1:1（JSON 列在 Python 里是 `list` / `dict`）。检索服务的完整接口——`RetrievalQuery` / `RetrievalResult`、A/B 两层怎么在一次调用里同时召回、怎么包成 Agent 工具——单独写在 [rag/retriever/README.md](../retriever/README.md)，不在本文件重复。本文件只负责「数据库里一行是什么」，那份文件负责「怎么把这些行服务出去」。
+以后 `rag/retriever/schemas.py` 里的 Pydantic `MigrationRule` 必须与第 5 节列 1:1（JSON 列在 Python 里是 `list` / `dict`）。检索服务的完整接口——`RetrievalQuery` / `RetrievalResult`、A/B 两层怎么在一次调用里同时召回、怎么包成 Agent 工具——写在 [rag/retriever/docs/](../retriever/docs/README.md)，入口是 [retriever/README.md](../retriever/README.md)。本文件只负责「数据库里一行是什么」，那份目录负责「怎么把这些行服务出去」。
 
 扫描器和过滤器不是 retriever 的一部分：它们是 Day 3/4 流水线组件，只 `SELECT detection_method = ...`，也不经过 `RetrievalQuery` 这套契约。本协议把它们的配置存在同一份 db 里，是为了「改 YAML → 重编译」一个动作更新所有通路，而不是为了让 Agent 去调用扫描器。
 
-下一轮实现顺序：`rag/version_codec.py` → Pydantic schema（`rag/retriever/schemas.py`）→ 四个 adapter 写 jsonl → `build_tier_a.py` 建表导入 → `rag/retriever/{tier_a,tier_b,router,cache}.py` 按 [retriever/README.md](../retriever/README.md) 实现。在那之前不要改列名。
+下一轮实现顺序：`rag/version_codec.py` → Pydantic schema（`rag/retriever/schemas.py` 补齐 RetrievalQuery / Result）→ 四个 adapter 写 jsonl → `build_tier_a.py` 建表导入 → `rag/retriever/` 下 stub 按 [retriever/docs/](../retriever/docs/README.md) 填函数体。在那之前不要改列名。

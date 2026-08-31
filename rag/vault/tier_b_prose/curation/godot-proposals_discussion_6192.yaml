@@ -1,0 +1,34 @@
+source_file: godot-proposals_discussion_6192.md
+source_url: https://github.com/godotengine/godot-proposals/discussions/6192
+source: github_discussion
+source_type: github_discussion
+since_version: "4.0"
+confidence: needs_review
+title: "Discussion #6192 — why @onready is an annotation, not a keyword"
+match_tokens:
+  - "@onready"
+  - "@export"
+  - "@rpc"
+  - annotation
+excerpts:
+  - heading_path:
+      - body by FeldrinH
+    text: |
+      In Godot 4.0 beta, the onready keyword became the @onready annotation.
+      The GDScript docs said annotations "affect how the script is treated by
+      external tools and usually don't change the behavior." @onready appears to
+      violate both: it is internal to the node (not an external-tool concern)
+      and it does change when the assignment runs (_ready vs construction).
+      The proposal was to restore onready as a keyword, both for consistency
+      with that distinction and because many @ signs add visual noise.
+  - heading_path:
+      - comment by dalexeev
+    text: |
+      Maintainer response: this is more of a bug in the documentation than a
+      reason to revert the syntax. @export annotations affect get_property_list()
+      and duplicate() (exported variables are copied; others are not). The @rpc
+      annotation has a very large effect on behavior too. The GDScript team
+      discussed annotations vs keywords and reached a consensus that existing
+      keywords and annotations should not be changed, even without a general
+      rule for new features. The confusing "usually don't change the behavior"
+      sentence was corrected in the user manual (godot-docs#9188).

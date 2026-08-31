@@ -29,7 +29,7 @@ PREPROCESS_DIR = (
 )
 
 # Type A lives under official_upgrading_guide as *.prose.jsonl and is lifted
-# by chunk_and_embed.py; the scanner does not touch it.
+# by chunk_prose.py; the scanner does not touch it.
 SCAN_BUCKETS = [
     "official_gdscript_doc",
     "official_html_doc",

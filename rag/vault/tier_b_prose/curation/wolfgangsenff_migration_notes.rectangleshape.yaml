@@ -1,0 +1,24 @@
+source_file: wolfgangsenff_migration_notes.html
+source_url: https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976
+source: community_prose
+source_type: gist
+since_version: "4.0"
+confidence: needs_review
+title: RectangleShape2D.extents renamed to size but numbers stay half-extents
+match_tokens:
+  - RectangleShape2D
+  - extents
+  - size
+excerpts:
+  - heading_path:
+      - Gist comments
+      - RectangleShape2D extents vs size
+    text: |
+      RectangleShape2D no longer has a property called extents, but rather size.
+      Instead of the half-width/height, it stores the full width and height. The
+      built-in 3-to-4 converter correctly renames extents to size in scene files,
+      but it keeps the numbers the same, which results in every single
+      RectangleShape2D being half the intended size. Circles seem unaffected.
+      This compiles and runs with no error — collision bodies are just silently
+      half as large. Searching tscn files for type="RectangleShape2D" is faster
+      than opening scenes one by one.

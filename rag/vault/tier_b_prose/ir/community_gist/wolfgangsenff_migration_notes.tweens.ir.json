@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "doc_id": "gist/wolfgangsenff_migration_notes.tweens",
+  "source": "community_prose",
+  "source_file": "wolfgangsenff_migration_notes.html",
+  "source_url": "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976",
+  "source_type": "gist",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Tweens are references, not scene-tree nodes",
+  "keep": true,
+  "match_tokens": [
+    "Tween",
+    "create_tween",
+    "interpolate_property"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "Tweens are not nodes anymore. They are references, similar to timers you\ncreate with the scene tree. You create one with get_tree().create_tween()\n(or create_tween() on a Node, which binds the tween to that node). There\nis also tween_interval (wait), tween_callback (old interpolate_callback),\nand tween_method (old interpolate_method). You can stop/reset, pause,\nresume, or destroy a tween; a tween bound to a node will not process if\nthe node is outside the tree or paused.",
+      "heading_path": [
+        "Tweens"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "code",
+      "text": "var sprite = $Sprite\nvar tween := get_tree().create_tween()\ntween.tween_property(sprite, \"position\", sprite.position + Vector2(16.0, 16.0), 1.0)",
+      "heading_path": [
+        "Tweens"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+source_file: fix-godot-tween-not-working-godot-4.html
+source_url: https://bugnet.io/blog/fix-godot-tween-not-working-godot-4
+source: community_prose
+source_type: community_blog
+since_version: "4.0"
+confidence: needs_review
+title: Godot 4 Tween node removal and kill/re-create
+match_tokens:
+  - Tween
+  - interpolate_property
+  - create_tween
+  - $Tween
+excerpts:
+  - heading_path:
+      - The Symptom
+    text: |
+      After migrating a Godot 3.x project to Godot 4, you see errors like
+      Invalid call. Nonexistent function 'interpolate_property' in base 'Tween'
+      or Cannot find class "Tween" as a node type. If you had Tween nodes in
+      your scene tree, they may have been silently removed during the conversion
+      process. Scripts that reference $Tween fail with null access errors.
+  - heading_path:
+      - What Causes This
+    text: |
+      Godot 4 completely replaced the Tween system. In Godot 3, Tween was a node
+      you added to the scene tree, configured with interpolate_property() and
+      started with start(). In Godot 4, the Tween node no longer exists. Instead,
+      tweens are lightweight objects created procedurally with create_tween().
+      Every part of the old API changed: the node reference is gone,
+      interpolate_property() was replaced by tween_property(), and you do not
+      call start() because tweens start automatically upon creation. Property
+      names also changed (rect_position → position, rect_scale → scale); if an
+      old tween targeted these renamed properties, it silently does nothing even
+      when the syntax is correct.
+    code: |
+      # Godot 3 — the old way (no longer works)
+      var tween = $Tween
+      tween.interpolate_property(
+        self, "modulate:a",
+        0.0, 1.0, 0.5,
+        Tween.TRANS_SINE, Tween.EASE_IN_OUT
+      )
+      tween.start()
+    language: gdscript
+  - heading_path:
+      - The Fix
+    text: |
+      Godot 4 tweens are one-shot by default. For tweens that need to restart —
+      like a button hover that plays every time the mouse enters — kill the old
+      tween and create a new one. Killing and recreating guarantees a clean
+      slate; restarting a running tween in Godot 3 could produce unexpected
+      intermediate states.
+    code: |
+      var hover_tween: Tween
+
+      func _on_mouse_entered():
+        if hover_tween and hover_tween.is_running():
+          hover_tween.kill()
+        hover_tween = create_tween()
+        hover_tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.15)
+    language: gdscript

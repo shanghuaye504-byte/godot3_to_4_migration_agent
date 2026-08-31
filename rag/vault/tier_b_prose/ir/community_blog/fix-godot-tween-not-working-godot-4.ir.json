@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "doc_id": "community_blog/fix-godot-tween-not-working-godot-4.html",
+  "source": "community_prose",
+  "source_file": "fix-godot-tween-not-working-godot-4.html",
+  "source_url": "https://bugnet.io/blog/fix-godot-tween-not-working-godot-4",
+  "source_type": "community_blog",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Godot 4 Tween node removal and kill/re-create",
+  "keep": true,
+  "match_tokens": [
+    "Tween",
+    "interpolate_property",
+    "create_tween",
+    "$Tween"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "After migrating a Godot 3.x project to Godot 4, you see errors like\nInvalid call. Nonexistent function 'interpolate_property' in base 'Tween'\nor Cannot find class \"Tween\" as a node type. If you had Tween nodes in\nyour scene tree, they may have been silently removed during the conversion\nprocess. Scripts that reference $Tween fail with null access errors.",
+      "heading_path": [
+        "The Symptom"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "paragraph",
+      "text": "Godot 4 completely replaced the Tween system. In Godot 3, Tween was a node\nyou added to the scene tree, configured with interpolate_property() and\nstarted with start(). In Godot 4, the Tween node no longer exists. Instead,\ntweens are lightweight objects created procedurally with create_tween().\nEvery part of the old API changed: the node reference is gone,\ninterpolate_property() was replaced by tween_property(), and you do not\ncall start() because tweens start automatically upon creation. Property\nnames also changed (rect_position → position, rect_scale → scale); if an\nold tween targeted these renamed properties, it silently does nothing even\nwhen the syntax is correct.",
+      "heading_path": [
+        "What Causes This"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0003",
+      "type": "code",
+      "text": "# Godot 3 — the old way (no longer works)\nvar tween = $Tween\ntween.interpolate_property(\n  self, \"modulate:a\",\n  0.0, 1.0, 0.5,\n  Tween.TRANS_SINE, Tween.EASE_IN_OUT\n)\ntween.start()",
+      "heading_path": [
+        "What Causes This"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    },
+    {
+      "block_id": "b0004",
+      "type": "paragraph",
+      "text": "Godot 4 tweens are one-shot by default. For tweens that need to restart —\nlike a button hover that plays every time the mouse enters — kill the old\ntween and create a new one. Killing and recreating guarantees a clean\nslate; restarting a running tween in Godot 3 could produce unexpected\nintermediate states.",
+      "heading_path": [
+        "The Fix"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0005",
+      "type": "code",
+      "text": "var hover_tween: Tween\n\nfunc _on_mouse_entered():\n  if hover_tween and hover_tween.is_running():\n    hover_tween.kill()\n  hover_tween = create_tween()\n  hover_tween.tween_property(self, \"scale\", Vector2(1.05, 1.05), 0.15)",
+      "heading_path": [
+        "The Fix"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

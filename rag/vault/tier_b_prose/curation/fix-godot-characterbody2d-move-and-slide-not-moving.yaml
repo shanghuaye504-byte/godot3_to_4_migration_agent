@@ -1,0 +1,36 @@
+source_file: fix-godot-characterbody2d-move-and-slide-not-moving.html
+source_url: https://bugnet.io/blog/fix-godot-characterbody2d-move-and-slide-not-moving
+source: community_prose
+source_type: community_blog
+since_version: "4.0"
+confidence: needs_review
+title: CharacterBody2D move_and_slide no longer takes velocity
+match_tokens:
+  - move_and_slide
+  - CharacterBody2D
+  - KinematicBody
+  - velocity
+excerpts:
+  - heading_path:
+      - Why move_and_slide Ignores Your Input
+    text: |
+      In Godot 4, move_and_slide() no longer accepts parameters. It reads from
+      the velocity property built into every CharacterBody2D. If you never assign
+      that property before calling move_and_slide, the body will not move — no
+      error, no crash, just a frozen body. If you declare a local variable called
+      velocity, it shadows the built-in property: assignments go to the local
+      while the node's actual velocity stays at Vector2.ZERO, so the method
+      reads zero and does nothing.
+    code: |
+      # Godot 3 pattern — DOES NOT WORK in Godot 4
+      var velocity = Vector2.ZERO
+
+      func _physics_process(delta):
+        velocity.x = Input.get_axis("move_left", "move_right") * speed
+        velocity = move_and_slide(velocity, Vector2.UP)
+
+      # Godot 4: assign the inherited property, then call with no args
+      func _physics_process(delta):
+        velocity.x = Input.get_axis("move_left", "move_right") * SPEED
+        move_and_slide()
+    language: gdscript

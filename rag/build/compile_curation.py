@@ -1,8 +1,11 @@
 """Compile human-curated YAML excerpts into Document IR.
 
 Input:  rag/vault/tier_b_prose/curation/*.yaml
-Output: rag/vault/tier_b_prose/ir/community_blog/*.ir.json
-        rag/vault/tier_b_prose/ir/community_gist/*.ir.json
+Output: rag/vault/tier_b_prose/ir/<bucket>/*.ir.json
+
+Buckets: community_blog, community_gist, github_pr, github_issue,
+github_discussion (CHUNKING.md §7; GitHub YAML must not fall back to
+community_blog).
 
 Workflow: rag/vault/tier_b_prose/CHUNKING.md §7
 """
@@ -32,6 +35,9 @@ OUTPUT_DIR = Path(__file__).resolve().parent.parent / "vault" / "tier_b_prose" /
 _SOURCE_TYPE_TO_BUCKET = {
     "community_blog": "community_blog",
     "gist": "community_gist",
+    "github_pr": "github_pr",
+    "github_issue": "github_issue",
+    "github_discussion": "github_discussion",
 }
 
 
@@ -43,7 +49,24 @@ def load_curation(path: Path) -> dict:
     return data
 
 
-def build_ir(data: dict) -> ProseDocument:
+def _doc_id_file(stem: str | None, source_file: str) -> str:
+    """Pick the doc_id file component so split gist YAML files do not collide.
+
+    One gist source can become several ``<stem>.<topic>.yaml`` files that all
+    keep the original ``source_file``. Using the YAML stem (e.g.
+    ``wolfgangsenff_migration_notes.tweens``) keeps ``doc_id`` unique while
+    ``source_file`` / ``source_url`` still point at the original snapshot.
+    Single-file curation (blog / GitHub) keeps ``<source_type>/<source_file>``.
+    """
+    if not stem:
+        return source_file
+    source_stem = Path(source_file).stem
+    if stem != source_stem and stem.startswith(source_stem + "."):
+        return stem
+    return source_file
+
+
+def build_ir(data: dict, stem: str | None = None) -> ProseDocument:
     """Convert curation YAML into ProseDocument."""
     source_file = str(data["source_file"])
     source_type = str(data.get("source_type") or "community_blog")
@@ -75,7 +98,7 @@ def build_ir(data: dict) -> ProseDocument:
     tokens = [str(t) for t in (data.get("match_tokens") or [])]
     return ProseDocument(
         schema_version=1,
-        doc_id=make_doc_id(source_type, source_file),
+        doc_id=make_doc_id(source_type, _doc_id_file(stem, source_file)),
         source=str(data.get("source") or "community_prose"),
         source_file=source_file,
         source_url=data.get("source_url"),
@@ -108,7 +131,7 @@ def main() -> int:
     written = 0
     for path in paths:
         data = load_curation(path)
-        doc = build_ir(data)
+        doc = build_ir(data, stem=path.stem)
         dest = _output_path(path.stem, data)
         write_ir(doc, dest)
         print(f"  wrote {dest.relative_to(OUTPUT_DIR.parent)} ({len(doc.blocks)} blocks)")

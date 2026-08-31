@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "doc_id": "github_issue/godot-docs_issue_6265.md",
+  "source": "github_issue",
+  "source_file": "godot-docs_issue_6265.md",
+  "source_url": "https://github.com/godotengine/godot-docs/issues/6265",
+  "source_type": "github_issue",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Issue #6265 — setget is gone; use inline set / get",
+  "keep": true,
+  "match_tokens": [
+    "setget",
+    "setter",
+    "getter"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "The GDScript grammar still documented setget after Godot 4.0 removed it.\nConvert setget to the inline set / get property syntax; the old keyword\nis fully gone from 4.0 onward, so leftover setget is a parse error, not a\nsilent behavior change.",
+      "heading_path": [
+        "body by TheYellowArchitect"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

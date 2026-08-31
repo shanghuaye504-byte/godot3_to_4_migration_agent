@@ -1464,17 +1464,17 @@ name = "rag"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "fastembed" },
     { name = "lancedb" },
     { name = "pydantic" },
+    { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
 build = [
     { name = "beautifulsoup4" },
     { name = "docutils" },
-    { name = "fastembed" },
     { name = "gitpython" },
-    { name = "pyyaml" },
     { name = "requests" },
     { name = "trafilatura" },
 ]
@@ -1485,17 +1485,17 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "fastembed", specifier = ">=0.3" },
     { name = "lancedb", specifier = ">=0.37" },
     { name = "pydantic", specifier = ">=2.7" },
+    { name = "pyyaml", specifier = ">=6.0" },
 ]
 
 [package.metadata.requires-dev]
 build = [
     { name = "beautifulsoup4", specifier = ">=4.12" },
     { name = "docutils", specifier = ">=0.21" },
-    { name = "fastembed", specifier = ">=0.3" },
     { name = "gitpython", specifier = ">=3.1" },
-    { name = "pyyaml", specifier = ">=6.0" },
     { name = "requests", specifier = ">=2.32" },
     { name = "trafilatura", specifier = ">=1.12" },
 ]

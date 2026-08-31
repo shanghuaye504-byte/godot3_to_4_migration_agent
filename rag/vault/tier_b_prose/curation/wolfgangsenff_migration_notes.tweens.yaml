@@ -1,0 +1,27 @@
+source_file: wolfgangsenff_migration_notes.html
+source_url: https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976
+source: community_prose
+source_type: gist
+since_version: "4.0"
+confidence: needs_review
+title: Tweens are references, not scene-tree nodes
+match_tokens:
+  - Tween
+  - create_tween
+  - interpolate_property
+excerpts:
+  - heading_path:
+      - Tweens
+    text: |
+      Tweens are not nodes anymore. They are references, similar to timers you
+      create with the scene tree. You create one with get_tree().create_tween()
+      (or create_tween() on a Node, which binds the tween to that node). There
+      is also tween_interval (wait), tween_callback (old interpolate_callback),
+      and tween_method (old interpolate_method). You can stop/reset, pause,
+      resume, or destroy a tween; a tween bound to a node will not process if
+      the node is outside the tree or paused.
+    code: |
+      var sprite = $Sprite
+      var tween := get_tree().create_tween()
+      tween.tween_property(sprite, "position", sprite.position + Vector2(16.0, 16.0), 1.0)
+    language: gdscript

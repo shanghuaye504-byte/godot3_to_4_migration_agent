@@ -1,0 +1,2098 @@
+{
+  "schema_version": 1,
+  "doc_id": "rst/gdscript_styleguide.rst",
+  "source": "official_doc",
+  "source_file": "gdscript_styleguide.rst",
+  "source_url": "https://github.com/godotengine/godot-docs/blob/master/tutorials/scripting/gdscript/gdscript_styleguide.rst",
+  "source_type": "rst",
+  "since_version": "4.0",
+  "confidence": "verified",
+  "title": "GDScript style guide",
+  "keep": true,
+  "match_tokens": [
+    "weapon.gd",
+    "yaml_parser.gd",
+    "formatting",
+    "naming_conventions",
+    "doc_gdscript_basics_class_name",
+    "abstract class <doc_gdscript_basics_abstract_class>",
+    "documentation comments <doc_gdscript_documentation_comments>",
+    "optional static typing<doc_gdscript_static_typing>",
+    "breaking",
+    "@export",
+    "@onready",
+    "@tool",
+    "export",
+    "onready",
+    "tool",
+    "OS",
+    "Time",
+    "Engine",
+    "CharacterBody",
+    "Tween",
+    "signal",
+    "connect",
+    "set",
+    "get"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0002",
+      "type": "paragraph",
+      "text": "This style guide lists conventions to write elegant GDScript. The goal is to\nencourage writing clean, readable code and promote consistency across projects,\ndiscussions, and tutorials. Hopefully, this will also support the development of\nauto-formatting tools.",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0003",
+      "type": "paragraph",
+      "text": "Since GDScript is close to Python, this guide is inspired by Python's\nPEP 8 programming\nstyle guide.",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0004",
+      "type": "paragraph",
+      "text": "Style guides aren't meant as hard rulebooks. At times, you may not be able to\napply some of the guidelines below. When that happens, use your best judgment,\nand ask fellow developers for insights.",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0008",
+      "type": "code",
+      "text": "class_name StateMachine\nextends Node\n## Hierarchical State machine for the player.\n##\n## Initializes states and delegates engine callbacks ([method Node._physics_process],\n## [method Node._unhandled_input]) to the state.\n\nsignal state_changed(previous, new)\n\n@export var initial_state: Node\nvar is_active = true:\n    set = set_is_active\n\n@onready var _state = initial_state:\n    set = set_state\n@onready var _state_name = _state.name\n\n\nfunc _init():\n    add_to_group(\"state_machine\")\n\n\nfunc _enter_tree():\n    print(\"this happens before the ready method!\")\n\n\nfunc _ready():\n    state_changed.connect(_on_state_changed)\n    _state.enter()\n\n\nfunc _unhandled_input(event):\n    _state.unhandled_input(event)\n\n\nfunc _physics_process(delta):\n    _state.physics_process(delta)\n\n\nfunc transition_to(target_state_path, msg={}):\n    if not has_node(target_state_path):\n        return\n\n    var target_state = get_node(target_state_path)\n    assert(target_state.is_composite == false)\n\n    _state.exit()\n    self._state = target_state\n    _state.enter(msg)\n    Events.player_state_changed.emit(_state.name)\n\n\nfunc set_is_active(value):\n    is_active = value\n    set_physics_process(value)\n    set_process_unhandled_input(value)\n    set_block_signals(not value)\n\n\nfunc set_state(value):\n    _state = value\n    _state_name = _state.name\n\n\nfunc _on_state_changed(previous, new):\n    print(\"state changed\")\n    state_changed.emit()\n\n\nclass State:\n    var foo = 0\n\n    func _init():\n        print(\"Hello!\")",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0020",
+      "type": "code",
+      "text": "effect.interpolate_property(sprite, \"transform/scale\",\n        sprite.get_scale(), Vector2(2.0, 2.0), 0.3,\n        Tween.TRANS_QUAD, Tween.EASE_OUT)",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0022",
+      "type": "code",
+      "text": "effect.interpolate_property(sprite, \"transform/scale\",\n    sprite.get_scale(), Vector2(2.0, 2.0), 0.3,\n    Tween.TRANS_QUAD, Tween.EASE_OUT)",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0043",
+      "type": "admonition",
+      "text": "We use a single line between classes and function definitions in the class reference and\nin short code snippets in this documentation.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Blank lines"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0050",
+      "type": "code",
+      "text": "if position.x > width:\n    position.x = 0\n\nif flag:\n    print(\"flagged\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "One statement per line"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0052",
+      "type": "code",
+      "text": "if position.x > width: position.x = 0\n\nif flag: print(\"flagged\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "One statement per line"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0060",
+      "type": "code",
+      "text": "var angle_degrees = 135\nvar quadrant = (\n        \"northeast\" if angle_degrees <= 90\n        else \"southeast\" if angle_degrees <= 180\n        else \"southwest\" if angle_degrees <= 270\n        else \"northwest\"\n)\n\nvar position = Vector2(250, 350)\nif (\n        position.x > 200 and position.x < 400\n        and position.y > 300 and position.y < 400\n):\n    pass",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Format multiline statements for readability"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0062",
+      "type": "code",
+      "text": "var angle_degrees = 135\nvar quadrant = \"northeast\" if angle_degrees <= 90 else \"southeast\" if angle_degrees <= 180 else \"southwest\" if angle_degrees <= 270 else \"northwest\"\n\nvar position = Vector2(250, 350)\nif position.x > 200 and position.x < 400 and position.y > 300 and position.y < 400:\n    pass",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Format multiline statements for readability"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0070",
+      "type": "paragraph",
+      "text": "Prefer the plain English versions of boolean operators, as they are the most accessible:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Boolean operators"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0085",
+      "type": "paragraph",
+      "text": "Prefer writing comments on their own line as opposed to inline comments\n(comments written on the same line as code). Inline comments are best used for\nshort comments, typically a few words at most:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0091",
+      "type": "paragraph",
+      "text": "Always use one space around operators and after commas. Also, avoid extra spaces\nin dictionary references and function calls. One exception to this is for\nsingle-line dictionary declarations, where a space should be added after the\nopening brace and before the closing brace. This makes the dictionary easier to\nvisually distinguish from an array, as the [] characters look close to\n{} with most fonts.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Whitespace"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0093",
+      "type": "code",
+      "text": "position.x = 5\nposition.y = target_position.y + 10\ndict[\"key\"] = 5\nmy_array = [4, 5, 6]\nmy_dictionary = { key = \"value\" }\nprint(\"foo\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Whitespace"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0095",
+      "type": "code",
+      "text": "position.x=5\nposition.y = mpos.y+10\ndict [\"key\"] = 5\nmyarray = [4,5,6]\nmy_dictionary = {key = \"value\"}\nprint (\"foo\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Whitespace"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0099",
+      "type": "paragraph",
+      "text": "Use double quotes unless single quotes make it possible to escape fewer\ncharacters in a given string. See the examples below:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Quotes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0118",
+      "type": "paragraph",
+      "text": "These naming conventions follow the Godot Engine style. Breaking these will make\nyour code clash with the built-in naming conventions, leading to inconsistent\ncode. As a summary table:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0123",
+      "type": "paragraph",
+      "text": "This is consistent with how C++ files are named in Godot's source code. This\nalso avoids case sensitivity issues that can crop up when exporting a project\nfrom Windows to other platforms.",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "File names"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0126",
+      "type": "code",
+      "text": "extends CharacterBody3D",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Classes and nodes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0134",
+      "type": "heading",
+      "text": "Signals",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0136",
+      "type": "code",
+      "text": "signal door_opened\nsignal score_changed",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Signals"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0150",
+      "type": "code",
+      "text": "01. @tool, @icon, @static_unload\n02. class_name\n03. extends\n04. ## doc comment\n\n05. signals\n06. enums\n07. constants\n08. static variables\n09. @export variables\n10. remaining regular variables\n11. @onready variables\n\n12. _static_init()\n13. remaining static methods\n14. overridden built-in virtual methods:\n    1. _init()\n    2. _enter_tree()\n    3. _ready()\n    4. _process()\n    5. _physics_process()\n    6. remaining virtual methods\n15. overridden custom methods\n16. remaining methods\n17. inner classes",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0153",
+      "type": "paragraph",
+      "text": "We optimized the order to make it easy to read the code from top to bottom, to\nhelp developers reading the code for the first time understand how it works, and\nto avoid errors linked to the order of variable declarations.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0155",
+      "type": "list",
+      "text": "- Properties and signals come first, followed by methods.\n- Public comes before private.\n- Virtual callbacks come before the class's interface.\n- The object's construction and initialization functions, _init and\n_ready, come before functions that modify the object at runtime.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0157",
+      "type": "paragraph",
+      "text": "If the code is meant to run in the editor, place the @tool annotation on the\nfirst line of the script.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0164",
+      "type": "heading",
+      "text": "Signals and properties",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0165",
+      "type": "paragraph",
+      "text": "Write signal declarations, followed by properties, that is to say, member\nvariables, after the docstring.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Signals and properties"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0166",
+      "type": "paragraph",
+      "text": "Enums should come after signals, as you can use them as export hints for other\nproperties.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Signals and properties"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0167",
+      "type": "paragraph",
+      "text": "Then, write constants, exported variables, public, private, and onready\nvariables, in that order.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Signals and properties"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0168",
+      "type": "code",
+      "text": "signal player_spawned(position)\n\nenum Job {\n    KNIGHT,\n    WIZARD,\n    ROGUE,\n    HEALER,\n    SHAMAN,\n}\n\nconst MAX_LIVES = 3\n\n@export var job: Job = Job.KNIGHT\n@export var max_health = 50\n@export var attack = 5\n\nvar health = max_health:\n    set(new_health):\n        health = new_health\n\nvar _speed = 300.0\n\n@onready var sword = get_node(\"Sword\")\n@onready var gun = get_node(\"Gun\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Signals and properties"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0169",
+      "type": "admonition",
+      "text": "GDScript evaluates @onready variables right before the _ready\ncallback. You can use that to cache node dependencies, that is to say, to get\nchild nodes in the scene that your class relies on. This is what the example\nabove shows.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Signals and properties"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0173",
+      "type": "paragraph",
+      "text": "Declare local variables as close as possible to their first use. This makes it\neasier to follow the code, without having to scroll too much to find where the\nvariable was declared.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Local variables"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0176",
+      "type": "paragraph",
+      "text": "Start with the _init() callback method, that the engine will call upon\ncreating the object in memory. Follow with the _ready() callback, that Godot\ncalls when it adds a node to the scene tree.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Methods and static functions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0178",
+      "type": "paragraph",
+      "text": "Other built-in virtual callbacks, like _unhandled_input() and\n_physics_process, should come next. These control the object's main loop and\ninteractions with the game engine.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Methods and static functions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0180",
+      "type": "code",
+      "text": "func _init():\n    add_to_group(\"state_machine\")\n\n\nfunc _ready():\n    state_changed.connect(_on_state_changed)\n    _state.enter()\n\n\nfunc _unhandled_input(event):\n    _state.unhandled_input(event)\n\n\nfunc transition_to(target_state_path, msg={}):\n    if not has_node(target_state_path):\n        return\n\n    var target_state = get_node(target_state_path)\n    assert(target_state.is_composite == false)\n\n    _state.exit()\n    self._state = target_state\n    _state.enter(msg)\n    Events.player_state_changed.emit(_state.name)\n\n\nfunc _on_state_changed(previous, new):\n    print(\"state changed\")\n    state_changed.emit()",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Methods and static functions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0189",
+      "type": "paragraph",
+      "text": "In most cases, you can let the compiler infer the type using :=.\nPrefer := when the type is written on the same line as the assignment,\notherwise prefer writing the type explicitly.",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0195",
+      "type": "paragraph",
+      "text": "In some cases, the type must be stated explicitly, otherwise the behavior\nwill not be as expected because the compiler will only be able to use\nthe function's return type. For example, get_node() cannot infer a type\nunless the scene or file of the node is loaded in memory. In this case, you\nshould set the type explicitly.",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0197",
+      "type": "code",
+      "text": "@onready var health_bar: ProgressBar = get_node(\"UI/LifeBar\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0199",
+      "type": "code",
+      "text": "# The compiler can't infer the exact type and will use Node\n# instead of ProgressBar.\n@onready var health_bar := get_node(\"UI/LifeBar\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0201",
+      "type": "code",
+      "text": "@onready var health_bar := get_node(\"UI/LifeBar\") as ProgressBar\n# health_bar will be typed as ProgressBar",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0001",
+      "type": "heading",
+      "text": "GDScript style guide",
+      "heading_path": [],
+      "level": 1,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0005",
+      "type": "paragraph",
+      "text": "In general, keeping your code consistent in your projects and within your team is\nmore important than following this guide to a tee.",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0006",
+      "type": "admonition",
+      "text": "Godot's built-in script editor uses a lot of these conventions\nby default. Let it help you.",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": "note"
+    },
+    {
+      "block_id": "b0007",
+      "type": "paragraph",
+      "text": "Here is a complete class example based on these guidelines:",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0009",
+      "type": "heading",
+      "text": "Formatting",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0010",
+      "type": "heading",
+      "text": "Encoding and special characters",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0011",
+      "type": "list",
+      "text": "- Use line feed (LF) characters to break lines, not CRLF or CR. (editor default)\n- Use one line feed character at the end of each file. (editor default)\n- Use UTF-8 encoding without a byte order mark. (editor default)\n- Use Tabs instead of spaces for indentation. (editor default)",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Encoding and special characters"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0012",
+      "type": "heading",
+      "text": "Indentation",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0013",
+      "type": "paragraph",
+      "text": "Each indent level should be one greater than the block containing it.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0015",
+      "type": "code",
+      "text": "for i in range(10):\n    print(\"hello\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0017",
+      "type": "code",
+      "text": "for i in range(10):\n  print(\"hello\")\n\nfor i in range(10):\n        print(\"hello\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0018",
+      "type": "paragraph",
+      "text": "Use 2 indent levels to distinguish continuation lines from\nregular code blocks.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0023",
+      "type": "paragraph",
+      "text": "Exceptions to this rule are arrays, dictionaries, and enums. Use a single\nindentation level to distinguish continuation lines:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0025",
+      "type": "code",
+      "text": "var party = [\n    \"Godot\",\n    \"Godette\",\n    \"Steve\",\n]\n\nvar character_dict = {\n    \"Name\": \"Bob\",\n    \"Age\": 27,\n    \"Job\": \"Mechanic\",\n}\n\nenum Tile {\n    BRICK,\n    FLOOR,\n    SPIKE,\n    TELEPORT,\n}",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0027",
+      "type": "code",
+      "text": "var party = [\n        \"Godot\",\n        \"Godette\",\n        \"Steve\",\n]\n\nvar character_dict = {\n        \"Name\": \"Bob\",\n        \"Age\": 27,\n        \"Job\": \"Mechanic\",\n}\n\nenum Tile {\n        BRICK,\n        FLOOR,\n        SPIKE,\n        TELEPORT,\n}",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Indentation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0028",
+      "type": "heading",
+      "text": "Trailing comma",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0029",
+      "type": "paragraph",
+      "text": "Use a trailing comma on the last line in arrays, dictionaries, and enums. This\nresults in easier refactoring and better diffs in version control as the last\nline doesn't need to be modified when adding new elements.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Trailing comma"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0031",
+      "type": "code",
+      "text": "var array = [\n    1,\n    2,\n    3,\n]",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Trailing comma"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0033",
+      "type": "code",
+      "text": "var array = [\n    1,\n    2,\n    3\n]",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Trailing comma"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0034",
+      "type": "paragraph",
+      "text": "Trailing commas are unnecessary in single-line lists, so don't add them in this case.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Trailing comma"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0036",
+      "type": "code",
+      "text": "var array = [1, 2, 3]",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Trailing comma"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0038",
+      "type": "code",
+      "text": "var array = [1, 2, 3,]",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Trailing comma"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0039",
+      "type": "heading",
+      "text": "Blank lines",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0040",
+      "type": "paragraph",
+      "text": "Surround functions and class definitions with two blank lines:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Blank lines"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0041",
+      "type": "code",
+      "text": "func heal(amount):\n    health += amount\n    health = min(health, max_health)\n    health_changed.emit(health)\n\n\nfunc take_damage(amount, effect=null):\n    health -= amount\n    health = max(0, health)\n    health_changed.emit(health)",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Blank lines"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0042",
+      "type": "paragraph",
+      "text": "Use one blank line inside functions to separate logical sections.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Blank lines"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0044",
+      "type": "heading",
+      "text": "Line length",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0045",
+      "type": "paragraph",
+      "text": "Keep individual lines of code under 100 characters.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Line length"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0046",
+      "type": "paragraph",
+      "text": "If you can, try to keep lines under 80 characters. This helps to read the code\non small displays and with two scripts opened side-by-side in an external text\neditor. For example, when looking at a differential revision.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Line length"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0047",
+      "type": "heading",
+      "text": "One statement per line",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0048",
+      "type": "paragraph",
+      "text": "Avoid combining multiple statements on a single line, including conditional\nstatements, to adhere to the GDScript style guidelines for readability.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "One statement per line"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0053",
+      "type": "paragraph",
+      "text": "The only exception to that rule is the ternary operator:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "One statement per line"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0054",
+      "type": "code",
+      "text": "next_state = \"idle\" if is_on_floor() else \"fall\"",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "One statement per line"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0055",
+      "type": "heading",
+      "text": "Format multiline statements for readability",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0056",
+      "type": "paragraph",
+      "text": "When you have particularly long if statements or nested ternary expressions,\nwrapping them over multiple lines improves readability. Since continuation lines\nare still part of the same expression, 2 indent levels should be used instead of one.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Format multiline statements for readability"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0057",
+      "type": "paragraph",
+      "text": "GDScript allows wrapping statements using multiple lines using parentheses or\nbackslashes. Parentheses are favored in this style guide since they make for\neasier refactoring. With backslashes, you have to ensure that the last line\nnever contains a backslash at the end. With parentheses, you don't have to\nworry about the last line having a backslash at the end.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Format multiline statements for readability"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0058",
+      "type": "paragraph",
+      "text": "When wrapping a conditional expression over multiple lines, the and/or\nkeywords should be placed at the beginning of the line continuation, not at the\nend of the previous line.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Format multiline statements for readability"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0063",
+      "type": "heading",
+      "text": "Avoid unnecessary parentheses",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0064",
+      "type": "paragraph",
+      "text": "Avoid parentheses in expressions and conditional statements. Unless\nnecessary for order of operations or wrapping over multiple lines,\nthey only reduce readability.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Avoid unnecessary parentheses"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0066",
+      "type": "code",
+      "text": "if is_colliding():\n    queue_free()",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Avoid unnecessary parentheses"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0068",
+      "type": "code",
+      "text": "if (is_colliding()):\n    queue_free()",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Avoid unnecessary parentheses"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0069",
+      "type": "heading",
+      "text": "Boolean operators",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0071",
+      "type": "list",
+      "text": "- Use and instead of &&.\n- Use or instead of ||.\n- Use not instead of !.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Boolean operators"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0072",
+      "type": "paragraph",
+      "text": "You may also use parentheses around boolean operators to clear any ambiguity.\nThis can make long expressions easier to read.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Boolean operators"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0074",
+      "type": "code",
+      "text": "if (foo and bar) or not baz:\n    print(\"condition is true\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Boolean operators"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0076",
+      "type": "code",
+      "text": "if foo && bar || !baz:\n    print(\"condition is true\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Boolean operators"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0077",
+      "type": "heading",
+      "text": "Comment spacing",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0078",
+      "type": "paragraph",
+      "text": "Regular comments (#) and documentation comments (##) should start with a\nspace, but not code that you comment out. Additionally, code region comments\n(#region/#endregion) must follow that precise syntax, so they should not\nstart with a space.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0079",
+      "type": "paragraph",
+      "text": "Using a space for regular and documentation comments helps differentiate text\ncomments from disabled code.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0081",
+      "type": "code",
+      "text": "# This is a comment.\n#print(\"This is disabled code\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0083",
+      "type": "code",
+      "text": "#This is a comment.\n# print(\"This is disabled code\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0087",
+      "type": "code",
+      "text": "# This is a long comment that would make the line below too long if written inline.\nprint(\"Example\") # Short comment.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0089",
+      "type": "code",
+      "text": "print(\"Example\") # This is a long comment that would make this line too long if written inline.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Comment spacing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0090",
+      "type": "heading",
+      "text": "Whitespace",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0096",
+      "type": "paragraph",
+      "text": "Don't use spaces to align expressions vertically:",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Whitespace"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0097",
+      "type": "code",
+      "text": "x        = 100\ny        = 100\nvelocity = 500",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Whitespace"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0098",
+      "type": "heading",
+      "text": "Quotes",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0100",
+      "type": "code",
+      "text": "# Normal string.\nprint(\"hello world\")\n\n# Use double quotes as usual to avoid escapes.\nprint(\"hello 'world'\")\n\n# Use single quotes as an exception to the rule to avoid escapes.\nprint('hello \"world\"')\n\n# Both quote styles would require 2 escapes; prefer double quotes if it's a tie.\nprint(\"'hello' \\\"world\\\"\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Quotes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0101",
+      "type": "heading",
+      "text": "Numbers",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0102",
+      "type": "paragraph",
+      "text": "Don't omit the leading or trailing zero in floating-point numbers. Otherwise,\nthis makes them less readable and harder to distinguish from integers at a\nglance.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0104",
+      "type": "code",
+      "text": "var float_number = 0.234\nvar other_float_number = 13.0",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0106",
+      "type": "code",
+      "text": "var float_number = .234\nvar other_float_number = 13.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0107",
+      "type": "paragraph",
+      "text": "Use lowercase for letters in hexadecimal numbers, as their lower height makes\nthe number easier to read.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0109",
+      "type": "code",
+      "text": "var hex_number = 0xfb8c0b",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0111",
+      "type": "code",
+      "text": "var hex_number = 0xFB8C0B",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0112",
+      "type": "paragraph",
+      "text": "Take advantage of GDScript's underscores in literals to make large numbers more\nreadable.",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0114",
+      "type": "code",
+      "text": "var large_number = 1_234_567_890\nvar large_hex_number = 0xffff_f8f8_0000\nvar large_bin_number = 0b1101_0010_1010\n# Numbers lower than 1000000 generally don't need separators.\nvar small_number = 12345",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0116",
+      "type": "code",
+      "text": "var large_number = 1234567890\nvar large_hex_number = 0xfffff8f80000\nvar large_bin_number = 0b110100101010\n# Numbers lower than 1000000 generally don't need separators.\nvar small_number = 12_345",
+      "heading_path": [
+        "GDScript style guide",
+        "Formatting",
+        "Numbers"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0117",
+      "type": "heading",
+      "text": "Naming conventions",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0119",
+      "type": "heading",
+      "text": "File names",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0120",
+      "type": "paragraph",
+      "text": "Use snake_case for file names. For named classes, convert the PascalCase class\nname to snake_case:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "File names"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0121",
+      "type": "code",
+      "text": "# This file should be saved as `weapon.gd`.\nclass_name Weapon\nextends Node",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "File names"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0122",
+      "type": "code",
+      "text": "# This file should be saved as `yaml_parser.gd`.\nclass_name YAMLParser\nextends Object",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "File names"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0124",
+      "type": "heading",
+      "text": "Classes and nodes",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0125",
+      "type": "paragraph",
+      "text": "Use PascalCase for class and node names:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Classes and nodes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0127",
+      "type": "paragraph",
+      "text": "Also use PascalCase when loading a class into a constant or a variable:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Classes and nodes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0128",
+      "type": "code",
+      "text": "const Weapon = preload(\"res://weapon.gd\")",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Classes and nodes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0129",
+      "type": "heading",
+      "text": "Functions and variables",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0130",
+      "type": "paragraph",
+      "text": "Use snake_case to name functions and variables:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Functions and variables"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0131",
+      "type": "code",
+      "text": "var particle_effect\nfunc load_level():",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Functions and variables"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0132",
+      "type": "paragraph",
+      "text": "Prepend a single underscore (_) to virtual methods/functions the user must\noverride, private functions, and private variables:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Functions and variables"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0133",
+      "type": "code",
+      "text": "var _counter = 0\nfunc _recalculate_path():",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Functions and variables"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0137",
+      "type": "heading",
+      "text": "Constants and enums",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0138",
+      "type": "paragraph",
+      "text": "Write constants with CONSTANT_CASE, that is to say in all caps with an\nunderscore (_) to separate words:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0139",
+      "type": "code",
+      "text": "const MAX_SPEED = 200",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0140",
+      "type": "paragraph",
+      "text": "Use PascalCase for enum names and keep them singular, as they represent a type. Use CONSTANT_CASE for their members, as they\nare constants:",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0141",
+      "type": "code",
+      "text": "enum Element {\n    EARTH,\n    WATER,\n    AIR,\n    FIRE,\n}",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0142",
+      "type": "paragraph",
+      "text": "Write enums with each item on its own line. This allows adding documentation comments above each item\nmore easily, and also makes for cleaner diffs in version control when items are added or removed.",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0144",
+      "type": "code",
+      "text": "enum Element {\n    EARTH,\n    WATER,\n    AIR,\n    FIRE,\n}",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0146",
+      "type": "code",
+      "text": "enum Element { EARTH, WATER, AIR, FIRE }",
+      "heading_path": [
+        "GDScript style guide",
+        "Naming conventions",
+        "Constants and enums"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0147",
+      "type": "heading",
+      "text": "Code order",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0148",
+      "type": "paragraph",
+      "text": "This section focuses on code order. For formatting, see\n:ref:`formatting`. For naming conventions, see :ref:`naming_conventions`.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0149",
+      "type": "paragraph",
+      "text": "We suggest to organize GDScript code this way:",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0151",
+      "type": "paragraph",
+      "text": "And put the class methods and variables in the following order depending on their access modifiers:",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0152",
+      "type": "code",
+      "text": "1. public\n2. private",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0154",
+      "type": "paragraph",
+      "text": "This code order follows four rules of thumb:",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0156",
+      "type": "heading",
+      "text": "Class declaration",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0158",
+      "type": "paragraph",
+      "text": "Follow with the optional @icon then the class_name if necessary. You can turn a\nGDScript file into a global type in your project using class_name. For more\ninformation, see :ref:`doc_gdscript_basics_class_name`. If the class is meant\nto be an :ref:`abstract class <doc_gdscript_basics_abstract_class>`,\nadd @abstract before the class_name keyword.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0159",
+      "type": "paragraph",
+      "text": "Then, add the extends keyword if the class extends a built-in type.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0160",
+      "type": "paragraph",
+      "text": "Following that, you should have the class's optional\n:ref:`documentation comments <doc_gdscript_documentation_comments>`.\nYou can use that to explain the role of your class to your teammates, how it works,\nand how other developers should use it, for example.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0161",
+      "type": "code",
+      "text": "@abstract\nclass_name MyNode\nextends Node\n## A brief description of the class's role and functionality.\n##\n## The description of the script, what it can do,\n## and any further detail.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0162",
+      "type": "paragraph",
+      "text": "For inner classes, use single-line declarations:",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0163",
+      "type": "code",
+      "text": "## A brief description of the class's role and functionality.\n##\n## The description of the script, what it can do,\n## and any further detail.\n@abstract class MyNode extends Node:\n    pass",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Class declaration"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0170",
+      "type": "heading",
+      "text": "Member variables",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0171",
+      "type": "paragraph",
+      "text": "Don't declare member variables if they are only used locally in a method, as it\nmakes the code more difficult to follow. Instead, declare them as local\nvariables in the method's body.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Member variables"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0172",
+      "type": "heading",
+      "text": "Local variables",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0174",
+      "type": "heading",
+      "text": "Methods and static functions",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0175",
+      "type": "paragraph",
+      "text": "After the class's properties come the methods.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Methods and static functions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0177",
+      "type": "paragraph",
+      "text": "These functions should come first because they show how the object is\ninitialized.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Methods and static functions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0179",
+      "type": "paragraph",
+      "text": "The rest of the class's interface, public and private methods, come after that,\nin that order.",
+      "heading_path": [
+        "GDScript style guide",
+        "Code order",
+        "Methods and static functions"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0181",
+      "type": "heading",
+      "text": "Static typing",
+      "heading_path": [
+        "GDScript style guide"
+      ],
+      "level": 2,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0182",
+      "type": "paragraph",
+      "text": "GDScript supports :ref:`optional static typing<doc_gdscript_static_typing>`.",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0183",
+      "type": "heading",
+      "text": "Declared types",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0184",
+      "type": "paragraph",
+      "text": "To declare a variable's type, use <variable>: <type>:",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Declared types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0185",
+      "type": "code",
+      "text": "var health: int = 0",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Declared types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0186",
+      "type": "paragraph",
+      "text": "To declare the return type of a function, use -> <type>:",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Declared types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0187",
+      "type": "code",
+      "text": "func heal(amount: int) -> void:",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Declared types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0188",
+      "type": "heading",
+      "text": "Inferred types",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing"
+      ],
+      "level": 3,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0191",
+      "type": "code",
+      "text": "# The type can be int or float, and thus should be stated explicitly.\nvar health: int = 0\n\n# The type is clearly inferred as Vector3.\nvar direction := Vector3(1, 2, 3)",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0192",
+      "type": "paragraph",
+      "text": "Include the type hint when the type is ambiguous, and\nomit the type hint when it's redundant.",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0194",
+      "type": "code",
+      "text": "# Typed as int, but it could be that float was intended.\nvar health := 0\n\n# The type hint has redundant information.\nvar direction: Vector3 = Vector3(1, 2, 3)\n\n# What type is this? It's not immediately clear to the reader, so it's bad.\nvar value := complex_function()",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0200",
+      "type": "paragraph",
+      "text": "Alternatively, you can use the as keyword to cast the return type, and\nthat type will be used to infer the type of the var.",
+      "heading_path": [
+        "GDScript style guide",
+        "Static typing",
+        "Inferred types"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

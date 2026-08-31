@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "doc_id": "gist/wolfgangsenff_migration_notes.packed_array",
+  "source": "community_prose",
+  "source_file": "wolfgangsenff_migration_notes.html",
+  "source_url": "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976",
+  "source_type": "gist",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Packed arrays are passed by reference",
+  "keep": true,
+  "match_tokens": [
+    "PackedByteArray",
+    "PackedStringArray",
+    "PoolByteArray",
+    "PoolStringArray"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "The Pool*Array types have been renamed to Packed*Array, and instead of\nbeing passed by value, they are now passed by reference. Code that mutated\na copy of a Pool*Array in Godot 3 will now mutate the original Packed*Array\nin Godot 4 — a silent behavioral change the 3-to-4 converter's rename does\nnot warn about.",
+      "heading_path": [
+        "Nodes",
+        "Renamed nodes"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

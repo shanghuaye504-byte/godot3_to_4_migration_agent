@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "doc_id": "community_blog/godot-4-setter-getter.html",
+  "source": "community_prose",
+  "source_file": "godot-4-setter-getter.html",
+  "source_url": "https://shaggydev.com/2022/09/27/godot-4-setter-getter/",
+  "source_type": "community_blog",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Godot 4 setters always fire, including from inside the class",
+  "keep": true,
+  "match_tokens": [
+    "setget",
+    "setter",
+    "getter",
+    "set",
+    "get"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "In Godot 3, setter and getter functions were not internally called by\ndefault: assignments from inside the same class skipped them. That is no\nlonger the case in Godot 4. Your setter and getter functions will now\nalways get called regardless of who is operating on the data, including\ncode inside the same class. Migrated code that relied on internal writes\nbypassing the setter will now re-enter it (and can recurse if the setter\nassigns the same property).",
+      "heading_path": [
+        "Setter and getter functions in Godot 4"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "code",
+      "text": "var health: float = 100:\n    set(new_value):\n        print(\"setting\")\n        health = new_value\n    get:\n        print(\"reading\")\n        return health",
+      "heading_path": [
+        "Setter and getter functions in Godot 4"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

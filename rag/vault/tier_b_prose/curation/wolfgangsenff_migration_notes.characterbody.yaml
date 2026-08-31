@@ -1,0 +1,32 @@
+source_file: wolfgangsenff_migration_notes.html
+source_url: https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976
+source: community_prose
+source_type: gist
+since_version: "4.0"
+confidence: needs_review
+title: CharacterBody2D move_and_slide uses built-in velocity
+match_tokens:
+  - CharacterBody2D
+  - KinematicBody2D
+  - move_and_slide
+  - velocity
+excerpts:
+  - heading_path:
+      - KinematicBody2D
+    text: |
+      KinematicBody2D has been renamed to CharacterBody2D. move_and_slide now
+      no longer takes any parameters, and uses the built-in velocity property
+      to control where it is going. Passing a local velocity (the Godot 3
+      pattern) is a silent no-op in Godot 4.
+    code: |
+      # Before (Godot 3)
+      var velocity = Vector2.ZERO
+      func _process(delta):
+          velocity = velocity.move_towards(direction * 200)
+          velocity = move_and_slide(velocity)
+
+      # Now (Godot 4)
+      func _process(delta):
+          velocity = velocity.move_towards(direction * 200)
+          move_and_slide()
+    language: gdscript

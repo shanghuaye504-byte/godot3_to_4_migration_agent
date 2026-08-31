@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "doc_id": "github_discussion/godot-proposals_discussion_6192.md",
+  "source": "github_discussion",
+  "source_file": "godot-proposals_discussion_6192.md",
+  "source_url": "https://github.com/godotengine/godot-proposals/discussions/6192",
+  "source_type": "github_discussion",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "Discussion #6192 — why @onready is an annotation, not a keyword",
+  "keep": true,
+  "match_tokens": [
+    "@onready",
+    "@export",
+    "@rpc",
+    "annotation"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "In Godot 4.0 beta, the onready keyword became the @onready annotation.\nThe GDScript docs said annotations \"affect how the script is treated by\nexternal tools and usually don't change the behavior.\" @onready appears to\nviolate both: it is internal to the node (not an external-tool concern)\nand it does change when the assignment runs (_ready vs construction).\nThe proposal was to restore onready as a keyword, both for consistency\nwith that distinction and because many @ signs add visual noise.",
+      "heading_path": [
+        "body by FeldrinH"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "paragraph",
+      "text": "Maintainer response: this is more of a bug in the documentation than a\nreason to revert the syntax. @export annotations affect get_property_list()\nand duplicate() (exported variables are copied; others are not). The @rpc\nannotation has a very large effect on behavior too. The GDScript team\ndiscussed annotations vs keywords and reached a consensus that existing\nkeywords and annotations should not be changed, even without a general\nrule for new features. The confusing \"usually don't change the behavior\"\nsentence was corrected in the user manual (godot-docs#9188).",
+      "heading_path": [
+        "comment by dalexeev"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}

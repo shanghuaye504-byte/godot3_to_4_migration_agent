@@ -1,0 +1,19 @@
+source_file: godot-docs_issue_6265.md
+source_url: https://github.com/godotengine/godot-docs/issues/6265
+source: github_issue
+source_type: github_issue
+since_version: "4.0"
+confidence: needs_review
+title: "Issue #6265 — setget is gone; use inline set / get"
+match_tokens:
+  - setget
+  - setter
+  - getter
+excerpts:
+  - heading_path:
+      - body by TheYellowArchitect
+    text: |
+      The GDScript grammar still documented setget after Godot 4.0 removed it.
+      Convert setget to the inline set / get property syntax; the old keyword
+      is fully gone from 4.0 onward, so leftover setget is a parse error, not a
+      silent behavior change.

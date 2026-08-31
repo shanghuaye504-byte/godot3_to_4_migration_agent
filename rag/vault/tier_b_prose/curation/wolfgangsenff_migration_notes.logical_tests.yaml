@@ -1,0 +1,25 @@
+source_file: wolfgangsenff_migration_notes.html
+source_url: https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976
+source: community_prose
+source_type: gist
+since_version: "4.0"
+confidence: needs_review
+title: No implicit object truthiness; array.slice is exclusive
+match_tokens:
+  - "if object"
+  - array.slice
+  - is_instance_valid
+excerpts:
+  - heading_path:
+      - Logical tests
+    text: |
+      You can no longer test an object's nullness simply by saying "if object:",
+      nor with not like "if not object:". There is no longer any implicit
+      conversion between these. Use is_instance_valid(object) or an explicit
+      comparison against null.
+  - heading_path:
+      - Logical tests
+    text: |
+      The end of array.slice() is no longer inclusive of the final element; it
+      has been changed to an exclusive ending. Off-by-one bugs after a mechanical
+      3→4 rename will parse cleanly.

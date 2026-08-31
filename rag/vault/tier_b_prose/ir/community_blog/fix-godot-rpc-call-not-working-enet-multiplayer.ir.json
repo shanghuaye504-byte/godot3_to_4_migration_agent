@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "doc_id": "community_blog/fix-godot-rpc-call-not-working-enet-multiplayer.html",
+  "source": "community_prose",
+  "source_file": "fix-godot-rpc-call-not-working-enet-multiplayer.html",
+  "source_url": "https://bugnet.io/blog/fix-godot-rpc-call-not-working-enet-multiplayer",
+  "source_type": "community_blog",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "RPC silently does nothing without @rpc",
+  "keep": true,
+  "match_tokens": [
+    "@rpc",
+    "rpc",
+    "remote",
+    "puppet",
+    "master"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "In Godot 4, the @rpc annotation replaced the old remote, puppet, and master\nkeywords. If your function doesn't have an @rpc annotation, calling .rpc()\non it will silently do nothing. There is no runtime error or warning — the\ncall is simply discarded. The same silent drop happens if a non-authority\npeer tries to call an \"authority\" RPC.",
+      "heading_path": [
+        "The @rpc Annotation"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    },
+    {
+      "block_id": "b0002",
+      "type": "code",
+      "text": "@rpc(\"any_peer\", \"reliable\", \"call_local\")\nfunc take_damage(amount: int):\n    health -= amount",
+      "heading_path": [
+        "The @rpc Annotation"
+      ],
+      "level": null,
+      "language": "gdscript",
+      "subtype": null
+    }
+  ]
+}

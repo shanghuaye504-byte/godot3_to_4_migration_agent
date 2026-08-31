@@ -1,6 +1,6 @@
 # B 层 Prose 预处理工作手册
 
-> 本手册是 `rag/vault/tier_b_prose/` 的**唯一本地协议**。它指导维护者如何把 `_raw/` 下 21 个异构源文件预处理成统一的 Document IR，再交给 `chunk_and_embed.py` 装箱。
+> 本手册是 `rag/vault/tier_b_prose/` 的**唯一本地协议**。它指导维护者如何把 `_raw/` 下 21 个异构源文件预处理成统一的 Document IR，再交给 `chunk_prose.py` 装箱、`embed_prose.py` 写入 LanceDB。
 >
 > 设计目标：小规模（≈21 文件）下极度简化，不引入工作流引擎、LLM 层或统一编排器；同时保留 IR 统一出口和 chunker 统一性，未来扩展到 200 文件时只需逐个桶加规则，不需要重写架构。
 >
@@ -8,7 +8,7 @@
 >
 > - 语料清单与来源说明：[README.md](README.md)
 > - HTML/RST/Markdown 提取示例：[docs/prose_preprocessing_guide.md](../../../docs/prose_preprocessing_guide.md)
-> - 检索侧契约：[rag/retriever/README.md](../../retriever/README.md)
+> - 检索侧契约：[rag/retriever/README.md](../../retriever/README.md)（入口）、[docs/tier-b.md](../../retriever/docs/tier-b.md)（查询配对）
 > - A 层规则库契约：[rag/build/README.md](../../build/README.md)
 
 ---
@@ -27,8 +27,10 @@ flowchart LR
     scanner --> ap["after_preprocess/<bucket>/<file>.blocks.jsonl"]
     ap --> proc["process_<bucket>.py<br/>filter / select / HITL"]
     proc --> ir["ir/<bucket>/<file>.ir.json"]
-    ir --> chunker["chunk_and_embed.py<br/>单一 chunker"]
-    chunker --> lance["artifacts/corpus.lance"]
+    ir --> chunker["chunk_prose.py"]
+    chunker --> jsonl["artifacts/chunks/strategy/chunks.jsonl"]
+    jsonl --> embedder["embed_prose.py"]
+    embedder --> lance["artifacts/corpora/strategy/corpus.lance"]
 
     proc -.->|F/G only| queue["review_queue.jsonl"]
     queue -.->|human| curation["curation/<stem>.yaml"]
@@ -43,7 +45,8 @@ flowchart LR
 | 1. 格式归一化       | 按扩展名把 rst/html/md 解析成带 `heading_path` 的 block 草稿 | `scan_tier_b_raw.py`  | `after_preprocess/<bucket>/<file>.blocks.jsonl` |
 | 2. 桶级处理        | 每个桶独立 filter/select；官方源直接写 IR；社区源生成 review queue | `process_<bucket>.py` | `ir/*.ir.json` 或 `review_queue.jsonl`           |
 | 3. 编译 Curation | 把人工确认后的 curation YAML 编译成 IR                     | `compile_curation.py` | `ir/community_*/*.ir.json`                      |
-| 4. 切块 + Embedding | 读全部 IR + lift 类型 A，统一 chunk，生成向量，写入 LanceDB   | `chunk_and_embed.py`  | `artifacts/corpus.lance`                        |
+| 4a. 切块         | 读全部 IR + lift 类型 A，按策略装箱                         | `chunk_prose.py`      | `artifacts/chunks/<id>/chunks.jsonl`            |
+| 4b. Embedding  | 读 jsonl，生成向量，写入独立 LanceDB                         | `embed_prose.py`      | `artifacts/corpora/<id>/corpus.lance`           |
 
 
 
@@ -126,7 +129,9 @@ rag/build/
 │   ├── selectors.py                   # 公共 select
 │   ├── parsers.py                     # rst/html/md 统一解析入口
 │   ├── heading_path.py                # heading_path 栈
-│   └── review_queue.py                # review_queue.jsonl 读写
+│   ├── review_queue.py                # review_queue.jsonl 读写
+│   ├── chunker.py                     # IR → ProseChunk 装箱
+│   └── bge.py                         # bge WordPiece 计数 + TextEmbedding 单例
 │
 ├── scan_tier_b_raw.py                 # 阶段 1：扫描 + 格式归一化
 ├── download_github_api.py             # 类型 E：API → _raw/*.md
@@ -136,7 +141,9 @@ rag/build/
 ├── process_github.py                  # 类型 E（只滤 jsonl）
 ├── process_community.py               # 类型 F/G
 ├── compile_curation.py                # 阶段 3：YAML → IR
-└── chunk_and_embed.py                 # 阶段 4：读 IR + lift A → chunk
+├── chunk_prose.py                     # 阶段 4a：IR → chunks.jsonl
+├── embed_prose.py                     # 阶段 4b：jsonl → corpus.lance
+└── chunk_and_embed.py                 # 薄封装：默认策略先 chunk 再 embed
 ```
 
 ---
@@ -373,6 +380,23 @@ legacy_prose_jsonl
 }
 ```
 
+
+
+### 4.7 `chunker.py`
+
+- `ChunkConfig`：切块参数（mode / chunk_size / overlap / max_tokens / target_tokens / 字数下限 / code 绑定）。
+- `chunk_documents(docs, config=..., token_counter=...) -> list[ProseChunk]`：按 heading_path 装箱。生产由 `chunk_prose.py` 传入 `bge_token_count`。
+- `approx_token_count`：正则近似，**只给单测**。
+- `lift_prose_jsonl(path)` / `load_ir_documents(ir_dir)` / `type_a_paths(tier_b_dir)`：给 `chunk_prose.py` 用的装载函数。
+- `split_code_at_functions(text)`：按顶层 `func` / `class` / `enum` 切代码。
+
+算法细节见第 8 节。纯函数，不写盘；落盘由 `chunk_prose.py` 负责。
+
+### 4.8 `bge.py`
+
+- `get_text_embedding()`：懒加载 `TextEmbedding("BAAI/bge-small-en-v1.5")`，缓存目录读 `FASTEMBED_CACHE_PATH`。
+- `bge_token_count(text)`：同一套 WordPiece，给切块装箱和 embed 侧 512 截断共用。
+
 ---
 
 
@@ -431,7 +455,7 @@ GitHub 三桶是 `.md`（`download_github_api.py` 写入），scan 走 `parse_ma
 
 - **无独立 process 脚本**。
 - **输入**：`_raw/official_upgrading_guide/*.prose.jsonl`
-- **处理**：`chunk_and_embed.py` 直接 lift，不生成 `.ir.json`。
+- **处理**：`chunk_prose.py` 直接 lift，不生成 `.ir.json`。
 - **Human-in-the-loop**：无。
 
 
@@ -580,83 +604,85 @@ excerpts:
 
 ## 8. Chunker 与 Embedding 策略
 
-`chunk_and_embed.py` 负责把 Document IR 切成检索单元，并在 build 阶段生成 embedding、写入 LanceDB。它内部拆为两个子阶段：
+切块和向量写入是两个脚本，中间落盘一份可复现的 `chunks.jsonl`，方便用不同参数生成多份 LanceDB 做召回对比。
 
-1. **Chunk 阶段**：IR → `ProseChunk` 列表。
-2. **Embed 阶段**：`ProseChunk` → 向量 → `artifacts/corpus.lance`。
+```text
+IR + 类型 A *.prose.jsonl
+  → chunk_prose.py
+  → artifacts/chunks/<strategy_id>/chunks.jsonl
+     artifacts/chunks/<strategy_id>/manifest.json
+  → embed_prose.py
+  → artifacts/corpora/<strategy_id>/corpus.lance
+```
+
+默认 `strategy_id=default`。`embed_prose.py` 在写入 `corpora/default/` 之后，会再镜像一份到 `artifacts/corpus.lance`，兼容旧路径。其它 strategy 不碰这条路径。
+
+`chunk_and_embed.py` 只是薄封装：先跑默认（或传入的）chunk，再 embed。`--skip-embed` / `TIER_B_SKIP_EMBED=1` 仍可只切块。对比实验请直接调两个脚本。
 
 ### 8.1 设计原则
 
-- **Build 阶段完成 embedding**：向量在 build 时生成，运行时只查 LanceDB，不再加载 embedding 模型。
-- **LanceDB 同表存储向量 + 文本**：`corpus.lance` 中同时保存 `vector`、`text`、`heading_path`、`since_version_code` 等全部字段，检索时一次查询直接返回完整 chunk，不需要回查 IR 文件或 SQLite。
-- **模型固定**：使用 `BAAI/bge-small-en-v1.5`，输出 384 维向量，最大输入 512 token。
-- **中英文说明**：bge-small-en-v1.5 是英文模型；Agent 调用 retrieve 时建议优先使用英文符号名 / 报错原文（通过 `RetrievalQuery.symbols` 和 `error_text`），以获得最佳召回。中文 `query_text` 也能召回英文文档，但效果弱于英文 query。
+- **切块与 embedding 分离**：换 overlap / chunk-size 时不必重跑 IR。
+- **Build 阶段完成 embedding**：运行时只查 LanceDB。
+- **LanceDB 同表存储向量 + 文本**：检索一次返回完整 chunk。
+- **模型固定**：`BAAI/bge-small-en-v1.5`，384 维，最大输入 512 token。切块与建库共用 WordPiece；建库 `passage_embed`，检索 `query_embed`。
+- **中英文说明**：检索时优先英文符号名 / 报错原文。
 
 ### 8.2 Chunk 阶段输入
 
 1. `ir/<bucket>/*.ir.json` 中所有 `keep=true` 的文档。
 2. `_raw/official_upgrading_guide/*.prose.jsonl` lift 后的退化 IR。
 
-### 8.3 Chunk 阶段算法
+### 8.3 可调参数（第一次跑用默认值）
 
-1. 跳过 `type=heading`。
-2. 按 `heading_path` 装箱，同小节内连续 block 合并。
-3. `code` 不跨 chunk；说明段 + 紧随 code 尽量同块。
-4. 目标 320–400 token，硬上限 480 token（embedding 输入 = heading 前缀 + body，必须 < 512）。
-5. 小节超上限时在 block 边界切；单个 block 仍超限才硬切。
-6. 官方源 body < 20 字符丢弃，社区源 < 80 字符丢弃。
-7. `ProseChunk.text` 只含 body，不含 heading 前缀。
+在 `rag/` 下：
 
-### 8.4 Embedding 阶段
-
-#### 8.4.1 模型与库
-
-- **模型**：`BAAI/bge-small-en-v1.5`（384 维，max 512 tokens）。
-- **库**：`fastembed`（轻量，默认支持 bge-small-en-v1.5，仅在 build 依赖组中安装）。
-- **tokenizer**：使用模型配套的 tokenizer 计算 token 数；实现阶段可用 `fastembed` 的 `TextEmbedding` API。
-
-#### 8.4.2 Embedding 文本构造
-
-```text
-embedding_text = " > ".join(heading_path) + "\n\n" + body
+```bash
+uv run python build/chunk_prose.py --strategy-id default
 ```
 
-- `heading_path` 为空时只 embed body。
-- `body` 是 chunk 内各 block 用 `\n\n` 拼接后的纯文本。
-
-#### 8.4.3 `corpus.lance` 表 Schema
-
-| 字段 | 类型 | 说明 |
+| 参数 | 默认 | 含义 |
 | --- | --- | --- |
-| `id` | string | 稳定 chunk id。 |
-| `vector` | vector(384) | bge-small-en-v1.5 生成的向量。 |
-| `text` | string | chunk body（不含 heading 前缀），Agent 展示用。 |
-| `heading_path` | list<string> | 该 chunk 的标题路径。 |
-| `since_version` | string \| null | 文档级版本。 |
-| `since_version_code` | int | 版本编码，LanceDB 前置过滤用。 |
-| `related_symbols` | list<string> | body 反引号符号 ∪ 文档级 `match_tokens`。 |
-| `source` | string | `official_prose` / `official_doc` / `official_blog` / `github_*` / `community_prose`。 |
-| `source_file` | string | 原始文件名。 |
-| `source_url` | string \| null | 可引用 URL。 |
+| `--mode` | `heading` | 按 `heading_path` 装箱。`fixed` 时对纯 prose 再按 `--chunk-size` 开窗。 |
+| `--chunk-size` | `0` | 固定窗 token 数；0 表示不按固定长度切。 |
+| `--overlap` | `0` | 相邻 chunk 重叠的 prose token；0 表示不 overlap。Overlap 在 code 边界停止。 |
+| `--max-tokens` | `480` | embedding 文本（heading 前缀 + body）硬上限。 |
+| `--target-tokens` | `360` | 软目标：尽量装满，未到上限不主动切；过短尾块可并入上一块。 |
+| `--min-chars-official` | `20` | 官方源过短 body 丢弃。 |
+| `--min-chars-community` | `80` | 社区源过短 body 丢弃。 |
+| `--code-attach` | `preceding` | 代码与紧邻前文说明绑成一捆。 |
+| `--code-split` | `function` | 超限时按 `func` / `class` / `enum` 边界切，不在函数体中间切。 |
 
-#### 8.4.4 写入流程
+`manifest.json` 记下上述参数和 `chunk_count`，换策略时只改 CLI 和 `--strategy-id`。
 
-1. 创建/打开 `artifacts/corpus.lance`。
-2. 若表已存在，按 `id` 去重或整表重建（build 脚本默认重建，保证幂等）。
-3. 使用 LanceDB 的 `add()` 写入 PyArrow 表或 Pydantic 列表。
-4. 可选：创建 IVF_PQ 向量索引和 FTS（全文）索引，加速 hybrid search。
+### 8.4 Chunk 阶段算法
 
-### 8.5 关于父子块（parent-child chunking）
+1. 跳过 `type=heading`。
+2. 按 `heading_path` 分组。
+3. 组内打 bundle：连续 prose 累积，遇到 `code` 则「前文 + 该 code」成一捆。
+4. 按 bundle 贪心装箱（软目标 360，硬上限 480）。
+5. 单捆超限：先切 prose，整段 code 跟最后一块能放下的说明走；仍超限才按函数边界切 code。单个函数仍超 480 时整函数单独成块并 warning，避免从函数中间切开。
+6. `--overlap > 0` 且同小节多块时，后一块前缀叠前一块末尾 overlap 个 token 的 prose。
+7. `--mode fixed --chunk-size N`：只对纯 prose bundle 开窗；含 code 的 bundle 仍走原子路径。
+8. `ProseChunk.text` 只含 body。
 
-**当前规模不采用父子块**。原因：
+### 8.5 Embedding 阶段
 
-- 语料仅 21 个文件，按 `heading_path` 装箱后的 chunk 已经包含完整上下文。
-- 迁移知识的核心是“说明 + 代码示例”，通常在同一小节内，不需要额外父块补充上下文。
-- 父子块增加复杂度；若未来扩展到 200+ 文件且发现召回 chunk 过短、上下文不足，再引入不迟。
+```bash
+uv run python build/embed_prose.py --strategy-id default
+```
 
-若未来引入，建议：
-- 子块：按 paragraph/code 小粒度，用于向量检索。
-- 父块：按 heading_path 整节，用于返回给 Agent 的上下文。
+- 模型：`BAAI/bge-small-en-v1.5`（`fastembed`，仅 build 依赖组）。
+- 建库 API：`passage_embed(embedding_text)`。检索必须 `query_embed(query)`，禁止 `embed()`。
+- `embedding_text = " > ".join(heading_path) + "\n\n" + body`。
+- 切块计数与 512 截断都用 `bge_token_count`（与模型同一套 WordPiece）。
+- 若单函数块仍超过模型 512 token，只截断送进模型，**不改** `chunks.jsonl` / Lance 的 `text`。
+- 表 schema 与原先 §8.4.3 相同（`id` / `vector` / `text` / `heading_path` / `since_version` / `since_version_code` / `related_symbols` / `source` / `source_file` / `source_url`）。
+- 每个 strategy 目录整表重建，保证幂等。
+- 细节见 **§11**。
+
+### 8.6 关于父子块（parent-child chunking）
+
+**当前规模不采用父子块**。按 `heading_path` 装箱后的 chunk 已含「说明 + 代码」。若未来语料扩大且召回过短，再引入。
 
 ---
 
@@ -687,8 +713,11 @@ uv run python rag/build/process_community.py
 # 5. 编译 curation 成 IR
 uv run python rag/build/compile_curation.py
 
-# 6. 切块
-uv run python rag/build/chunk_and_embed.py
+# 6. 切块（默认策略；需 build 组 + FASTEMBED_CACHE_PATH，用 bge WordPiece）
+uv run python rag/build/chunk_prose.py --strategy-id default
+
+# 7. Embedding（passage_embed；缓存已有则可离线）
+uv run python rag/build/embed_prose.py --strategy-id default
 ```
 
 
@@ -698,7 +727,7 @@ uv run python rag/build/chunk_and_embed.py
 1. 放到 `_raw/<对应桶>/`。
 2. 运行 `scan_tier_b_raw.py`。
 3. 运行对应 `process_*.py`。
-4. 运行 `chunk_and_embed.py`。
+4. 运行 `chunk_prose.py`，需要向量时再运行 `embed_prose.py`。
 
 
 
@@ -709,7 +738,7 @@ uv run python rag/build/chunk_and_embed.py
 3. 运行 `process_community.py`，生成 queue。
 4. 人工写 `curation/<stem>.yaml`。
 5. 运行 `compile_curation.py`。
-6. 运行 `chunk_and_embed.py`。
+6. 运行 `chunk_prose.py`，需要向量时再运行 `embed_prose.py`。
 
 ---
 
@@ -720,7 +749,66 @@ uv run python rag/build/chunk_and_embed.py
 - `_raw/` 下 21 个文件全部在 `after_preprocess/` 有对应的 `.blocks.jsonl`。
 - A–E 类每个源文件都有 `ir/<bucket>/<file>.ir.json`。
 - F/G 类没有直接写 IR，只生成 `review_queue.jsonl`。
-- `chunk_and_embed.py` 产出的 chunk 无 nav/footer/签名表/纯 +1。
+- `chunk_prose.py` 产出的 chunk 无 nav/footer/签名表/纯 +1。
 - `await` / `ONREADY_WITH_EXPORT` / Tween 动机 / RPC 静默失败等关键知识点完整保留。
-- 同一 IR 连续两次 chunk 的 id 集合相同。
+- 同一 IR、同一策略连续两次 chunk 的 id 集合相同。
 
+---
+
+
+
+## 11. Embedding：tokenizer、passage_embed 与 LanceDB
+
+切块策略见 §8；CLI 见 `chunk_prose.py` / `embed_prose.py` 模块 docstring。检索配对见 [retriever/docs/tier-b.md](../../retriever/docs/tier-b.md)。
+
+### 11.1 切块与模型用同一套 WordPiece
+
+| 环节 | tokenizer |
+| --- | --- |
+| 装箱（`chunk_prose.py` → `bge_token_count`） | bge-small-en-v1.5 WordPiece（`TextEmbedding.token_count`） |
+| 送进模型前的 512 截断（`embed_prose._truncate_for_embed`） | 同上 |
+| `passage_embed` 真正编码 | 同一 `TextEmbedding` 单例 |
+
+`approx_token_count`（正则）**只给 pytest**，生产路径缺 `fastembed` 时直接失败，不回退正则。
+
+装箱硬上限仍是 **480**（低于模型 512）。单个函数仍超 480 时整函数成块并 warning；embed 侧若 WordPiece > 512 只截断**模型输入**，`chunks.jsonl` 与 Lance 的 `text` 保持全文。
+
+切块脚本依赖 `[dependency-groups] build`。无参数 `uv sync` **不会**装 `fastembed`，还会卸掉已经装上的 build 组。本机开发：
+
+```bash
+cd rag && uv sync --group build --group dev
+export FASTEMBED_CACHE_PATH="$HOME/.cache/fastembed"
+```
+
+### 11.2 建库 `passage_embed`，检索 `query_embed`
+
+LanceDB **不内嵌模型**，只存 384 维向量 + chunk 字段。建库和检索都必须用 `BAAI/bge-small-en-v1.5`。换模型或换 API = 整表作废，必须重嵌。
+
+| API | 用途 | 本仓库 |
+| --- | --- | --- |
+| `passage_embed()` | 文档/段落 | **建库走这条**（`embed_prose.embed_chunks`） |
+| `query_embed()` | 查询（报错原文 / 符号） | 检索必须走这条；`tier_b.py` 尚未实现 |
+| `embed()` | 通用编码 | **禁止**对本 corpus 使用，不能与上面两条混用 |
+
+建库送进模型的是 `embedding_text`：`" > ".join(heading_path) + "\n\n" + body`。检索时对 **query 字符串** 做 `query_embed`，不要给 query 拼 heading 前缀。
+
+`tier_b.py` 仍是空 stub。接上时：读 `artifacts/corpora/<strategy_id>/`（或兼容路径 `artifacts/corpus.lance`），用同一个 `get_text_embedding()`，**只**对 query 调 `query_embed`。不要在 Lance 里再配一套不同的 embedding function。
+
+### 11.3 缓存与第一次下载
+
+模型公开，**不需要** `HF_TOKEN`。fastembed 读 `FASTEMBED_CACHE_PATH`（未设置则落到临时目录，不要依赖它）。本机约定：
+
+```bash
+export FASTEMBED_CACHE_PATH="$HOME/.cache/fastembed"
+```
+
+缓存里已有 `models--qdrant--bge-small-en-v1.5-onnx-q` 和 `.onnx` 时，`HF_HUB_OFFLINE=1` 可完全离线切块和建库。首次没有缓存才需要访问 Hugging Face（或 `HF_ENDPOINT=https://hf-mirror.com`）。
+
+```bash
+cd rag
+export FASTEMBED_CACHE_PATH="$HOME/.cache/fastembed"
+uv run python build/chunk_prose.py --strategy-id default
+uv run python build/embed_prose.py --strategy-id default
+```
+
+成功标志：`artifacts/chunks/default/chunks.jsonl` 与 `corpora/default/corpus.lance` 行数一致，向量 384 维；`artifacts/corpus.lance` 被 default 镜像覆盖。

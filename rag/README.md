@@ -2,7 +2,7 @@
 
 RAG 组件做成一个可以被本地直接 `import` 的 Python 包（library），再在 Agent 层用一个很薄的「工具函数」包一层，而不是做成一个独立跑起来的网络服务。
 
-两份细化协议文档：数据库一行长什么样、四类源怎么编译成这一行，看 [rag/build/README.md](build/README.md)；一次检索怎么同时召回结构化规则和语义段落、Agent 工具接口最终长什么样，看 [rag/retriever/README.md](retriever/README.md)。本文件只讲目录职责和总体工作流，不重复那两份文档的细节。
+两份细化协议文档：数据库一行长什么样、四类源怎么编译成这一行，看 [rag/build/README.md](build/README.md)；一次检索怎么同时召回结构化规则和语义段落、Agent 怎么调用、YAML 怎么配，看 [rag/retriever/README.md](retriever/README.md)。架构与脚本边界看 [retriever/ARCHITECTURE.md](retriever/ARCHITECTURE.md)，字段级协议在 [retriever/docs/](retriever/docs/README.md)。本文件只讲目录职责和总体工作流，不重复那些文档的细节。
 
 一句话记忆：`vault` 是原材料仓库，`build` 是工厂产线，`artifacts` 是出厂成品，`retriever` 是成品的说明书 + 使用接口。Agent 和 worker 永远只碰 `retriever` 和 `artifacts`，不需要知道 `vault` 和 `build` 的存在。
 
@@ -19,7 +19,7 @@ RAG 组件做成一个可以被本地直接 `import` 的 Python 包（library）
 | `artifacts/` | build 的产出物：SQLite + LanceDB，不可变 | 整份打进镜像 |
 | `retriever/` | Agent 运行时被调用的库：只读 artifacts，依赖很轻 | 每个 worker 进程 |
 
-`build/` 依赖 `requests`、GitPython、rst 解析器这些「重」依赖，而且只用一次（或者每次升级 Godot 版本目标时才重跑一次）。`retriever/` 只依赖 lancedb + sqlite3 + pydantic，又轻又稳定——这是每个 worker 进程启动时都要装的东西。依赖越少，镜像越小，启动越快，出问题的概率也越低。这条分离在 Day 5 起多个 worker 时会直接体现在部署速度和稳定性上。
+`build/` 依赖 `requests`、GitPython、rst 解析器这些「重」依赖，而且只用一次（或者每次升级 Godot 版本目标时才重跑一次）。`retriever/` 运行时依赖：lancedb + sqlite3 + pydantic + pyyaml（读 YAML）+ fastembed（`query_embed`，与建库同一 BGE 模型）。build 专用的 docutils / requests / GitPython 仍只在 `build` 依赖组。
 
 ## 目录职责
 
@@ -46,7 +46,9 @@ rag/
 │   ├── parse_upgrading_docs.py          # rst 表格拆分：结构化行进 intermediate/，散文写入 vault/tier_b_prose/
 │   ├── build_tier_a.py                  # 读 intermediate/ + YAML → 写 SQLite（本阶段唯一写库的程序）
 │   ├── intermediate/                    # 编译中间行（jsonl），不进生产镜像，只服务 rules.db 这一步
-│   ├── chunk_and_embed.py               # 下一阶段：读 vault/tier_b_prose/，切分 + 调 embedding 模型
+│   ├── chunk_prose.py                   # B 层：IR + 类型 A jsonl → artifacts/chunks/<id>/
+│   ├── embed_prose.py                   # B 层：jsonl → artifacts/corpora/<id>/corpus.lance
+│   ├── chunk_and_embed.py               # 薄封装：默认策略先 chunk 再 embed
 │   ├── build_tier_b.py                  # 下一阶段：写 LanceDB，建索引
 │   └── build_all.sh                     # 一键跑完，最后校验 manifest 三版本号一致
 │
@@ -54,18 +56,36 @@ rag/
 │   ├── rules.db                         # SQLite，Tier A
 │   ├── agent_context/                   # 不入库的整篇文档，Agent 常驻上下文
 │   │   └── upgrading_to_godot_4.rst     # 3→4 总指南，除 Updating shaders 小节外整篇存这里
-│   ├── corpus.lance/                    # LanceDB 目录，Tier B（下一阶段产出）
-│   └── manifest.lock.json               # 存 vault 各文件的 hash + 构建时间，运行时读它做一致性提示
+│   ├── chunks/<strategy_id>/            # 切块落盘（chunks.jsonl + manifest.json）
+│   ├── corpora/<strategy_id>/           # 各策略独立 LanceDB（corpus.lance）
+│   ├── corpus.lance/                    # 仅 default 策略的兼容镜像
+│   └── manifest.lock.json               # 存 vault 各文件的 hash + 构建时间；和 vault/manifest.json、
+│                                        #   cache_key、schema_version 不是同一件事，对照见 docs/hash_and_manifest.md
 │
 ├── retriever/                           # 可调用组件本体，做成一个能被 import 的包
+│   ├── README.md                        # 使用者入口：调用、YAML、hook
+│   ├── ARCHITECTURE.md                  # 架构与模块地图
+│   ├── retriever.yaml                   # 运行时唯一调参（k / 权重 / 通道 / 阈值）
+│   ├── docs/                            # 字段级协议（tutorial / contracts / tier-a / tier-b / …）
 │   ├── __init__.py
-│   ├── schemas.py                       # Pydantic：RetrievalQuery / RetrievalHit / MigrationRule
-│   ├── tier_a.py                        # 精确查表，直接 sqlite3 connect artifacts/rules.db
-│   ├── tier_b.py                        # lancedb hybrid 检索 + RRF 融合
-│   ├── router.py                        # retrieve(query) 统一入口，默认 A、B 两层同时查、同时返回（融合规则见 retriever/README.md 第5节）
-│   └── cache.py                         # 可选，包一层 redis 缓存（key = hash(query + manifest.lock)）
+│   ├── schemas.py                       # 枚举 + MigrationRule + ProseChunk + RetrievalQuery/Result
+│   ├── config.py                        # 读 retriever.yaml，config_hash
+│   ├── tier_a.py                        # 唯一 SQL
+│   ├── tier_b.py                        # 两路召回 + 加权 RRF
+│   ├── rerank.py                        # RerankFn（identity / minilm_l6）
+│   ├── router.py                        # retrieve() / load()：两层同时查、订结果
+│   ├── cache.py                         # key = hash(库指纹 + 配置指纹 + query)
+│   ├── observe.py                       # RetrievalObserver，默认 NoOp
+│   └── error_log.py                     # A 层失败 JSONL
 │
-├── eval/
+├── test/                                # pytest 单元/不变量测试（默认 ``pytest`` 只扫这里）
+│   ├── conftest.py                      # 把 rag/build 放进 sys.path
+│   ├── test_build_artifacts.py          # A 层 rules.db 不变量（缺库则 skip）
+│   ├── test_prose_preprocessing_util.py
+│   ├── test_tier_b_processors.py
+│   └── test_chunk_and_embed.py
+│
+├── eval/                                # 离线召回评测，不是 pytest 套件
 │   ├── gen_eval_set.py                  # 机械生成 E1/E2/E3（直接读 artifacts/rules.db 反推）
 │   ├── hard_cases.yaml                  # 人工标的 E4
 │   └── run_ablation.py                  # 跑消融实验，输出 markdown 报告表
@@ -97,7 +117,7 @@ def retrieve_migration_rule(**kwargs) -> dict:
     return retrieve_cached(RetrievalQuery(**kwargs)).model_dump(mode="json")
 ```
 
-Agent 眼里，这就是一个普通的工具调用，跟它去读文件、跑 verify 没有本质区别。字段长什么样、A/B 两层怎么融合、`escalate_suggested` 怎么算，权威版本见 [retriever/README.md](retriever/README.md)，这里不重复。
+Agent 眼里，这就是一个普通的工具调用，跟它去读文件、跑 verify 没有本质区别。字段、融合、`escalate_suggested` 见 [retriever/docs/](retriever/docs/README.md) 与 [ARCHITECTURE.md](retriever/ARCHITECTURE.md)，这里不重复。
 
 ### 3. 接口协议要设计得「服务无关」
 
@@ -163,7 +183,7 @@ tier_a_manual/*.yaml            → yaml.safe_load           ─┘
 
 ### 包名和目录的对应关系
 
-`rag/pyproject.toml` 和 `rag/retriever/`、`rag/build/` 平级，同在 `rag/` 这一层，**没有**再套一层 `rag/rag/`。但 `import` 出来的顶层包名仍然是 `rag`（`from rag.retriever import ...`、`from rag.version_codec import ...`）——这靠 `pyproject.toml` 里 `[tool.setuptools] package-dir = {"rag" = "."}` 做到:告诉 setuptools「`rag` 这个包名，映射到当前目录本身」，`packages` 显式只列 `["rag", "rag.retriever"]`,所以 `build/`、`vault/`、`artifacts/`、`eval/` 不会被打进 wheel。具体原理和实测记录写在 `pyproject.toml` 文件里的注释里,改这块配置之前先看那段注释。
+`rag/pyproject.toml` 和 `rag/retriever/`、`rag/build/` 平级，同在 `rag/` 这一层，**没有**再套一层 `rag/rag/`。但 `import` 出来的顶层包名仍然是 `rag`（`from rag.retriever import ...`、`from rag.version_codec import ...`）——这靠 `pyproject.toml` 里 `[tool.setuptools] package-dir = {"rag" = "."}` 做到:告诉 setuptools「`rag` 这个包名，映射到当前目录本身」，`packages` 显式只列 `["rag", "rag.retriever"]`,所以 `build/`、`vault/`、`artifacts/`、`eval/`、`test/` 不会被打进 wheel。具体原理和实测记录写在 `pyproject.toml` 文件里的注释里,改这块配置之前先看那段注释。
 
 ### 三条常用命令
 

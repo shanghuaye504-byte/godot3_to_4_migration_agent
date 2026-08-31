@@ -1,0 +1,30 @@
+source_file: godot4-export-annotations.html
+source_url: https://godot-mcp.abyo.net/guides/godot4-export-annotations
+source: community_prose
+source_type: community_blog
+since_version: "4.0"
+confidence: needs_review
+title: Godot 4 turned export / onready / tool into @ annotations
+match_tokens:
+  - "@export"
+  - "@onready"
+  - "@tool"
+  - export
+  - onready
+  - tool
+excerpts:
+  - heading_path:
+      - "Introduction: Keywords to Annotations"
+    text: |
+      Godot 4 replaced several GDScript keywords with @-prefixed annotations.
+      The three most important 3→4 changes are export → @export, onready →
+      @onready, and tool → @tool. Annotations are placed on the line before
+      (or on the same line as) the declaration they modify. Godot 4 also added
+      variants such as @export_range, @export_group, and @export_category that
+      did not exist as keywords in Godot 3.
+    code: |
+      # Godot 3                         # Godot 4
+      export var speed = 300.0          @export var speed: float = 300.0
+      onready var sprite = $Sprite2D    @onready var sprite: Sprite2D = $Sprite2D
+      tool                              @tool
+    language: gdscript

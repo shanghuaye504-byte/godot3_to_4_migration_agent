@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "doc_id": "gist/wolfgangsenff_migration_notes.rectangleshape",
+  "source": "community_prose",
+  "source_file": "wolfgangsenff_migration_notes.html",
+  "source_url": "https://gist.github.com/WolfgangSenff/168cb0cbd486c8c9cd507f232165b976",
+  "source_type": "gist",
+  "since_version": "4.0",
+  "confidence": "needs_review",
+  "title": "RectangleShape2D.extents renamed to size but numbers stay half-extents",
+  "keep": true,
+  "match_tokens": [
+    "RectangleShape2D",
+    "extents",
+    "size"
+  ],
+  "blocks": [
+    {
+      "block_id": "b0001",
+      "type": "paragraph",
+      "text": "RectangleShape2D no longer has a property called extents, but rather size.\nInstead of the half-width/height, it stores the full width and height. The\nbuilt-in 3-to-4 converter correctly renames extents to size in scene files,\nbut it keeps the numbers the same, which results in every single\nRectangleShape2D being half the intended size. Circles seem unaffected.\nThis compiles and runs with no error — collision bodies are just silently\nhalf as large. Searching tscn files for type=\"RectangleShape2D\" is faster\nthan opening scenes one by one.",
+      "heading_path": [
+        "Gist comments",
+        "RectangleShape2D extents vs size"
+      ],
+      "level": null,
+      "language": null,
+      "subtype": null
+    }
+  ]
+}
