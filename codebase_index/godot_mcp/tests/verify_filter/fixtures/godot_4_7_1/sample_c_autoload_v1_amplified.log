@@ -1,0 +1,8 @@
+SCRIPT ERROR: Compile Error: Identifier not found: Config
+          at: GDScript::reload (res://main.gd:4)
+SCRIPT ERROR: Compile Error: Identifier not found: Config
+          at: GDScript::reload (res://uses_autoload.gd:4)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://__probe_sentinel.gd:0)
+ERROR: Failed to load script "res://__probe_sentinel.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

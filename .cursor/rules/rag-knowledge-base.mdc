@@ -1,0 +1,33 @@
+---
+description: RAG 知识库（rag/ 目录）的架构决策备忘，避免在后续任务里重新引入已经被否掉的设计
+globs: rag/**
+alwaysApply: false
+---
+
+# RAG 知识库（A/B 层）关键约束
+
+## 文档权威关系，别搞反
+- [rag/build/README.md](../../rag/build/README.md) 是数据库字段设计的**最终决定**（schema/DDL/`detection_method` 分流）。
+- [rag/README.md](../../rag/README.md) 是总览/工作流，必须和 build/README.md 一致，冲突时改 `rag/README.md`，不要改 `build/README.md` 去迎合它。
+- [rag/build/PARSING.md](../../rag/build/PARSING.md) 只讲"怎么解析"（库选型/正则），字段定义仍看 build/README.md，别在这两份文档之间重复内容。
+- [rag/retriever/README.md](../../rag/retriever/README.md) 是给使用者的入口（怎么调用、怎么改 YAML、怎么挂 hook）。融合/SQL/契约细节以 [rag/retriever/docs/](../../rag/retriever/docs/README.md) 与 [rag/retriever/ARCHITECTURE.md](../../rag/retriever/ARCHITECTURE.md) 为准。B 层 k/权重/重排/阈值只在 `retriever.yaml`，禁止塞进 `RetrievalQuery`。
+
+## 几条容易被后续任务悄悄改回去的设计
+- 陷阱/规则分流靠 `detection_method` 这一列（`agent_retrieval` / `static_scan_post_l0` / `verify_error_filter` / `not_actively_handled` / `preflight_probe_recommended`），**不是**布尔标记列（没有 `guard_false_positive` 这种列）。
+- 版本比较只走 `since_version_code`（编码后的整数），**禁止**直接比较版本字符串（`"4.10" < "4.9"` 是错的）。
+- YAML（`tier_a_manual/*.yaml`）每条都是独立 `insert`，**不做** `op: overlay`。
+- 检索默认 A、B 两层**同时查、同时返回**，融合排序，不是"先查 A 命中就短路"。
+- `upgrading_to_godot_4.rst`（3→4 总指南）整篇进 `artifacts/agent_context/`，唯一结构化入库的例外是 `Updating shaders` 小节，且那 4 行是**人工**判断后维护的小 YAML fixture（`source=official_prose_3to4_shader`），**不是**代码自动抽取的产物——别想着写正则/NLP 去自动识别这一节。
+- 所有 4.x rst（不只是 4.rst）解析时产生的"抽不出符号对的散文"统一写入 `vault/tier_b_prose/*.prose.jsonl`，这是**下一阶段** B 层编译（`chunk_and_embed.py`/`build_tier_b.py`）的原材料，本阶段的 parser **不**生成 embedding、不碰 `corpus.lance`。
+
+## `rag/` 包结构，不要重新组织目录
+- `rag/pyproject.toml` 和 `rag/retriever/`、`rag/build/`、`rag/vault/` 平级，**没有** `rag/rag/` 嵌套目录。顶层包名 `rag` 靠 `pyproject.toml` 里 `[tool.setuptools] package-dir = {"rag" = "."}` 映射到当前目录实现，改包结构前先读 `rag/pyproject.toml` 里的注释。
+- worker 镜像只带 `artifacts/` + 装好的 `rag` wheel（`uv build --wheel`，不是 `-e` 可编辑安装），不带 `vault/`、`build/`、`.venv/`。
+- `rag/uv.lock` 要跟着代码提交；`.venv/`、`dist/`、`*.egg-info/` 已在根 `.gitignore` 里，不要手动加回追踪。
+- 依赖分三组：基础运行时（`pydantic`/`lancedb`/`pyyaml`/`fastembed`，`retriever/` 用：`pyyaml` 读 `retriever.yaml`，`fastembed` 做 B 层 `query_embed` 和 `minilm_l6` 重排）、`build`（`docutils`/`requests`/`gitpython`/`beautifulsoup4`/`trafilatura`，只本机用）、`dev`（`pytest`/`ruff`）。`uv sync` 不带参数会隐式装上 `dev`（uv 的历史默认行为），验证"只装运行时依赖"必须加 `--no-default-groups`。
+- B 层重排只认 `rerank.py` 注册名。生产 YAML 默认 `identity`，**对照实验后保持 identity**：`minilm_l6`（`Xenova/ms-marco-MiniLM-L-6-v2`）Prec_GT/MRR 全面更差。模型路径 / batch 闭包在 callable 内，**禁止**把超参写进 YAML，**禁止**在 `tier_b.py` import 具体模型。`ProseHit.score` 永远是归一化 RRF。评测锁定与数字见 `rag/eval/reports/SESSION_STATE.md`。
+- `uv build`/`pip install .` 触发 setuptools 打包时，别让它的临时脚手架目录污染 `rag/build/`（setuptools 默认叫 `build/`，和我们的 adapter 脚本目录撞名）——已经用 `rag/setup.cfg` 的 `build-base` 重定向到 `.setuptools-build/`，如果发现 `rag/build/` 下多出 `lib/`、`bdist.*` 这类目录，说明这个重定向被删掉了或者没生效，先检查 `setup.cfg` 还在不在。
+
+## 范围边界
+- C 层（`workspace_index/`）和 A/B 层（`rag/`）存储完全独立，不要为了"复用代码"把两者的实现耦合在一起。
+- 除非用户明确要求实现某个 `.py` adapter/parser 的具体逻辑，默认这些文件保持当前的空 stub 状态——多次任务的范围一直是"协议/文档/打包脚手架"，不是"把 build/ 全部实现出来"。

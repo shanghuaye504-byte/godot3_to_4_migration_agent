@@ -1,0 +1,8 @@
+SCRIPT ERROR: Parse Error: Could not preload resource script "res://root_bad.gd".
+          at: GDScript::reload (res://dep_1.gd:3)
+SCRIPT ERROR: Parse Error: Could not resolve script "res://root_bad.gd".
+          at: GDScript::reload (res://dep_1.gd:3)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://leaf.gd:0)
+ERROR: Failed to load script "res://leaf.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

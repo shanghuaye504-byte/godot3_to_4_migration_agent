@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Expected parameter name.
+          at: GDScript::reload (res://orphan_bad_parse.gd:3)
+ERROR: Failed to load script "res://orphan_bad_parse.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

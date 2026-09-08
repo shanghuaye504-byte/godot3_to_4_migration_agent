@@ -1,0 +1,15 @@
+# 本目录的运行时配置与产物
+config.yaml
+.codeindex/
+
+# 就地设计笔记（common_rules.mdc：任何子目录的 docs/ 都不进 git，
+# 给开发者/AI 看过程记录用；权威文档是各目录 README.md / ARCHITECTURE.md）
+docs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+.pytest_cache/

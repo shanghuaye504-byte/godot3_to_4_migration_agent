@@ -1,0 +1,34 @@
+---
+description: codebase_index 实现会话备忘。动该目录代码前必须先读 SESSION_STATE，避免压缩后丢掉已拍板的决定。
+globs: codebase_index/**
+alwaysApply: false
+---
+
+# codebase_index：先搜文档，再写代码
+
+动 `codebase_index/` 里任何文件之前，**先 Read 再动手**，不要靠聊天记忆补全：
+
+1. 必读：[codebase_index/docs/SESSION_STATE.md](codebase_index/docs/SESSION_STATE.md)  
+   进度（当前停在第几步）、禁改清单、CST 节点名、文档地图。
+2. 实现顺序以 [codebase_index/index/README.md](codebase_index/index/README.md) 为准，**只做用户指定的那一步**。
+3. 架构冲突时以 [codebase_index/design.md](codebase_index/design.md) 为准；Layer 3 已改为 Python，见 SESSION_STATE 与 skeleton_plan。
+
+按主题继续搜（路径都存在）：
+
+| 主题 | 搜这些文件 |
+| --- | --- |
+| 四张表 / CTE / edges 箭头 | `codebase_index/index/docs/schema_walkthrough.md`、`index/src/codeindex/db/schema.sql` |
+| WAL / PRAGMA / URI / timeout | `codebase_index/index/docs/connection_walkthrough.md`、根 `docs/codeindex_sqlite_learning.md` |
+| writer 五条分支 / 单事务落库 | `codebase_index/index/docs/writer_walkthrough.md`、`index/src/codeindex/db/writer.py` |
+| queries CTE / 手工灌库测 SQL | `codebase_index/index/docs/queries_walkthrough.md`、`index/src/codeindex/db/queries.py` |
+| 第 4–5 步数据库问答 | `codebase_index/index/docs/sqlite_qna.md` |
+| watcher 防抖时序 | `codebase_index/index/docs/watcher_walkthrough.md`、`index/src/codeindex/watcher.py` |
+| flock 单例锁 | `codebase_index/index/docs/lockfile_walkthrough.md`、`index/src/codeindex/lockfile.py` |
+| daemon 启动顺序 | `codebase_index/index/docs/daemon_walkthrough.md`、`index/src/codeindex/daemon.py` |
+| CLI 子命令 / 退出码 | `codebase_index/index/docs/cli_walkthrough.md`、`index/src/codeindex/cli.py` |
+| 骨架偏差与八条契约 | `codebase_index/docs/skeleton_plan.md` |
+| parser 怎么切 CST | `index/src/codeindex/parsers/gdscript.py` 等文件内注释；节点名以 SESSION_STATE 为准 |
+
+可用 Grep：`SESSION_STATE`、`tree-sitter-language-pack`、`connect_ro`、`class_name_statement`。
+
+`codebase_index/docs/` 与 `index/docs/` 是 gitignore 的就地笔记，**存在就是给后续 Agent 用的**，不要因为不在 git 里就当没有。

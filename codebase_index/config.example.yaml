@@ -1,0 +1,12 @@
+# codebase_index 共享配置模板
+# 实际使用时复制成 config.yaml（已 gitignore，因人/项目而异）。
+# index/ 与 godot_mcp/ 各自从这里读取路径，避免两边硬编码导致漂移。
+# 也可以通过环境变量 CODEBASE_PROJECT_ROOT 覆盖 project_root。
+
+project_root: /path/to/your/godot/project
+
+# 运行时状态（index.db / daemon.lock / ready）所在目录，必须是被索引项目根目录下的 .codeindex/
+index_state_dir: /path/to/your/godot/project/.codeindex
+
+# Godot 4 可执行文件（需在 PATH 中，或写绝对路径）
+godot_binary: godot4
