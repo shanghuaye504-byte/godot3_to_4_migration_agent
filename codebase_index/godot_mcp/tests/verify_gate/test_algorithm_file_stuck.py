@@ -32,7 +32,7 @@ def test_same_file_same_signature_three_times_warns() -> None:
     results = [
         evaluate(
             state,
-            make_request(view, round_index=i, patched_files=frozenset({_FILE})),
+            make_request(view, patched_files=frozenset({_FILE})),
             cfg,
         )
         for i in (1, 2, 3)
@@ -52,21 +52,21 @@ def test_signature_change_resets_file_counter() -> None:
     s0 = make_view("s0")
     s1 = make_view("s1")
 
-    evaluate(state, make_request(s0, round_index=1, patched_files=frozenset({_FILE})), cfg)
-    evaluate(state, make_request(s0, round_index=2, patched_files=frozenset({_FILE})), cfg)
+    evaluate(state, make_request(s0, patched_files=frozenset({_FILE})), cfg)
+    evaluate(state, make_request(s0, patched_files=frozenset({_FILE})), cfg)
     assert state.per_file_patch_count[_FILE] == 2
 
     third = evaluate(
-        state, make_request(s1, round_index=3, patched_files=frozenset({_FILE})), cfg
+        state, make_request(s1, patched_files=frozenset({_FILE})), cfg
     )
     assert third.decision == "CONTINUE"
     assert state.per_file_patch_count[_FILE] == 1
 
     fourth = evaluate(
-        state, make_request(s1, round_index=4, patched_files=frozenset({_FILE})), cfg
+        state, make_request(s1, patched_files=frozenset({_FILE})), cfg
     )
     fifth = evaluate(
-        state, make_request(s1, round_index=5, patched_files=frozenset({_FILE})), cfg
+        state, make_request(s1, patched_files=frozenset({_FILE})), cfg
     )
     assert fourth.decision == "CONTINUE"
     assert fifth.decision == "FILE_STUCK_WARN"
@@ -80,7 +80,7 @@ def test_changing_signatures_never_count_as_stuck() -> None:
     results = [
         evaluate(
             state,
-            make_request(views[i], round_index=i + 1, patched_files=frozenset({_FILE})),
+            make_request(views[i], patched_files=frozenset({_FILE})),
             cfg,
         )
         for i in range(3)

@@ -67,9 +67,7 @@ def test_t_mix_config_fp_does_not_affect_unrelated_indent_error():
         raw_block="",
         kind="compile_error",
         symbol="Config",
-        msg_template="x",
         local_signature="sig-config-fp",
-        noise_signature="noise-config-fp",
         role="root_cause",
     )
     indent_error = ClassifiedEvent(
@@ -85,9 +83,7 @@ def test_t_mix_config_fp_does_not_affect_unrelated_indent_error():
         raw_block="",
         kind="parse_error",
         symbol=None,
-        msg_template="y",
         local_signature="sig-indent",
-        noise_signature="noise-indent",
         role="protected",  # 已经被 rules/protect.py 处理过
     )
     result, _untrusted, _caveats = apply_autoload_fp_rule(

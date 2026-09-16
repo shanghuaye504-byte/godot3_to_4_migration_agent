@@ -25,7 +25,7 @@ def test_single_timeout_is_infra_failure_but_continues() -> None:
     view = make_view("sig-a")
     result = evaluate(
         state,
-        make_request(view, round_index=1, infra_status="TIMEOUT"),
+        make_request(view, infra_status="TIMEOUT"),
         RetryGateConfig(),
     )
     assert result.decision == "CONTINUE"
@@ -43,7 +43,7 @@ def test_three_consecutive_infra_failures_open_circuit() -> None:
     results = []
     for i, status in enumerate(statuses, start=1):
         results.append(
-            evaluate(state, make_request(view, round_index=i, infra_status=status), cfg)
+            evaluate(state, make_request(view, infra_status=status), cfg)
         )
 
     assert [r.decision for r in results[:2]] == ["CONTINUE", "CONTINUE"]
@@ -60,18 +60,18 @@ def test_infra_recovery_resets_streak() -> None:
     # 拉开无进展窗口，避免本测试只关心 streak 时被 NO_PROGRESS 抢走判定
     cfg = RetryGateConfig(no_progress_window=10)
     view = make_view("sig-a")
-    evaluate(state, make_request(view, round_index=1, infra_status="TIMEOUT"), cfg)
-    evaluate(state, make_request(view, round_index=2, infra_status="CRASH"), cfg)
+    evaluate(state, make_request(view, infra_status="TIMEOUT"), cfg)
+    evaluate(state, make_request(view, infra_status="CRASH"), cfg)
     assert state.infra_failure_streak == 2
 
     recovered = evaluate(
-        state, make_request(view, round_index=3, infra_status="OK"), cfg
+        state, make_request(view, infra_status="OK"), cfg
     )
     assert recovered.decision == "CONTINUE"
     assert recovered.project_status == "HAS_ERRORS"
     assert state.infra_failure_streak == 0
     assert state.circuit_state == "CLOSED"
 
-    evaluate(state, make_request(view, round_index=4, infra_status="TIMEOUT"), cfg)
+    evaluate(state, make_request(view, infra_status="TIMEOUT"), cfg)
     assert state.infra_failure_streak == 1
     assert state.circuit_state == "CLOSED"

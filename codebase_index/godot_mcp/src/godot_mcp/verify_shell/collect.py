@@ -19,8 +19,9 @@ from godot_mcp.verify_shell.trigger import Phase, should_run_v3
 
 RunVerifyFn = Callable[[str, str | None, str, Path, int], VerifyResult]
 
-MAX_V1_ROUNDS = 8
-MAX_V2_TARGETS = 8
+# 实测后再决断，不要当成已验证阈值。
+MAX_V1_ROUNDS = 3   # 哨兵 V1 最多重复几轮，等 pointer 集稳定
+MAX_V2_TARGETS = 50  # 同一轮对多少个 pointer target 跑 V2
 
 
 @dataclass(frozen=True)

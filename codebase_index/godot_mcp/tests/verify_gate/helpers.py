@@ -20,9 +20,7 @@ def make_event(local_signature: str, *, role: str = "root_cause") -> ClassifiedE
         raw_block=f"SCRIPT ERROR: Compile Error: {local_signature}",
         kind="compile_error",
         symbol=local_signature,
-        msg_template="Compile Error: <SYM>",
         local_signature=local_signature,
-        noise_signature=f"noise-{local_signature}",
         role=role,  # type: ignore[arg-type]
     )
 
@@ -49,20 +47,13 @@ def make_view(
     )
 
 
-def make_state(
-    *,
-    workspace_id: str = "ws-1",
-    session_id: str = "sess-1",
-) -> ProjectVerifyState:
+def make_state() -> ProjectVerifyState:
     return ProjectVerifyState(
-        workspace_id=workspace_id,
-        session_id=session_id,
         signature_history=[],
         per_file_patch_count={},
         per_file_last_signature_set={},
         infra_failure_streak=0,
         rounds_used=0,
-        cost_used_usd=0.0,
         circuit_state="CLOSED",
     )
 
@@ -70,20 +61,12 @@ def make_state(
 def make_request(
     view: ProjectFilterView,
     *,
-    round_index: int,
     patched_files: frozenset[str] = frozenset(),
     infra_status: str = "OK",
-    round_cost_usd: float = 0.0,
-    workspace_id: str = "ws-1",
-    session_id: str = "sess-1",
 ) -> VerifyGateRequest:
     return VerifyGateRequest(
-        workspace_id=workspace_id,
-        session_id=session_id,
-        round_index=round_index,
         command="MERGED",
         project_view=view,
         patched_files=patched_files,
         infra_status=infra_status,  # type: ignore[arg-type]
-        round_cost_usd=round_cost_usd,
     )

@@ -5,7 +5,7 @@
 
 多次调用契约（方案文档 §7.10 补齐段）：本函数在一轮 verify 内部**可能被反复调用**——
 外壳的判定伪代码是「V1 → 对 pointer 跑 V2 → merge → 若 pointer 集仍在变，再 V1」，直到
-收敛或达到上限（建议 8）。每次调用时 `v2_by_target` 是累积增长的，`v1` 用最新一次的
+收敛或达到 `collect.MAX_V1_ROUNDS`。每次调用时 `v2_by_target` 是累积增长的，`v1` 用最新一次的
 `FilterResult` 替换。**只有收敛之后的最后一次返回值，才是这一 round 要交给下游
 Verify Gate 的 `ProjectFilterView`**——这也是 `verifier_retry_gate_scheme.md` §2.2.4
 "一次 Gate 调用 = 一个 round"粒度契约的前提，两份文档共用同一条口径。
@@ -130,7 +130,7 @@ def _dedupe_events(events: Iterable[ClassifiedEvent]) -> list[ClassifiedEvent]:
     """按 `local_signature` 去重，保留第一次出现的顺序。
 
     V1 pointer 消化后，同一根因可能同时出现在 V1 包装行和 V2 正文里。N09 确认
-    归一化后签名跨 repeat 稳定，所以跨命令也只认这一字段，不用 `noise_signature`。
+    归一化后签名跨 repeat 稳定，所以跨命令也只认这一字段。
     """
     seen: set[str] = set()
     result: list[ClassifiedEvent] = []

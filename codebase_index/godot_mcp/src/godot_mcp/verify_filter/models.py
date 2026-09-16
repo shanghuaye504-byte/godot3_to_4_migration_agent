@@ -84,9 +84,7 @@ class ClassifiedEvent(RawEvent):
 
     kind: Kind
     symbol: str | None               # Identifier / Class "X" / pointer 时等于 target_res_path
-    msg_template: str                # 路径、符号、数字占位符化之后（方案文档 §6）
     local_signature: str             # sha1 hex；项目内身份，用于去重/重试计数/震荡检测
-    noise_signature: str             # sha1 hex；只用于实验期 BG 减法，禁止用于生产过滤
     role: Role = "root_cause"
     drop_reason: DropReason | None = None
     cluster_id: str | None = None

@@ -29,9 +29,7 @@ def _make_event(**overrides: object) -> ClassifiedEvent:
         "          at: GDScript::reload (res://uses_autoload.gd:4)",
         kind="compile_error",
         symbol="Config",
-        msg_template="Compile Error: Identifier not found: <SYM>",
         local_signature="deadbeef",
-        noise_signature="cafebabe",
     )
     base.update(overrides)
     return ClassifiedEvent(**base)  # type: ignore[arg-type]

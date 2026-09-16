@@ -68,9 +68,7 @@ def test_custom_sentinel_res_paths():
         raw_block="",
         kind="resource_error",
         symbol=None,
-        msg_template="x",
         local_signature="a",
-        noise_signature="b",
         role="symptom",
     )
     result = apply_sentinel_rule([event], sentinel_res_paths=frozenset({"res://custom_sentinel.gd"}))

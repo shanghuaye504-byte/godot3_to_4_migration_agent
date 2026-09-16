@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "godot_mcp: 当前测试文件",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "pytest",
+        "args": ["${file}", "-s"],
+        "cwd": "${workspaceFolder}/codebase_index/godot_mcp",
+        "python": "${workspaceFolder}/codebase_index/godot_mcp/.venv/bin/python",
+        "console": "integratedTerminal",
+        "justMyCode": true
+      },
+      {
+        "name": "godot_mcp: check_file 形状",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "tests/test_verify_tool.py::test_check_file_real_syntax_error_shape",
+          "-s"
+        ],
+        "cwd": "${workspaceFolder}/codebase_index/godot_mcp",
+        "python": "${workspaceFolder}/codebase_index/godot_mcp/.venv/bin/python",
+        "console": "integratedTerminal",
+        "justMyCode": true
+      }
+    ]
+  }

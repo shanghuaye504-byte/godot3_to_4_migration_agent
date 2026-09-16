@@ -11,6 +11,9 @@ verify_gate.algorithm.evaluate 判定这一轮相对历史处于什么状态（�
 的 JSON 字典（过滤结果 + Gate 判定），hard_stop=True 时宿主 Agent 循环会在这次
 工具调用返回之后强制结束会话。
 
+studio / stdio 一对一：一个 MCP 进程对应一个工作区、一份内存 state。
+verify 不收 session_id / workspace_id / round_cost_usd。
+
 启动方式：godot-mcp 命令或 python -m godot_mcp.server（stdio 传输），
 由 Agent 的 MCP 客户端配置指向本入口。
 """
@@ -55,15 +58,12 @@ def create_server(
             "kind 只能是 check_file 或 check_workspace；"
             "check_file 必须给 target。"
             "check_workspace 会走外壳：条件 V3、V1↔V2 收敛、收尾门。"
-            "phase / unified_diff / patched_files 由工具内部从会话状态与工作区快照组装，不必传入。"
+            "工作区来自 config.yaml；phase / diff 由工具内部从单槽状态与快照组装。"
         ),
     )
     def verify(
         kind: Literal["check_file", "check_workspace"],
         target: str | None = None,
-        session_id: str = "default",
-        workspace_id: str | None = None,
-        round_cost_usd: float = 0.0,
     ) -> dict[str, Any]:
         try:
             config = load_cfg()
@@ -76,9 +76,6 @@ def create_server(
             result = run_tool(
                 kind,
                 target,
-                session_id=session_id,
-                workspace_id=workspace_id,
-                round_cost_usd=round_cost_usd,
                 config=config,
                 state_store=store,
             )

@@ -8,7 +8,7 @@ Godot 子进程 → 噪声过滤器（纯函数） → Verify Gate（本文件�
 
 ```text
 1. infra_status != OK 且连续达到 infra_failure_streak_limit  → CIRCUIT_OPEN（硬停止）
-2. rounds_used >= rounds_limit 或 cost_used_usd >= cost_limit_usd → BUDGET_EXCEEDED（硬停止）
+2. rounds_used >= rounds_limit                                → BUDGET_EXCEEDED（硬停止）
 3. 检测到 A→B→A 震荡（oscillation_window 内）                → OSCILLATION_ESCALATE（硬停止）
 4. 连续 no_progress_window 轮签名集合完全相同                  → NO_PROGRESS_WARN（软提示）
 5. 存在文件的 patch 次数 >= file_stuck_threshold 且相关签名未变 → FILE_STUCK_WARN（软提示）
@@ -43,8 +43,6 @@ _HARD_STOP: frozenset[GateDecision] = frozenset(
     {"OSCILLATION_ESCALATE", "BUDGET_EXCEEDED", "CIRCUIT_OPEN"}
 )
 
-_ROUND_INDEX_DRIFT_HINT = "调用方 round_index 与内部计数不一致"
-
 _NO_PROGRESS_DIRECTIVE = (
     "当前 patch 没有改变任何根因签名。建议：① 重新读取报错的 at: 位置确认改的是否是"
     "正确文件；② 查询 RAG 获取该符号的确切迁移规则，而不是凭经验猜；"
@@ -55,8 +53,7 @@ _NO_PROGRESS_DIRECTIVE = (
 def project_signature_set(view: "ProjectFilterView") -> frozenset[str]:
     """把 `ProjectFilterView.root_cause_errors` 投影成签名集合（方案文档 §2.1）。
 
-    两层之间唯一的"数据转换"：只用 `local_signature`，绝不用 `noise_signature`
-    （原因见 `verifier_filter_scheme.md` §6）；只投影 `root_cause_errors`，
+    两层之间唯一的"数据转换"：只用 `local_signature`；只投影 `root_cause_errors`，
     `symptoms`/`pending_pointers`/`dropped` 不计入——否则级联噪声会污染
     无进展/震荡检测。
     """
@@ -75,25 +72,23 @@ def evaluate(
     **先把本轮记进会话账本（会改 ``state``）**，再按优先级给出一个决策。
 
     三个参数：
-    - ``state``：这个仓库 + 这次迁移会话的记忆（已经用了几轮、花了多少钱、
-      前几轮的根因指纹、哪个文件被反复改过）。必须由调用方在返回后 ``save``。
+    - ``state``：这次迁移会话的记忆（已经用了几轮、前几轮的根因指纹、哪个文件被反复改过）。
+      必须由调用方在返回后 ``save``。
     - ``request``：这一轮的客观结果。核心是 ``project_view``（根因/未消化的
       pointer/是否干净）和 ``infra_status``（进程是否超时或崩溃）。
-      ``patched_files`` 是 Agent 本轮改过的文件；``round_cost_usd`` 是本轮花费。
-    - ``cfg``：阈值（连续几次算无进展、预算上限等）。
+      ``patched_files`` 是本轮快照 diff 推出的改动路径。
+    - ``cfg``：阈值（连续几次算无进展、轮次上限等）。
 
     一次调用 = Agent 的一轮，不是外壳里面那几次 Godot 子循环。调用方必须传入
     已经 merge 完的最终视图，本函数不会再去下钻 pointer。
 
     先记账（改 ``state``），再判断——判断用的是记下之后的数字：
-    1. 调用方给的 ``round_index`` 若不是「已用轮数 + 1」，只在返回的 ``reason``
-       里提一句，不因此停手。
-    2. 从本轮根因算出签名集合（每个根因一个稳定指纹，不含 pointer/症状），
+    1. 从本轮根因算出签名集合（每个根因一个稳定指纹，不含 pointer/症状），
        追加到 ``signature_history``。
-    3. 轮次 +1，累加花费（会话成本只在这里加）。
-    4. 对每个被 patch 的文件：若本轮根因签名和上次改它时一样，补丁次数 +1；
+    2. 轮次 +1。
+    3. 对每个被 patch 的文件：若本轮根因签名和上次改它时一样，补丁次数 +1；
        签名变了或第一次碰到，次数重置为 1。用来抓「同一文件改了三遍还是那些错」。
-    5. Godot 超时/崩溃 → 连续失败次数 +1；否则清零。
+    4. Godot 超时/崩溃 → 连续失败次数 +1；否则清零。
 
     项目状态：进程不健康就标 ``INFRA_FAILURE``（即使还没熔断）；否则沿用过滤器
     的 CLEAN / HAS_ERRORS。不能在超时时还显示「项目干净」。
@@ -102,7 +97,7 @@ def evaluate(
     后面的「签名没变」不可信）：
 
     1. 连续超时/崩溃达到上限 → ``CIRCUIT_OPEN``，硬停止，工作区当坏掉。
-    2. 轮次或美元预算用尽 → ``BUDGET_EXCEEDED``，硬停止。
+    2. 轮次预算用尽 → ``BUDGET_EXCEEDED``，硬停止。
     3. 最近三轮根因集合呈 A→B→A → ``OSCILLATION_ESCALATE``，硬停止
        （改 A 冒出 B，改回去又变成 A，同策略再试没有意义）。
     4. 连续 N 轮根因集合完全一样 → ``NO_PROGRESS_WARN``，软提示，仍允许继续。
@@ -110,16 +105,12 @@ def evaluate(
     6. 否则 → ``CONTINUE``（有进展，或这是第一轮还没有历史可比）。
 
     返回值把过滤器的根因/pointer/caveat 原样带上，并附上 ``decision``、
-    ``hard_stop``、相对上一轮的签名 diff、剩余预算。软提示时还有 ``directive``
+    ``hard_stop``、相对上一轮的签名 diff、剩余轮次。软提示时还有 ``directive``
     （建议 Agent 换读文件/查规则的方式）；硬停止时 ``directive`` 为空。
     """
-    # --- 记账：先写入本轮，下面的判断用的是更新后的 state ---
-    round_index_drift = request.round_index != state.rounds_used + 1
-
     sig_set = project_signature_set(request.project_view)
     state.signature_history.append(sig_set)
     state.rounds_used += 1
-    state.cost_used_usd += request.round_cost_usd
 
     for path in request.patched_files:
         last_set = state.per_file_last_signature_set.get(path)
@@ -138,7 +129,6 @@ def evaluate(
         "INFRA_FAILURE" if request.infra_status != "OK" else request.project_view.status
     )
 
-    # --- 判定：从上到下只取第一条命中 ---
     if state.infra_failure_streak >= cfg.infra_failure_streak_limit:
         state.circuit_state = "OPEN"
         return _result(
@@ -152,10 +142,9 @@ def evaluate(
                 f"连续 {state.infra_failure_streak} 次基础设施失败（超时/崩溃），"
                 "判定工作区不可用"
             ),
-            round_index_drift=round_index_drift,
         )
 
-    if state.rounds_used >= cfg.rounds_limit or state.cost_used_usd >= cfg.cost_limit_usd:
+    if state.rounds_used >= cfg.rounds_limit:
         return _result(
             "BUDGET_EXCEEDED",
             state=state,
@@ -163,11 +152,7 @@ def evaluate(
             cfg=cfg,
             hard_stop=True,
             project_status=project_status,
-            reason=(
-                f"已用 {state.rounds_used}/{cfg.rounds_limit} 轮，"
-                f"${state.cost_used_usd:.2f}/${cfg.cost_limit_usd:.2f}"
-            ),
-            round_index_drift=round_index_drift,
+            reason=f"已用 {state.rounds_used}/{cfg.rounds_limit} 轮",
         )
 
     # 震荡检测固定识别最近 3 轮 A→B→A。oscillation_window 不是可调窗口：
@@ -183,7 +168,6 @@ def evaluate(
             hard_stop=True,
             project_status=project_status,
             reason=f"签名集合在最近 3 轮出现 A→B→A 震荡：{preview}...",
-            round_index_drift=round_index_drift,
         )
 
     window = cfg.no_progress_window
@@ -196,7 +180,6 @@ def evaluate(
             hard_stop=False,
             project_status=project_status,
             reason=f"连续 {window} 轮签名集合未变",
-            round_index_drift=round_index_drift,
             directive=_NO_PROGRESS_DIRECTIVE,
         )
 
@@ -214,7 +197,6 @@ def evaluate(
             hard_stop=False,
             project_status=project_status,
             reason=f"文件 {stuck_files} 被反复 patch 但相关错误签名未变",
-            round_index_drift=round_index_drift,
             directive=(
                 f"{stuck_files} 已被修改 {cfg.file_stuck_threshold} 次以上仍未解决对应错误，"
                 "建议改用不同的排查手段（读取该文件的 scene 依赖树 / 检索该符号的迁移规则），"
@@ -230,7 +212,6 @@ def evaluate(
         hard_stop=False,
         project_status=project_status,
         reason="有进展或首轮",
-        round_index_drift=round_index_drift,
     )
 
 
@@ -243,29 +224,11 @@ def _result(
     hard_stop: bool,
     project_status: ProjectStatusWithInfra,
     reason: str,
-    round_index_drift: bool = False,
     directive: str | None = None,
 ) -> VerifyGateResult:
-    """把 `evaluate()` 算出的各项值组装成 `VerifyGateResult` 的内部辅助函数。
-
-    职责：
-    - 透传 `project_status`（合成结果，不是简单转发 `ProjectFilterView.status`）、
-      以及 `request.project_view` 里的 `root_cause_errors`/`pending_pointers`/
-      `caveats`/`untrusted_files`。
-    - `round_index_drift=True` 时在 `reason` 末尾追加一句"调用方 round_index 与
-      内部计数不一致"的提示，不改变 `decision`/`hard_stop`。
-    - 计算 `GateDiff`：首轮（`len(state.signature_history) == 1`）没有"上一轮"可比，
-      约定 `new_signatures = 本轮签名集合`，`resolved_signatures = ∅`，
-      `persisted_signatures = ∅`；非首轮则对比 `state.signature_history` 最近两轮。
-    - 组装 `BudgetSnapshot(rounds_used=state.rounds_used, rounds_limit=cfg.rounds_limit,
-      cost_used_usd=state.cost_used_usd, cost_limit_usd=cfg.cost_limit_usd)`。
-    """
+    """把 `evaluate()` 算出的各项值组装成 `VerifyGateResult` 的内部辅助函数。"""
     if hard_stop != (decision in _HARD_STOP):
-        # 调用约定：硬停止决策与 hard_stop 必须同步，防止组装点各自为政。
         raise ValueError(f"hard_stop={hard_stop} 与 decision={decision} 不一致")
-
-    if round_index_drift:
-        reason = f"{reason}（{_ROUND_INDEX_DRIFT_HINT}）"
 
     history = state.signature_history
     current = history[-1] if history else frozenset()
@@ -303,7 +266,5 @@ def _result(
         remaining_budget=BudgetSnapshot(
             rounds_used=state.rounds_used,
             rounds_limit=cfg.rounds_limit,
-            cost_used_usd=state.cost_used_usd,
-            cost_limit_usd=cfg.cost_limit_usd,
         ),
     )

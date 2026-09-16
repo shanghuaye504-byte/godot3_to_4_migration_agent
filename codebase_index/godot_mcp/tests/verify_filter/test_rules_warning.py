@@ -29,9 +29,7 @@ def _ordinary_warning() -> ClassifiedEvent:
         raw_block="",
         kind="warning",
         symbol=None,
-        msg_template="x",
         local_signature="sig",
-        noise_signature="noise",
         role="root_cause",  # classify() 的中性默认值
     )
 

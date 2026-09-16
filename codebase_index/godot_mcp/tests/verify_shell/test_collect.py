@@ -6,7 +6,7 @@ from pathlib import Path
 
 from godot_mcp.verify.runner import VerifyResult
 from godot_mcp.verify_shell.cache import CLASS_CACHE_REL
-from godot_mcp.verify_shell.collect import collect_workspace_view
+from godot_mcp.verify_shell.collect import MAX_V1_ROUNDS, MAX_V2_TARGETS, collect_workspace_view
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "verify_filter" / "fixtures" / "godot_4_7_1"
 
@@ -23,6 +23,11 @@ def _warm(tmp_path: Path) -> None:
     dest = tmp_path / CLASS_CACHE_REL
     dest.parent.mkdir(parents=True)
     dest.write_text("list=[]\n", encoding="utf-8")
+
+
+def test_default_pointer_budgets_are_provisional() -> None:
+    assert MAX_V1_ROUNDS == 3
+    assert MAX_V2_TARGETS == 50
 
 
 def test_cold_runs_v3_then_v1_v2_then_repeat_v1(tmp_path: Path) -> None:

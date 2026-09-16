@@ -59,20 +59,22 @@ Layer 2（`../index/`）的 tree-sitter 索引只能回答"项目里有哪些符
 ## 3. `verify` 工具的调用路径
 
 ```text
-verify(kind=check_file|check_workspace, target?, session_id?)
+verify(kind=check_file|check_workspace, target?)
   └─▶ workspace_lock + 拒收 C#/GDExtension
         └─▶ 内部组装 phase / unified_diff / previous_view
-        └─▶ check_file：COLD 时先 V3，再一次 V2
-        └─▶ check_workspace：verify_shell.collect_workspace_view
-              ├─▶ 条件 V3（COLD / 触发表 / 入队 wipe）
-              ├─▶ V1 → V2 下钻 → 再 V1 直到 pointer 稳定（上限 8）
-              └─▶ 收尾门 V3（GDScript 完成后）
-                    └─▶ verify_gate.algorithm.evaluate(...)
-                          └─▶ VerifyGateResult
+        └─▶ check_file：COLD 时先 V3，再一次 V2（不写快照、不查体积）
+              └─▶ filter → merge → annotate_check_file_view（A/B）→ Gate
+        └─▶ check_workspace：scan_workspace（相关后缀 ≤2000 文件 / 1 GiB，超限硬拒）
+              └─▶ verify_shell.collect_workspace_view（不调用 annotate）
+                    ├─▶ 条件 V3（COLD / 触发表 / 入队 wipe）
+                    ├─▶ V1 → V2 下钻 → 再 V1 直到 pointer 稳定（V1 ≤3 轮，V2 ≤50 个 target）
+                    └─▶ 收尾门 V3（GDScript 完成后）
+                          └─▶ verify_gate.algorithm.evaluate(...)
+                                └─▶ VerifyGateResult
 ```
 
 `verify` 返回值包含过滤后的错误视图 **以及** Gate 判定（继续 / 无进展 /
-单文件卡住 / 震荡 / 预算耗尽 / 基础设施熔断）。`hard_stop=True` 时，
+单文件卡住 / 震荡 / 轮次耗尽 / 基础设施熔断）。`hard_stop=True` 时，
 宿主 Agent 循环应在工具调用返回后强制结束会话。
 
 字段级契约（MCP schema、JSON 返回值、参数如何接到 `run_verify_tool`）见
@@ -84,9 +86,11 @@ verify(kind=check_file|check_workspace, target?, session_id?)
 | --- | --- | --- |
 | `--check-only --debug` 掉进交互式 debugger 挂死 | `runner.py` 必须有 subprocess timeout，超时后 `killpg` 整个进程组 | `verify/runner.py` |
 | 校验子进程正常退出但带报错 | 不算"执行失败"，`VerifyResult.timed_out=False`，报错内容交给 `verify_filter` 判断是不是真 error | `verify/runner.py` + `verify_filter/` |
-| autoload/addon 单例误报（issue #78587 / #111515） | 归入已知误报签名库，`root_cause_errors` 不计入 | `verify_filter/rules/autoload_fp.py` |
+| `[autoload]` 白名单 KEY 的 `Identifier not found`（N01/N02，R2） | 过滤器 drop，记 `compile_truncated` + `untrusted_files`，不进根因 | `verify_filter/rules/autoload_fp.py` |
+| `class_name` 缓存陈旧（N03）或非白名单 `Identifier not found`（N02 漏网） | 过滤器不动。仅 `check_file` 外壳：A 把 Identifier 挪出根因并打 `class_cache_stale`；B 保留根因并打 `identifier_not_found_maybe_unregistered_autoload:{symbol}` | `verify_shell/class_cache.py` + `verify_shell/check_file_annotate.py` |
 | warning 被误当修复目标 | `ClassifiedEvent.kind` 严格区分 error/warning，Gate 只看 error | `verify_filter/models.py` |
 | Agent 试图拼自由 verify 命令行 | MCP `kind` 仍是二选一（`check_file`→V2，`check_workspace`→V1）；内部白名单只有探针子集 V1/V2/V3，不含 `--debug` | `server.py` 的输入 schema + `verify/commands.py` |
+| 相关后缀全文快照超过 2000 个文件或 1 GiB | 本轮开始硬拒，`SnapshotTooLargeError`，不截断、不 `save` 半截快照 | `verify_shell/snapshot.py` |
 
 ## 5. 明确的非目标（Non-goals）
 

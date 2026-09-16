@@ -7,8 +7,9 @@ retry_gate:
   file_stuck_threshold: 3      # 同一文件被 patch 的次数超过这个值、且相关签名不变 → FILE_STUCK_WARN
   infra_failure_streak_limit: 3   # 连续基础设施失败次数 → CIRCUIT_OPEN
   rounds_limit: 40             # 单会话最大轮次（硬顶）
-  cost_limit_usd: 5.0          # 单会话最大花费（硬顶，具体数值按模型定价调整）
 ```
+
+成本 / token 预算不在本层：Verifier 观测不到 LLM 花费，`BUDGET_EXCEEDED` 只看轮次。
 
 **待验证标记**：`no_progress_window`/`oscillation_window`/`file_stuck_threshold` 这三个
 数字目前没有专门的消融实验支撑，是从通用 Agent 工程经验里取的经验值，不要当成"已验证"
@@ -35,7 +36,6 @@ class RetryGateConfig:
     file_stuck_threshold: int = 3
     infra_failure_streak_limit: int = 3
     rounds_limit: int = 40
-    cost_limit_usd: float = 5.0
 
 
 _KNOWN_FIELDS = frozenset(f.name for f in fields(RetryGateConfig))
@@ -64,10 +64,5 @@ def load_retry_gate_config(path: Path | None = None) -> RetryGateConfig:
     if unknown:
         raise ValueError(f"unknown retry_gate fields: {sorted(unknown)}")
 
-    kwargs: dict[str, object] = {}
-    for key, value in data.items():
-        if key == "cost_limit_usd":
-            kwargs[key] = float(value)
-        else:
-            kwargs[key] = int(value)
-    return RetryGateConfig(**kwargs)  # type: ignore[arg-type]
+    kwargs = {key: int(value) for key, value in data.items()}
+    return RetryGateConfig(**kwargs)

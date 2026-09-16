@@ -66,9 +66,7 @@ def _wrapper_event(res_path: str) -> ClassifiedEvent:
         raw_block="",
         kind="resource_error",
         symbol=None,
-        msg_template="x",
         local_signature="sig",
-        noise_signature="noise",
         role="symptom",
     )
 
@@ -97,9 +95,7 @@ def test_no_upgrade_when_script_error_existed_but_was_filtered_out_later():
         raw_block="",
         kind="compile_error",
         symbol="Config",
-        msg_template="x",
         local_signature="sig2",
-        noise_signature="noise2",
         role="false_positive",  # 已经被 R2 删掉，但它"曾经存在过"
     )
     original_by_res_path = {"res://had_script_error.gd": [fake_original_script_error]}

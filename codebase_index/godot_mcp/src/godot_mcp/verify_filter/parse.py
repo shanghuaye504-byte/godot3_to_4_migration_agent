@@ -11,12 +11,10 @@ AT_GENERIC`（更具体的模式先尝试，避免宽泛正则吞掉本该被精
 （结果是零事件，不是解析失败）。
 
 **实现顺序的一处例外（如实记录）**：方案文档 §3 把 `parse.py` 排在 `signature.py`
-之前，但 `classify()` 要产出完整的 `ClassifiedEvent`（`msg_template`/`local_signature`/
-`noise_signature` 是必填字段，§7 pipeline 图里 R8 去重也要靠 `local_signature`），
-所以 `classify()` 内部必须调用 `signature.py` 的纯函数。这是唯一一处"排在前面的模块
-反过来依赖排在后面的模块"，原因是 `signature.py` 本身零依赖、是最底层的纯函数，被谁
-调用都不影响它自己的可测试性——先写它、再在 `classify()` 里用，不违反"先写好被依赖的
-东西"这条基本原则，只是与文档里给的顺序标号不完全一致。
+之前，但 `classify()` 要产出完整的 `ClassifiedEvent`（`local_signature` 是必填字段，
+§7 pipeline 图里 R8 去重也靠它），所以 `classify()` 内部必须调用 `signature.py`
+的纯函数。这是唯一一处"排在前面的模块反过来依赖排在后面的模块"，原因是
+`signature.py` 本身零依赖、是最底层的纯函数。
 """
 
 from __future__ import annotations
@@ -251,9 +249,9 @@ def _classify_message(prefix: str, message: str) -> tuple[Kind, str | None, Role
 def classify(events: list[RawEvent]) -> list[ClassifiedEvent]:
     """对每条 `RawEvent` 的 `message` 按 §5.2 表格再分类，产出默认角色的 `ClassifiedEvent`。
 
-    同时调用 `signature.py` 填好 `msg_template`/`local_signature`/`noise_signature`
-    （见模块 docstring"实现顺序的一处例外"）。这一步只填默认值，§7.1 的 protected
-    标记与 R1–R7 的过滤判断由 `pipeline.py` 编排的 `rules/*.py` 负责，这里不做。
+    同时调用 `signature.py` 填好 `local_signature`（见模块 docstring"实现顺序的一处例外"）。
+    这一步只填默认值，§7.1 的 protected 标记与 R1–R7 的过滤判断由 `pipeline.py`
+    编排的 `rules/*.py` 负责，这里不做。
     """
     classified: list[ClassifiedEvent] = []
     for event in events:
@@ -264,14 +262,12 @@ def classify(events: list[RawEvent]) -> list[ClassifiedEvent]:
             symbol = event.target_res_path
 
         normalized = _sig.normalize_message(event.message, res_path=event.res_path, symbol=symbol)
-        template = _sig.msg_template(normalized)
         local_sig = _sig.local_signature(
             kind=kind,
             res_path=event.res_path,
             symbol=symbol,
             normalized_message=normalized,
         )
-        noise_sig = _sig.noise_signature(kind=kind, template=template)
 
         classified.append(
             ClassifiedEvent(
@@ -287,9 +283,7 @@ def classify(events: list[RawEvent]) -> list[ClassifiedEvent]:
                 raw_block=event.raw_block,
                 kind=kind,
                 symbol=symbol,
-                msg_template=template,
                 local_signature=local_sig,
-                noise_signature=noise_sig,
                 role=role,
             )
         )

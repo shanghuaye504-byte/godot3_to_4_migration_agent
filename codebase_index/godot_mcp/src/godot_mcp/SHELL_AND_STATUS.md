@@ -25,10 +25,11 @@ MCP verify(kind, target?)
   └─ workspace_lock(project_root)
        ├─ 拒收 *.csproj / *.gdextension
        ├─ 从 StateStore 推导 phase（首轮 intake）、snapshot diff、previous_view
-       ├─ kind=check_file  → COLD 时先 V3，再一次 V2 → filter → merge
+       ├─ kind=check_file  → COLD 时先 V3，再一次 V2 → filter → merge → annotate → Gate
        └─ kind=check_workspace
             ├─ phase=intake 时 wipe 工作区 *.uid
-            └─ collect_workspace_view(...)     ← 外壳本体
+            ├─ scan_workspace（相关后缀 ≤2000 文件 / 1 GiB；超限硬拒，不 save）
+            └─ collect_workspace_view(...)     ← 外壳本体（不调用 annotate）
                  └─ evaluate(Gate) → VerifyGateResult
 ```
 
@@ -93,10 +94,10 @@ godot --headless --path $P --script res://X.gd --check-only --quit
 
 ```text
 v2_by_target = {}          # 累积，已经 V2 过的 target 不再跑
-最多 8 轮 V1：
+最多 3 轮 V1：
     跑 V1 → filter
     对每个 pointer.target_res_path：
-        若还没 V2 过，且总数 < 8：
+        若还没 V2 过，且总数 < 50：
             跑 V2 → filter，写入 v2_by_target
     若本轮没有新增任何 V2 → 停止（pointer 集已稳定或本来就没有 pointer）
     否则再 V1（N04：哨兵提前结束，autoload / 更深 preload 可能上一份日志里没有）
@@ -106,7 +107,7 @@ merge_command_results(最新 V1, 全部 V2, 可选 V3)
 **有没有对 V1 探出的 pointer 分别跑 V2？有。**  
 每个尚未见过的 `target_res_path` 各跑一次 V2，结果按 target 累积。同一 target 不重复。单次 V2 超时/崩溃：**跳过该 target**（pointer 留在 `pending_pointers`），不把整轮打成 INFRA。V1 或 V3 超时/崩溃：整轮 `INFRA_FAILURE`。
 
-上限：V1 最多 8 轮，V2 最多 8 个不同 target。超出的 pointer 会留在 `pending_pointers`，项目级不算完成。
+上限：V1 最多 3 轮，V2 最多 50 个不同 target（`collect.py` 常量，实测后再决断）。超出的 pointer 会留在 `pending_pointers`，项目级不算完成。
 
 ---
 
@@ -154,9 +155,17 @@ V1↔V2 收敛并 `merge` 之后，若：
 
 `merge` 时 `v3 is None` 会带 caveat `shader_not_checked`，不能对外宣称迁移完成。
 
-### 3.4 `check_file` 的 COLD 预热
+### 3.4 `check_file` 的 COLD 预热与 WARM 外壳标注
 
-单文件通道在缓存 COLD 时先跑一次 V3 再建 class cache，然后才 V2。已 WARM 则仍只跑一次 V2，不跑收尾门。项目级完成必须以 `check_workspace` 为准。
+单文件通道在缓存 COLD 时先跑一次 V3 再建 class cache，然后才 V2。已 WARM 则仍只跑一次 V2，**不 import**、不跑收尾门。
+
+WARM 之后 Agent 若改了 `class_name` / 新建带全局类的 `.gd` 再立刻 `check_file`，V2 可能打出与真缺类同文案的 `not declared` / `Identifier not found`。过滤器故意不删这些。外壳在 filter/merge 之后对比磁盘 `class_name` 与 `.godot/global_script_class_cache.cfg`：
+
+- 不一致 → caveat `class_cache_stale`，把 Identifier 形状从可执行 `root_cause_errors` 挪走，引用方进 `untrusted_files`，`directive` 要求先 `check_workspace`
+- cache 已一致时 Identifier 留在根因（可能是真缺类）
+- 非白名单的 compile `Identifier not found` 在根因里保留，另打 `identifier_not_found_maybe_unregistered_autoload:{symbol}`
+
+`CLEAN` + `gdscript_complete` 若伴随上述 caveat / `untrusted_files`，**不是**已证明干净。项目级完成仍必须以 `check_workspace` 为准。
 
 ---
 
@@ -168,14 +177,18 @@ lock + 拒收
     ├─ phase=intake? → 删除工作区 *.uid
     │
     ▼
+scan_workspace（.gd / .gdshader / .shader / .tres / .uid）
+    超限（>2000 文件或 >1 GiB）→ SnapshotTooLargeError，不 save、不起 Godot
+    │
+    ▼
 should_run_v3(intake 或 iteration) ?
     是 → V3（预热 / 触发表）  失败则整轮 INFRA，不再 V1
     │
     ▼
-loop（≤8）:
+loop（≤3）：
     V1 + 哨兵
     filter → pointers
-    对每个新 target 各跑 V2（≤8 个）
+    对每个新 target 各跑 V2（累计 ≤50 个）
     没有新 V2 → break
     有新 V2 → 再 V1
     │
@@ -206,19 +219,21 @@ Gate.evaluate（跨轮判定）
 - V1 哨兵写入/删除
 - `verify_filter` 全套规则 + merge（黄金样例）
 - 外壳：锁、拒收 C#/GDExtension、入队 UID wipe、COLD 预热、触发表、V1↔V2 收敛、收尾门
-- Gate：熔断 / 预算 / 震荡 / 无进展 / 单文件卡住（内存状态）
-- MCP：`verify(kind, target?, session_id, workspace_id?, round_cost_usd)`；`phase` / `unified_diff` / `patched_files` 由内部快照组装
+- Gate：熔断 / 轮次预算 / 震荡 / 无进展 / 单文件卡住（进程内单槽内存状态）
+- MCP：`verify(kind, target?)`；phase / unified_diff / patched_files 由内部快照组装，不暴露会话键与成本参数
+- 内存快照硬上限：相关后缀 ≤2000 个文件 / 1 GiB；超限 `SnapshotTooLargeError`，不截断、不 `save` 半截快照。`check_file` 不写快照、不检查
 - 返回值含 `gdscript_complete` / `shader_checked` / `probe_incomplete`；未消化 pointer 带 `pointer_budget_exhausted` 或 `pointer_probe_incomplete` caveat
+- `check_file` WARM 外壳标注：`class_cache_stale`（A，Identifier 挪出根因）与 `identifier_not_found_maybe_unregistered_autoload:{symbol}`（B，根因保留）。`check_workspace` 不标注，靠触发表 / intake V3 刷新 cache
 
 ### 5.2 本包内还没做（明确缺口）
 
 | 缺口 | 影响 | 说明 |
 | --- | --- | --- |
-| Redis `StateStore` | 多 worker 不能共享熔断/签名历史 | 接口留了，只有 `InMemoryStateStore` |
+| Redis `StateStore` | 本阶段不做 | studio 一对一单槽；多 worker 不在当前范围 |
 | 调用方必须自己提供隔离工作区 | `wipe_uid` 作用在 `config.project_root` | 若指向用户原仓，会删人家的 `.uid`（不做 git rm，但文件没了） |
 | 工作区锁是本机 flock | 跨机器/跨容器无效 | 分布式要换 Redis 锁（方案里的 N14 进阶） |
 | V5 交叉验证 | 无 | 探针确认不能当 reward，故意不进白名单 |
-| V2 上限 8 / V1 上限 8 | 大项目 pointer 可能消化不完 | `probe_incomplete=True` 且 caveat `pointer_budget_exhausted`；须再调 `check_workspace` |
+| V1 默认 3 轮 / V2 默认 50 个 target | 大项目 pointer 仍可能消化不完 | 数字是经验值，实测后再决断；`probe_incomplete=True` 且 caveat `pointer_budget_exhausted` 时须再调 `check_workspace` |
 
 ### 5.3 不在本 MCP 包范围（整个迁移 Agent 还没做）
 
@@ -249,6 +264,9 @@ cd codebase_index/godot_mcp
 # 缓存：空 .godot/ 仍是 COLD；有 global_script_class_cache.cfg 才 WARM
 uv run pytest tests/verify_shell/test_cache.py -q -v
 
+# class cache 对比 + check_file A/B 标注（不起 Godot）
+uv run pytest tests/verify_shell/test_class_cache.py tests/verify_shell/test_check_file_annotate.py -q -v
+
 # 拒收：项目根有 Game.csproj 要抛；.godot 里的同后缀不管
 uv run pytest tests/verify_shell/test_reject.py -q -v
 
@@ -258,7 +276,7 @@ uv run pytest tests/verify_shell/test_uid.py -q -v
 # diff：新 gd + class_name、.gdshader、.tres 里的 shader、删除 .uid
 uv run pytest tests/verify_shell/test_diff.py -q -v
 
-# snapshot：工作区相对上一轮快照拼出的 diff 能喂给触发表
+# snapshot：工作区相对上一轮快照拼出的 diff 能喂给触发表；超文件数 / 超字节硬拒且不先 read_text
 uv run pytest tests/verify_shell/test_snapshot.py -q -v
 
 # 触发表：intake COLD 必 V3；WARM 普通函数体不 V3；改 class_name 要 V3
@@ -295,7 +313,7 @@ uv run pytest tests/verify_shell/test_collect.py -q -v
 uv run pytest tests/test_verify_tool.py -q -v
 ```
 
-覆盖：真语法错误的返回形状、连续 3 次超时熔断、3 轮相同签名 `NO_PROGRESS_WARN`、workspace 下钻（COLD 时 kinds 为 `V3,V1,V2,V1`）、C# 项目拒收、`check_file` 缺 target。
+覆盖：真语法错误的返回形状、连续 3 次超时熔断、3 轮相同签名 `NO_PROGRESS_WARN`、workspace 下钻（COLD 时 kinds 为 `V3,V1,V2,V1`）、C# 项目拒收、快照超限不 save、`check_file` 缺 target、WARM `check_file` 的 A/B 标注、`check_workspace` 不打 `class_cache_stale`。
 
 ```bash
 uv run pytest tests/test_server.py -q -v

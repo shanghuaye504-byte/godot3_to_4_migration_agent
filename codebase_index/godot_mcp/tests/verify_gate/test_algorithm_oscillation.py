@@ -25,7 +25,7 @@ def test_aba_oscillation_escalates() -> None:
     cfg = RetryGateConfig()
     views = [make_view("s0"), make_view("s1"), make_view("s0")]
     results = [
-        evaluate(state, make_request(views[i], round_index=i + 1), cfg) for i in range(3)
+        evaluate(state, make_request(views[i]), cfg) for i in range(3)
     ]
     assert results[0].decision == "CONTINUE"
     assert results[1].decision == "CONTINUE"
@@ -39,7 +39,7 @@ def test_three_distinct_signatures_are_not_oscillation() -> None:
     cfg = RetryGateConfig()
     views = [make_view("s0"), make_view("s1"), make_view("s2")]
     results = [
-        evaluate(state, make_request(views[i], round_index=i + 1), cfg) for i in range(3)
+        evaluate(state, make_request(views[i]), cfg) for i in range(3)
     ]
     assert [r.decision for r in results] == ["CONTINUE", "CONTINUE", "CONTINUE"]
     assert all(r.hard_stop is False for r in results)
@@ -50,7 +50,7 @@ def test_three_identical_is_no_progress_not_oscillation() -> None:
     cfg = RetryGateConfig()
     view = make_view("s0")
     results = [
-        evaluate(state, make_request(view, round_index=i), cfg) for i in (1, 2, 3)
+        evaluate(state, make_request(view), cfg) for i in (1, 2, 3)
     ]
     assert results[2].decision == "NO_PROGRESS_WARN"
     assert results[2].hard_stop is False
@@ -62,7 +62,7 @@ def test_four_cycle_not_detected_even_if_window_is_five() -> None:
     cfg = RetryGateConfig(oscillation_window=5)
     views = [make_view("s0"), make_view("s1"), make_view("s2"), make_view("s0")]
     results = [
-        evaluate(state, make_request(views[i], round_index=i + 1), cfg) for i in range(4)
+        evaluate(state, make_request(views[i]), cfg) for i in range(4)
     ]
     assert all(r.decision != "OSCILLATION_ESCALATE" for r in results)
     assert results[-1].decision == "CONTINUE"

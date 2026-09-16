@@ -23,7 +23,7 @@ from tests.verify_gate.helpers import make_request, make_state, make_view
 def test_first_round_continues() -> None:
     state = make_state()
     result = evaluate(
-        state, make_request(make_view("err"), round_index=1), RetryGateConfig()
+        state, make_request(make_view("err")), RetryGateConfig()
     )
     assert result.decision == "CONTINUE"
     assert result.hard_stop is False
@@ -39,7 +39,7 @@ def test_decreasing_signatures_count_as_progress() -> None:
         make_view("a"),
     ]
     results = [
-        evaluate(state, make_request(views[i], round_index=i + 1), cfg) for i in range(3)
+        evaluate(state, make_request(views[i]), cfg) for i in range(3)
     ]
     assert [r.decision for r in results] == ["CONTINUE", "CONTINUE", "CONTINUE"]
     assert all(r.hard_stop is False for r in results)
@@ -50,7 +50,7 @@ def test_three_identical_rounds_warn_with_directive() -> None:
     cfg = RetryGateConfig()
     view = make_view("stuck")
     results = [
-        evaluate(state, make_request(view, round_index=i), cfg) for i in (1, 2, 3)
+        evaluate(state, make_request(view), cfg) for i in (1, 2, 3)
     ]
     assert results[0].decision == "CONTINUE"
     assert results[1].decision == "CONTINUE"
@@ -73,8 +73,8 @@ def test_symptoms_and_pointers_excluded_from_signature_set() -> None:
     )
     assert project_signature_set(first) == project_signature_set(second)
 
-    r1 = evaluate(state, make_request(first, round_index=1), cfg)
-    r2 = evaluate(state, make_request(second, round_index=2), cfg)
+    r1 = evaluate(state, make_request(first), cfg)
+    r2 = evaluate(state, make_request(second), cfg)
     assert r1.signature_set == r2.signature_set == frozenset({"root-a"})
     assert r2.decision == "CONTINUE"
     assert state.signature_history[0] == state.signature_history[1]

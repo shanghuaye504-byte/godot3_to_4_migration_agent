@@ -23,7 +23,6 @@ def test_defaults_match_scheme() -> None:
     assert cfg.file_stuck_threshold == 3
     assert cfg.infra_failure_streak_limit == 3
     assert cfg.rounds_limit == 40
-    assert cfg.cost_limit_usd == 5.0
 
 
 def test_load_without_path_returns_defaults() -> None:
@@ -33,12 +32,11 @@ def test_load_without_path_returns_defaults() -> None:
 def test_yaml_nested_overrides(tmp_path: Path) -> None:
     path = tmp_path / "gate.yaml"
     path.write_text(
-        yaml.safe_dump({"retry_gate": {"rounds_limit": 10, "cost_limit_usd": 1.5}}),
+        yaml.safe_dump({"retry_gate": {"rounds_limit": 10}}),
         encoding="utf-8",
     )
     cfg = load_retry_gate_config(path)
     assert cfg.rounds_limit == 10
-    assert cfg.cost_limit_usd == 1.5
     assert cfg.no_progress_window == 3
 
 

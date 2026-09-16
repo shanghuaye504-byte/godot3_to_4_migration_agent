@@ -11,14 +11,14 @@
 
 | 工具 | 输入 | 说明 |
 | --- | --- | --- |
-| `verify` | `kind: "check_file" \| "check_workspace"`；可选 `target` / `session_id` / `workspace_id` / `round_cost_usd` | `check_file`→COLD 时先 V3 再 V2；`check_workspace` 走外壳（内部组装 phase/diff） |
+| `verify` | `kind: "check_file" \| "check_workspace"`；`check_file` 必填 `target` | `check_file`→COLD 时先 V3 再 V2；WARM 只跑 V2，filter/merge 后做 A/B 外壳标注（`class_cache_stale` / 未登记 autoload caveat）。`check_workspace` 走外壳（内部组装 phase/diff，相关后缀快照 ≤2000 个文件 / 1 GiB，超限硬拒），**不**做 A/B 标注。studio 一对一，不收 session/成本参数 |
 
 `verify` 内部现在是 `godot_mcp.verify_gate.run_verify_tool` 的薄封装：先用
-`godot_mcp.verify_filter` 把 Godot 原始输出过滤/合并成 `ProjectFilterView`，再用
-`godot_mcp.verify_gate.algorithm.evaluate` 判定这一轮相对历史处于什么状态（继续/
-无进展/单文件卡住/震荡/预算耗尽/基础设施熔断）。对 LLM 而言，返回值是
-`VerifyGateResult`（过滤结果 + Gate 判定），`hard_stop=True` 时宿主 Agent 循环会
-在工具调用返回后强制结束会话。
+`godot_mcp.verify_filter` 把 Godot 原始输出过滤/合并成 `ProjectFilterView`，
+`check_file` 再做 A/B 外壳标注，然后用 `godot_mcp.verify_gate.algorithm.evaluate`
+判定这一轮相对历史处于什么状态（继续/无进展/单文件卡住/震荡/轮次耗尽/
+基础设施熔断）。对 LLM 而言，返回值是 `VerifyGateResult`（过滤结果 + Gate 判定），
+`hard_stop=True` 时宿主 Agent 循环会在工具调用返回后强制结束会话。
 
 对外输入/输出字段、以及 Agent 参数如何接到内部 `run_verify_tool`，见
 [`docs/mcp_verify_tool_interface.md`](docs/mcp_verify_tool_interface.md)。

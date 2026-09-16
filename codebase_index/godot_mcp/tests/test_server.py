@@ -31,7 +31,7 @@ def test_lists_only_verify() -> None:
     dumped = tools[0].model_dump(by_alias=True)
     schema = dumped.get("inputSchema") or dumped.get("input_schema") or {}
     props = schema.get("properties") or {}
-    for banned in ("unified_diff", "phase", "patched_files"):
+    for banned in ("unified_diff", "phase", "patched_files", "session_id", "workspace_id", "round_cost_usd"):
         assert banned not in props
 
 
@@ -64,7 +64,6 @@ def test_call_verify_returns_structured_dict(tmp_path: Path) -> None:
         return run_verify_tool(
             kind,
             target,
-            session_id=str(kwargs.get("session_id") or "default"),
             config=config,
             gate_cfg=RetryGateConfig(),
             state_store=store,
@@ -106,7 +105,6 @@ def test_unknown_removed_fields_are_rejected_or_ignored(tmp_path: Path) -> None:
         return run_verify_tool(
             kind,
             target,
-            session_id="default",
             config=config,
             gate_cfg=RetryGateConfig(),
             state_store=store,

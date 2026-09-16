@@ -70,7 +70,6 @@ def apply_uid_cluster_rule(events: list[ClassifiedEvent]) -> list[ClassifiedEven
         cluster_res_path = min(path_a, path_b)
         message = f"UID duplicate detected between {path_a} and {path_b}."
         normalized = _sig.normalize_message(message)
-        template = _sig.msg_template(normalized)
         cluster_id = _sig.local_signature(
             kind="resource_error",
             res_path=cluster_res_path,
@@ -91,9 +90,7 @@ def apply_uid_cluster_rule(events: list[ClassifiedEvent]) -> list[ClassifiedEven
             raw_block=event.raw_block,
             kind="resource_error",
             symbol=None,
-            msg_template=template,
             local_signature=cluster_id,
-            noise_signature=_sig.noise_signature(kind="resource_error", template=template),
             role="root_cause",
             cluster_id=cluster_id,
         )

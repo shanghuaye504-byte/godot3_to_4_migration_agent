@@ -2,11 +2,15 @@
 
 对 LLM / MCP 而言这是黑盒：一次调用返回 `VerifyGateResult`。
 内部子循环（V3 / V1↔V2 / 收尾门）在 `verify_shell` 里跑完，再交给 `evaluate`。
+
+studio 一对一：不收 session / workspace / 成本 / diff 覆盖参数。phase、unified_diff、
+patched_files 一律由本函数从单槽 state 与工作区快照算出。
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Literal
 
@@ -19,11 +23,15 @@ from godot_mcp.verify_gate.config import RetryGateConfig, load_retry_gate_config
 from godot_mcp.verify_gate.models import ProjectVerifyState, VerifyGateRequest, VerifyGateResult
 from godot_mcp.verify_gate.state_store import InMemoryStateStore, StateStore
 from godot_mcp.verify_shell.cache import cache_is_warm
+from godot_mcp.verify_shell.check_file_annotate import (
+    annotate_check_file_view,
+    merge_shell_directive,
+)
 from godot_mcp.verify_shell.collect import MAX_V1_ROUNDS, MAX_V2_TARGETS, collect_workspace_view, empty_view
 from godot_mcp.verify_shell.diff import parse_unified_diff
 from godot_mcp.verify_shell.lock import WorkspaceBusyError, workspace_lock
 from godot_mcp.verify_shell.reject import UnsupportedProjectError, reject_if_unsupported
-from godot_mcp.verify_shell.snapshot import diff_snapshots, scan_workspace
+from godot_mcp.verify_shell.snapshot import SnapshotTooLargeError, diff_snapshots, scan_workspace
 from godot_mcp.verify_shell.trigger import Phase
 from godot_mcp.verify_shell.uid import wipe_uid_sidecars
 
@@ -40,13 +48,6 @@ def run_verify_tool(
     kind: str,
     target: str | None = None,
     *,
-    session_id: str = "default",
-    workspace_id: str | None = None,
-    round_index: int | None = None,
-    patched_files: frozenset[str] | None = None,
-    round_cost_usd: float = 0.0,
-    unified_diff: str | None = None,
-    phase: Phase | None = None,
     config: Config | None = None,
     gate_cfg: RetryGateConfig | None = None,
     state_store: StateStore | None = None,
@@ -55,11 +56,7 @@ def run_verify_tool(
     max_v1_rounds: int = MAX_V1_ROUNDS,
     max_v2_targets: int = MAX_V2_TARGETS,
 ) -> VerifyGateResult:
-    """起 Godot → 外壳采集 → Gate 判定。一次调用对应一个 Agent round。
-
-    `phase` / `unified_diff` / `patched_files` 为 None 时由本函数从会话状态与
-    工作区快照组装；测试可显式传入以覆盖。
-    """
+    """起 Godot → 外壳采集 → Gate 判定。一次调用对应一个 Agent round。"""
     if kind not in _KIND_TO_COMMAND:
         raise ValueError(f"unknown verify kind: {kind}")
     if kind == "check_file" and not target:
@@ -69,22 +66,20 @@ def run_verify_tool(
     retry_cfg = gate_cfg or load_retry_gate_config()
     store = state_store or _DEFAULT_STORE
     spawn = run_verify_fn or _default_run_verify
-    ws_id = workspace_id or str(cfg.project_root)
     command = _KIND_TO_COMMAND[kind]
 
     state: ProjectVerifyState
     infra_status: Literal["OK", "TIMEOUT", "CRASH"]
     project_view: ProjectFilterView
     resolved_patched: frozenset[str]
+    shell_directive: str | None
 
     try:
         with workspace_lock(cfg.project_root):
             reject_if_unsupported(cfg.project_root)
-            state = store.load(ws_id, session_id)
-            resolved_phase: Phase = phase if phase is not None else (
-                "intake" if state.rounds_used == 0 else "iteration"
-            )
-            infra_status, project_view, resolved_patched = _run_locked(
+            state = store.load()
+            resolved_phase: Phase = "intake" if state.rounds_used == 0 else "iteration"
+            infra_status, project_view, resolved_patched, shell_directive = _run_locked(
                 kind=kind,
                 target=target,
                 cfg=cfg,
@@ -92,30 +87,31 @@ def run_verify_tool(
                 timeout_s=timeout_s,
                 state=state,
                 resolved_phase=resolved_phase,
-                unified_diff=unified_diff,
-                patched_files=patched_files,
                 max_v1_rounds=max_v1_rounds,
                 max_v2_targets=max_v2_targets,
             )
     except WorkspaceBusyError as exc:
         raise ValueError(str(exc)) from exc
-    except UnsupportedProjectError:
+    except (UnsupportedProjectError, SnapshotTooLargeError):
         raise
 
-    resolved_round = round_index if round_index is not None else state.rounds_used + 1
     request = VerifyGateRequest(
-        workspace_id=ws_id,
-        session_id=session_id,
-        round_index=resolved_round,
         command="MERGED" if command == "V1" else command,
         project_view=project_view,
         patched_files=resolved_patched,
         infra_status=infra_status,
-        round_cost_usd=round_cost_usd,
     )
     result = evaluate(state, request, retry_cfg)
     store.save(state)
-    return result
+    # directive 不进 state：硬停止清空；Gate 软提示优先于 check_file 外壳 A/B。
+    return replace(
+        result,
+        directive=merge_shell_directive(
+            hard_stop=result.hard_stop,
+            gate_directive=result.directive,
+            shell_directive=shell_directive,
+        ),
+    )
 
 
 def _run_locked(
@@ -127,27 +123,18 @@ def _run_locked(
     timeout_s: int,
     state: ProjectVerifyState,
     resolved_phase: Phase,
-    unified_diff: str | None,
-    patched_files: frozenset[str] | None,
     max_v1_rounds: int,
     max_v2_targets: int,
-) -> tuple[Literal["OK", "TIMEOUT", "CRASH"], ProjectFilterView, frozenset[str]]:
+) -> tuple[Literal["OK", "TIMEOUT", "CRASH"], ProjectFilterView, frozenset[str], str | None]:
     if kind == "check_file":
-        return _run_check_file(target, cfg, spawn, timeout_s, patched_files)
+        return _run_check_file(target, cfg, spawn, timeout_s)
 
     if resolved_phase == "intake":
         wipe_uid_sidecars(cfg.project_root)
     current_snapshot = scan_workspace(cfg.project_root)
-    if unified_diff is None:
-        diff_text = diff_snapshots(state.source_snapshot, current_snapshot)
-    else:
-        diff_text = unified_diff
+    diff_text = diff_snapshots(state.source_snapshot, current_snapshot)
     parsed = parse_unified_diff(diff_text)
-    resolved_patched = (
-        patched_files
-        if patched_files is not None
-        else frozenset(_as_res(path) for path in parsed.all_paths())
-    )
+    resolved_patched = frozenset(_as_res(path) for path in parsed.all_paths())
     collected = collect_workspace_view(
         project_root=cfg.project_root,
         godot_binary=cfg.godot_binary,
@@ -162,7 +149,7 @@ def _run_locked(
     )
     state.source_snapshot = current_snapshot
     state.previous_view = collected.project_view
-    return collected.infra_status, collected.project_view, resolved_patched
+    return collected.infra_status, collected.project_view, resolved_patched, None
 
 
 def _run_check_file(
@@ -170,17 +157,16 @@ def _run_check_file(
     cfg: Config,
     spawn: RunVerifyFn,
     timeout_s: int,
-    patched_files: frozenset[str] | None,
-) -> tuple[Literal["OK", "TIMEOUT", "CRASH"], ProjectFilterView, frozenset[str]]:
-    resolved_patched = patched_files if patched_files is not None else frozenset()
+) -> tuple[Literal["OK", "TIMEOUT", "CRASH"], ProjectFilterView, frozenset[str], str | None]:
+    resolved_patched: frozenset[str] = frozenset()
     if not cache_is_warm(cfg.project_root):
         raw_v3 = spawn("V3", None, cfg.godot_binary, cfg.project_root, timeout_s)
         infra = _infra_of(raw_v3)
         if infra != "OK":
-            return infra, empty_view(f"infra:{infra}"), resolved_patched
+            return infra, empty_view(f"infra:{infra}"), resolved_patched, None
     raw = spawn("V2", target, cfg.godot_binary, cfg.project_root, timeout_s)
-    infra_status, project_view = _collect_file_view(raw, cfg.project_root)
-    return infra_status, project_view, resolved_patched
+    infra_status, project_view, shell_directive = _collect_file_view(raw, cfg.project_root)
+    return infra_status, project_view, resolved_patched, shell_directive
 
 
 def _as_res(path: str) -> str:
@@ -222,8 +208,6 @@ def gate_result_to_dict(result: VerifyGateResult) -> dict[str, Any]:
         "remaining_budget": {
             "rounds_used": result.remaining_budget.rounds_used,
             "rounds_limit": result.remaining_budget.rounds_limit,
-            "cost_used_usd": result.remaining_budget.cost_used_usd,
-            "cost_limit_usd": result.remaining_budget.cost_limit_usd,
         },
     }
 
@@ -241,11 +225,11 @@ def _default_run_verify(
 def _collect_file_view(
     raw: VerifyResult,
     project_root: Path,
-) -> tuple[Literal["OK", "TIMEOUT", "CRASH"], ProjectFilterView]:
+) -> tuple[Literal["OK", "TIMEOUT", "CRASH"], ProjectFilterView, str | None]:
     if raw.timed_out:
-        return "TIMEOUT", empty_view("infra:TIMEOUT")
+        return "TIMEOUT", empty_view("infra:TIMEOUT"), None
     if raw.exit_code is None:
-        return "CRASH", empty_view("infra:CRASH")
+        return "CRASH", empty_view("infra:CRASH"), None
     godot_file = project_root / "project.godot"
     keys = (
         parse_autoload_keys(godot_file.read_text(encoding="utf-8"))
@@ -258,7 +242,14 @@ def _collect_file_view(
         command="V2",
         autoload_keys=keys,
     )
-    return "OK", merge_command_results(primary, {})
+    view = merge_command_results(primary, {})
+    # 仅 check_file：class cache 陈旧则挪 Identifier；非白名单 compile Identifier 打 B caveat。
+    annotated = annotate_check_file_view(
+        view,
+        project_root=project_root,
+        autoload_keys=keys,
+    )
+    return "OK", annotated.view, annotated.directive
 
 
 def _event_to_dict(event: ClassifiedEvent) -> dict[str, Any]:
