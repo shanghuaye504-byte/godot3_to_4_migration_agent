@@ -17,6 +17,8 @@ Godot 子进程 → 噪声过滤器（纯函数） → Verify Gate（本文件�
 
 硬停止条件必须排在软提示之前；基础设施熔断排最前，因为 Godot 进程本身跑不起来时，
 后面所有基于"签名集合"的判断都建立在不可靠的数据上。
+
+`evaluate()` 的人话说明（入参/记账/六条决策）写在函数自己的 docstring 里。
 """
 
 from __future__ import annotations
@@ -66,29 +68,52 @@ def evaluate(
     request: VerifyGateRequest,
     cfg: RetryGateConfig,
 ) -> VerifyGateResult:
-    """方案文档 §4.3 的完整判定逻辑。粒度契约（§2.2.4）：调用方必须保证 `request`
-    携带的是 `verify_filter` 收敛循环之后的最终 `ProjectFilterView`，本函数不做
-    任何"多轮内部子循环"的假设，一次调用只对应一个 Agent round。
+    """看完「这一轮校验结果」之后，决定 Agent 该继续修、该换策略，还是该停手。
 
-    记账顺序（先记账，再判断）：
-      0. round_index 防御性校验：`request.round_index != state.rounds_used + 1` 时
-         只记录偏差（写进返回的 reason），不中断执行、不提升为 hard_stop。
-      1. `state.signature_history.append(project_signature_set(request.project_view))`
-      2. `state.rounds_used += 1`
-      3. `state.cost_used_usd += request.round_cost_usd`（唯一写入点）
-      4. 对 `request.patched_files` 中的每个文件 f：
-         若 `state.per_file_last_signature_set.get(f)` 与本轮签名集合相同 → 计数 +1；
-         否则（签名变了或第一次碰到）→ 计数重置为 1。随后更新
-         `per_file_last_signature_set[f]` 为本轮签名集合。
-      5. `infra_status != "OK"` → `infra_failure_streak += 1`，否则清零。
+    本函数不启动 Godot，也不解析日志。前面的外壳已经跑完 V1/V2/V3、滤过错，
+    把一张项目视图放进 ``request.project_view``。这里只做两件事：
+    **先把本轮记进会话账本（会改 ``state``）**，再按优先级给出一个决策。
 
-    `project_status` 合成规则：`"INFRA_FAILURE" if request.infra_status != "OK"
-    else request.project_view.status`——即使未达到熔断阈值，单轮状态也要如实
-    反映本轮的基础设施异常，不能沿用可能残缺/陈旧的 `project_view.status`。
+    三个参数：
+    - ``state``：这个仓库 + 这次迁移会话的记忆（已经用了几轮、花了多少钱、
+      前几轮的根因指纹、哪个文件被反复改过）。必须由调用方在返回后 ``save``。
+    - ``request``：这一轮的客观结果。核心是 ``project_view``（根因/未消化的
+      pointer/是否干净）和 ``infra_status``（进程是否超时或崩溃）。
+      ``patched_files`` 是 Agent 本轮改过的文件；``round_cost_usd`` 是本轮花费。
+    - ``cfg``：阈值（连续几次算无进展、预算上限等）。
 
-    随后按 §4.2 的优先级顺序逐条判断，命中即通过内部 `_result(...)` 组装
-    `VerifyGateResult` 并返回。
+    一次调用 = Agent 的一轮，不是外壳里面那几次 Godot 子循环。调用方必须传入
+    已经 merge 完的最终视图，本函数不会再去下钻 pointer。
+
+    先记账（改 ``state``），再判断——判断用的是记下之后的数字：
+    1. 调用方给的 ``round_index`` 若不是「已用轮数 + 1」，只在返回的 ``reason``
+       里提一句，不因此停手。
+    2. 从本轮根因算出签名集合（每个根因一个稳定指纹，不含 pointer/症状），
+       追加到 ``signature_history``。
+    3. 轮次 +1，累加花费（会话成本只在这里加）。
+    4. 对每个被 patch 的文件：若本轮根因签名和上次改它时一样，补丁次数 +1；
+       签名变了或第一次碰到，次数重置为 1。用来抓「同一文件改了三遍还是那些错」。
+    5. Godot 超时/崩溃 → 连续失败次数 +1；否则清零。
+
+    项目状态：进程不健康就标 ``INFRA_FAILURE``（即使还没熔断）；否则沿用过滤器
+    的 CLEAN / HAS_ERRORS。不能在超时时还显示「项目干净」。
+
+    然后从上到下只命中第一条（硬停止必须先于软提示；进程都起不来时，
+    后面的「签名没变」不可信）：
+
+    1. 连续超时/崩溃达到上限 → ``CIRCUIT_OPEN``，硬停止，工作区当坏掉。
+    2. 轮次或美元预算用尽 → ``BUDGET_EXCEEDED``，硬停止。
+    3. 最近三轮根因集合呈 A→B→A → ``OSCILLATION_ESCALATE``，硬停止
+       （改 A 冒出 B，改回去又变成 A，同策略再试没有意义）。
+    4. 连续 N 轮根因集合完全一样 → ``NO_PROGRESS_WARN``，软提示，仍允许继续。
+    5. 某文件被反复 patch 且相关签名没变 → ``FILE_STUCK_WARN``，软提示。
+    6. 否则 → ``CONTINUE``（有进展，或这是第一轮还没有历史可比）。
+
+    返回值把过滤器的根因/pointer/caveat 原样带上，并附上 ``decision``、
+    ``hard_stop``、相对上一轮的签名 diff、剩余预算。软提示时还有 ``directive``
+    （建议 Agent 换读文件/查规则的方式）；硬停止时 ``directive`` 为空。
     """
+    # --- 记账：先写入本轮，下面的判断用的是更新后的 state ---
     round_index_drift = request.round_index != state.rounds_used + 1
 
     sig_set = project_signature_set(request.project_view)
@@ -113,6 +138,7 @@ def evaluate(
         "INFRA_FAILURE" if request.infra_status != "OK" else request.project_view.status
     )
 
+    # --- 判定：从上到下只取第一条命中 ---
     if state.infra_failure_streak >= cfg.infra_failure_streak_limit:
         state.circuit_state = "OPEN"
         return _result(
