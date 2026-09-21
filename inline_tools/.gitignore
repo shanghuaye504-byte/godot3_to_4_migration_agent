@@ -1,0 +1,10 @@
+# 就地设计笔记（common_rules.mdc：任何子目录的 docs/ 都不进 git）
+docs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+.pytest_cache/

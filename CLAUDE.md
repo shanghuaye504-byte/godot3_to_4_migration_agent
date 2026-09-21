@@ -26,6 +26,10 @@
 - 子模块的 build/dev/test 类依赖必须声明在 [dependency-groups]，禁止用  
 [project.optional-dependencies]，避免下游引用该子模块作为包时被动带上这些依赖。
 
+## 项目文档
+
+各级目录下的/doc中存放的文档更多的是ai自己生成，供agent查阅的中间件，请你在调研代码库的时候不要过多的引入太多docs里面的内容放在上下文中，以免被噪声干扰，仅仅在需要查询的时候检索一下。各级目录下的docs，readme等文档中可能有一些旧的已经被淘汰的feature，请你以代码文件中的具体实现为准。
+
 
 
 ## 项目特定上下文
@@ -230,8 +234,4 @@ FastAPI gateway（提交 job / 查状态）→ Redis Streams + Consumer Group �
 从 badcase 里挑最贵的 2~3 个（大概率是"假阳性误修"和"级联错误追症状"）做优化，记录前后数字。README、架构图、录屏、简历条目。
 
 ---
-
-
-
-
 
