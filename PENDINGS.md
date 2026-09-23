@@ -3,10 +3,12 @@
 四个问题的答案，一句话版：
 
 问题	答案
+
 1. 场景文件大不大、解析贵不贵	不大、极便宜。 .tscn 是纯文本 INI-like 格式，正则/行扫就能拿到全部类型名和引用。成本远低于你已有的 tree-sitter 索引，不该成为不索引的理由
 2. 没有 verifier 怎么保证正确性	别去找"跑出来的 reward"，改用"静态闭合不变量"当 reward。 场景改名的正确性本质是引用一致性（可判定），不是运行时行为（不可判定）。这是唯一能给出确定性保证的路
 3. headless 能不能跑一帧、能不能查出场景错误	能跑（--quit-after N），而且能查出结构性错误（缺 ext_resource / 未知 class / 脚本挂载失败 / 循环依赖）。但查不出渲染、shader 编译、GPU、输入、物理稳态问题
 4. 上 GUI 有没有帮助	对你要解决的"改名一致性"几乎没帮助（多出的都是渲染/shader 层信号，和改名无关），但对 shader 语义是唯一手段。代价：需要 GPU / X11，CI 里不稳。建议：不进主循环
+
 下面展开。
 
 一、.tscn 的规模与解析成本
@@ -71,7 +73,8 @@ codeindex 的 schema 是 classes / functions / symbols / edges(kind='call'|'exte
 一次改名是正确的，当且仅当：改名前后，引用图的"悬空边数"不增加，且被改名符号的旧名在全仓的出现次数归零。
 具体落成 5 条可机械判定的检查（全部零 Godot）：
 
-#	不变量	检查方式	捕获的真实 bug
+# 不变量	检查方式	捕获的真实 bug
+
 I1	.tscn 的每个 ext_resource path 都存在于磁盘	文件系统 stat	改名/移动文件忘了改场景
 I2	每个 [node type="X"] 的 X ∈ (引擎类白名单 ∪ 仓库 class_name 集合)	查 codeindex classes 表 + 引擎类清单	3→4 类型改名漏了场景（KinematicBody2D 残留）
 I3	每个 script = ExtResource(id) 指向的 .gd 存在且语法可解析	codeindex 已有 has_error 信息	脚本挂载失败
@@ -112,7 +115,7 @@ json
 
 Godot 4 有两个相关参数：
 
---quit-after <N>：跑 N 帧后退出（N=1 就是"跑一帧"）。这是你记得的那个
+--quit-after ：跑 N 帧后退出（N=1 就是"跑一帧"）。这是你记得的那个
 --quit：第一个 idle frame 后立刻退出
 配合 --headless（= --display-driver headless + --audio-driver Dummy），可以做到：真正走完 _ready() → 至少一个 _process() → 退出。
 
@@ -182,12 +185,10 @@ viewport / 后处理 / RenderingDevice 错误	❌ 无关
 另外：--editor --import（你的 V3）本来就已经覆盖了"资源导入 / UID / shader 能否被编辑器接受"这一层的大部分价值，且已经在你白名单里、已经稳定。GUI 的增量非常有限。
 
 总结成执行清单
+
 1. 索引：.tscn/.tres 用独立的 scene_refs 表，逐行正则 5 条，不进 codeindex 的 edges。成本可忽略。同时对 MB 级离群文件设上限并登记（与 intake precheck 共用一次扫描）。
-
 2. Verifier：场景的 reward = 5 条静态闭合不变量（I1 悬空引用 / I2 未知类型 / I3 脚本挂载 / I4 信号 method 孤儿 / I5 旧符号残留），其中 4 条直接复用 codeindex 已有表。输出 signature_set 与 verify 同构 → 白拿 Gate 的震荡/无进展检测。
-
 3. headless 跑帧：--quit-after N 存在且能查结构性错误，但信噪比差（会执行 _ready，迁移中途必崩）。用 load-only 的 ResourceLoader.load() 遍历做收尾门，全覆盖 + 零逻辑执行，是信噪比最优解。真跑帧只当旁路观察，不进 Gate。
-
 4. GUI：对改名一致性零增益，只增渲染层信号；且会抬高 TIMEOUT 率误触 CIRCUIT_OPEN，污染核心指标。不做。
 
 最重要的一句：场景改名的正确性是图闭合问题（可判定），不是行为正确性问题。你不缺 reward，你缺的是承认静态不变量就是 reward——而且它比跑游戏覆盖率高两个数量级、零 flaky、能直接进你已有的 Gate。
@@ -196,7 +197,8 @@ viewport / 后处理 / RenderingDevice 错误	❌ 无关
 
 先给一个会改变整个设计的重新框定，因为它同时回答了你三个问题的一半。
 
-0. 关键重构：converter 先跑 → 建立 baseline → reward 用 delta
+1. 关键重构：converter 先跑 → 建立 baseline → reward 用 delta
+
 你提到"LLM 修复前先跑一次官方 converter"。这件事的顺序决定了整套设计：
 
 ① 官方 converter 3→4  ──►  ② --editor --import  ──►  ③ 建 index + scene_refs
@@ -256,12 +258,12 @@ json
 同样地给 find-symbol 对函数的返回加 scene_usages，因为信号连接引用的是方法名，这是最高频的漏改点。
 
 1.2 解析实现（逐行状态机，约 150 行）
-.tscn / .tres 同格式。唯一的真陷阱是多行属性值（Dictionary / 长 Array 会被 Godot 写成跨行），所以不能无脑用 ^\[ 判段头。
+.tscn / .tres 同格式。唯一的真陷阱是多行属性值（Dictionary / 长 Array 会被 Godot 写成跨行），所以不能无脑用 ^ 判段头。
 
 smalltalk
 状态: depth = 0   # ( [ { 的净余量
 逐行:
-    if depth == 0 and 行匹配 ^\[(gd_scene|gd_resource|ext_resource|sub_resource|node|connection|editable|resource)\b:
+    if depth == 0 and 行匹配 ^(gd_scene|gd_resource|ext_resource|sub_resource|node|connection|editable|resource)\b:
         → 解析段头属性（key="v" / key=数字 的键值对）
         → 切换 current_section
     else:
@@ -285,7 +287,8 @@ sub_resource_type	[sub_resource type=..]	type
 1.3 converter 跑完之后，LLM 还需要动 .tscn 吗？
 需要，但性质完全变了。 官方 converter 对 .tscn 做的是已知 3→4 重命名表的文本替换（类名、属性名、信号名）。它覆盖得相当好。所以 LLM 要动场景的场合，主力不是"补 converter 漏掉的引擎重命名"，而是"为自己的重构善后"：
 
-#	LLM 动 .tscn 的原因	触发的违规类型	频率
+# LLM 动 .tscn 的原因	触发的违规类型	频率
+
 A	⭐ 它自己改了函数名（为修错误而重命名 / 改签名），而该函数是信号回调	connection_method 孤儿	最高
 B	⭐ 它自己移动/重命名/拆分了 .gd 文件	ext_resource_path 悬空 + script_attach 失效	最高
 C	它改了 class_name	自定义节点类型失效	高
@@ -413,8 +416,13 @@ AND scene_check.regression == 0
 
 3.2 具体做法
 gdscript
+
 # tools/load_sweep.gd —— godot --headless --script tools/load_sweep.gd
+
+
+
 # 用法: 从 file_list.txt 读待验文件, 从 resume_at 续跑
+
 for path in paths:
     print("###BEGIN ", path)          # 哨兵：用于 stderr 归因
     var r = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
@@ -475,7 +483,9 @@ LOAD_CRASH（进程死在某文件上）	新增	⛔ 打回——这是最硬的�
 同时要给 load-only 单独的重试预算，它不能共用 verify 的 INFRA_FAILURE 熔断计数器。否则一个 flaky 的 sweep 会误熔断整个任务。
 
 四、落地清单（按依赖顺序）
-#	做什么	依赖	备注
+
+# 做什么	依赖	备注
+
 1	dump_classdb.gd → 引擎类名 + 继承树 JSON	无	一次性，按引擎版本缓存。I2 / I3b 的地基
 2	.tscn/.tres 逐行状态机 → scene_refs 表	无	~150 行。注意多行值的 depth 跟踪
 3	find-symbol 返回追加 scene_usages + scene_usage_count	2	⭐ 投入产出比最高的一步，直接治"忘记改场景"
@@ -499,8 +509,7 @@ LOAD_CRASH（进程死在某文件上）	新增	⛔ 打回——这是最硬的�
 
 load-only（只 ResourceLoader.load()，不 instantiate）验的是你的正则原理上看不见的那一层：UID 一致性、资源类型匹配、循环包含、import 产物、跨文件脚本编译、以及你主动跳过的超大文件。按"新增 + 可归因到具体文件"打回，历史债和环境噪声只警告，并且给它独立的重试预算，别让它误触发 verify 的熔断。
 
-要不要我下一步直接给 _on_* 信号连接的 I4 完整实现（含沿 extends 链向上查到引擎类的解析逻辑、以及 UNRESOLVED 的判定边界）？它是这批里唯一"现有工具链完全盲、真实项目高频踩、且实现不到百行"的，先做它能最快验证整套设计值不值。
-
+要不要我下一步直接给 *on** 信号连接的 I4 完整实现（含沿 extends 链向上查到引擎类的解析逻辑、以及 UNRESOLVED 的判定边界）？它是这批里唯一"现有工具链完全盲、真实项目高频踩、且实现不到百行"的，先做它能最快验证整套设计值不值。
 
 先做一件最重要的事：撤回一个我说错的判断。
 
@@ -817,7 +826,9 @@ load sweep（推荐）	反序列化 + 递归解析依赖 + 编译脚本 + 构造
 
 6.2 实现
 gdscript
+
 # tools/load_sweep.gd   —— godot --headless -s tools/load_sweep.gd
+
 extends MainLoop     # 必须是 MainLoop/SceneTree 实现（-s 的硬性要求）
 
 func _initialize():
@@ -887,63 +898,34 @@ MCP 拓扑选 A：场景工具留在 codeindex（数据在哪计算在哪），v
 
 # 一、为什么不给 Bash？grep / read / glob 不也是 Bash 命令吗？
 
-
-
-
 你的质疑完全合理：`grep`、`read`、`glob` 这三个工具的**实现**确实就是 `rg` / `sed -n` / `find`。所以区别不在"能不能做这件事"，而在**调用面的性质**。
-
-
-
 
 ## 1.1 核心区别：白名单 vs 图灵完备
 
 
+| 维度      | `grep` / `read` 工具                                     | Bash                                                       |
+| ------- | ------------------------------------------------------ | ---------------------------------------------------------- |
+| 可能的行为集合 | **有限且可枚举**。参数 schema 固定，实现里写死 `rg --json -e <pattern>` | **无限**。`$(...)`、`;`、`|`、`>`、`&&`、`eval`、`python -c`、`curl` |
+| 副作用     | **可证明为只读**（进程只有 read syscall 路径）                       | **不可判定**。你无法靠静态检查确定一条 shell 命令是否写盘                         |
+| 失败模式    | 结构化 error code                                         | 任意退出码 + 任意 stderr                                          |
+| 审计      | 每次调用 = 一条 `{tool, args, result}` 记录                    | 一条 `bash("...")` 记录，参数是**不透明字符串**                          |
 
 
-|维度|`grep` / `read` 工具|Bash|
-|---|---|---|
-|可能的行为集合|**有限且可枚举**。参数 schema 固定，实现里写死 `rg --json -e <pattern>`|**无限**。`$(...)`、`;`、`\|`、`>`、`&&`、`eval`、`python -c`、`curl`|
-|副作用|**可证明为只读**（进程只有 read syscall 路径）|**不可判定**。你无法靠静态检查确定一条 shell 命令是否写盘|
-|失败模式|结构化 error code|任意退出码 + 任意 stderr|
-|审计|每次调用 = 一条 `{tool, args, result}` 记录|一条 `bash("...")` 记录，参数是**不透明字符串**|
-
-
-
-
-最关键一点：**`grep` 是 `bash` 的一个真子集，但"允许 grep"不等于"允许 bash"**。给了 bash，你不是多给了 grep，你是把 LLM 的动作空间从"有限集合"扩成了"任意程序"。
-
-
-
+最关键一点：`grep` **是** `bash` **的一个真子集，但"允许 grep"不等于"允许 bash"**。给了 bash，你不是多给了 grep，你是把 LLM 的动作空间从"有限集合"扩成了"任意程序"。
 
 这在安全领域叫 **capability（能力）vs. shell（外壳）**。给 capability 你能推理系统性质，给 shell 你只能事后观测。
-
-
-
 
 ## 1.2 对你这个项目：三个具体的、会毁掉你论文的后果
 
 
 
-
 ### 后果 A：写通道旁路 → fix_guard 直接作废
-
-
-
 
 这是**致命的**。你的整个"防假修复"设计建立在一个不变式上：
 
-
-
-
-> **所有对工作区的写入都经过 `edit` 工具，因此都经过 fix_guard。**
-
-
-
+> **所有对工作区的写入都经过** `edit` **工具，因此都经过 fix_guard。**
 
 有了 bash，LLM 可以：
-
-
-
 
 ```bash
 sed -i 's/func compute/func compute_old/' res/foo.gd   # 绕过 guard
@@ -952,76 +934,34 @@ git checkout -- .                                      # 篡�
 echo "pass" >> foo.gd                                   # 判据4 看不见
 ```
 
-
-
-
 而且这**不需要 LLM 有恶意**。它只是在"最省事地让 verify 变绿"这个目标下做局部最优。`sed -i` 对模型来说是完全自然的工具选择——训练数据里满地都是。
-
-
-
 
 一旦发生一次，你的实验结论就从"假修复率 X%"退化成"**被我们的 guard 抓到的假修复率 X%，未抓到的未知**"。审稿人会直接问这个。
 
-
-
-
 ### 后果 B：你自己的设计哲学不一致
-
-
-
 
 你在 verify 上做的最漂亮的决策是：
 
-
-
-
 > schema 里故意没有 `session_id`、`phase`、`unified_diff`；**Agent 不能拼 Godot argv，不能点名 V1/V2/V3**；白名单只有三条命令，`--debug` 明确不进白名单（会 signal 11）。
-
-
-
 
 这个决策的价值是：**verify 的能力边界是可声明、可验证的**。你能写"本工具不会做 X"并且这是真的。
 
-
-
-
 如果同一个 Agent 手里有 bash，那它可以自己跑：
-
-
-
 
 ```bash
 godot --headless --path . --debug --check-only   # 你排除的 signal 11 路径
 godot --headless --import                        # 你排除的不带 --editor 的 import
 ```
 
-
-
-
 你排除 `--debug` 是因为实测会崩。LLM 不知道，它会试。于是你精心设计的白名单变成**建议**而非**约束**，而 `INFRA_FAILURE` / `CIRCUIT_OPEN` 的计数开始被工具外的崩溃污染。
-
-
-
 
 **一个系统的能力边界取决于最宽的那个入口。** 给了 bash，最宽的入口就是 bash，verify 的所有边界声明都降级为"我们建议的用法"。
 
-
-
-
 ### 后果 C：verify 的 caveats 契约被破坏
-
-
-
 
 你的 verify 返回 `untrusted_files`、`class_cache_stale`、`probe_incomplete`，语义是"这些文件我不敢保证"。这个契约成立的前提是**工作区状态只由 intake + edit 改变**，所以 verify 的 COLD/WARM 判定、快照 diff、V3 触发表都是准确的。
 
-
-
-
 bash 一旦动了文件而没走 edit：
-
-
-
 
 - 快照 diff 算出的 `patched_files` 是错的 → `FILE_STUCK_WARN` 失效
 - V3 触发表可能漏触发（改了 `.tres` 但快照上一轮已拍）→ `shader_checked` 说谎
@@ -1029,68 +969,36 @@ bash 一旦动了文件而没走 edit：
 
 
 
-
 ## 1.3 那 glob 为什么要合并进 grep，而不是单独开一个？
 
-
-
-
 因为 **rg 本身就是 glob + grep 的合体**：
-
-
-
 
 ```
 rg --files -g "**/*.tscn"              # 纯 glob（列文件）
 rg -g "**/*.tscn" "KinematicBody"      # glob + 内容匹配
 ```
 
-
-
-
-单独开 `glob` 工具只是给 LLM 多一个决策点（"我该用 glob 还是 grep？"），没有增加任何能力。**一个 tool + `pattern=None` 退化为列文件**，schema 更小、prompt 更短、路由歧义更少。这和你把 V1/V2/V3 藏进 `kind` 是同一个手法。
-
-
-
+单独开 `glob` 工具只是给 LLM 多一个决策点（"我该用 glob 还是 grep？"），没有增加任何能力。**一个 tool +** `pattern=None` **退化为列文件**，schema 更小、prompt 更短、路由歧义更少。这和你把 V1/V2/V3 藏进 `kind` 是同一个手法。
 
 ## 1.4 那 `read` 为什么必须单独存在，不能用 grep 代替？
-
-
-
 
 因为它们的**输出契约根本不同**：
 
 
-
-
-||grep|read|
-|---|---|---|
-|输出|稀疏、不连续的匹配行|**连续区间，带绝对行号**|
-|用途|定位（我该看哪）|生成 patch 的锚点（原文长什么样）|
-|对 edit 的作用|无|**决定 patch 能否 apply 成功**|
-
-
+|            | grep       | read                     |
+| ---------- | ---------- | ------------------------ |
+| 输出         | 稀疏、不连续的匹配行 | **连续区间，带绝对行号**           |
+| 用途         | 定位（我该看哪）   | 生成 patch 的锚点（原文长什么样）     |
+| 对 edit 的作用 | 无          | **决定 patch 能否 apply 成功** |
 
 
 `edit` 的成功率几乎完全取决于 LLM 手里有没有**逐字正确的原文**。grep 带 `-C 3` 也不行——上下文窗口边界不可控、多个 hunk 会交叠、缩进可能被截断。GDScript 是**缩进敏感语言**，锚点差一个 tab 就 apply 失败。
 
-
-
-
 所以 `read` 不是"方便"，是 `edit` 的**前置依赖**。
-
-
-
 
 ## 1.5 如果你坚持要 bash，最低限度的安全形态
 
-
-
-
 我不推荐，但给你一个折中方案备选：
-
-
-
 
 ```
 bash_ro(command: str)
@@ -1102,100 +1010,52 @@ bash_ro(command: str)
   # 6. 只读挂载检查（如果跑容器：workspace 挂 ro，edit 走单独的 rw 通道）
 ```
 
-
-
-
 你会发现：**写完这个白名单，你花的工程量比直接写 3 个结构化工具更大，而且能力还更弱**（因为要禁掉管道，awk/sed 的表达力就没了）。这就是为什么主流 agent 框架最终都收敛到结构化工具而不是受限 shell。
 
-
-
-
 **结论：不给 bash。这不是安全洁癖，这是让你的"假修复率"这个数字能成立的唯一方式。**
-
-
-
 
 ---
 
 
 
-
 # 二、`edit` 的 apply 过程：diff 从哪来？
 
-
-
-
 你问到了点子上，而且这里我要**修正上一轮的说法**。
-
-
-
 
 ## 2.1 三种候选 wire format
 
 
-
-
-|方案|LLM 输出什么|问题|
-|---|---|---|
-|**A. 整文件重写**|完整新文件内容|① **laziness**：模型会写 `# ... 其余代码不变 ...` 然后你真的把代码删了；② token 成本随文件长度线性增长；③ **爆炸半径无法判定**——整文件都是"改动"，fix_guard 判据 1 失效|
-|**B. 真·unified diff（带行号）**|`@@ -142,7 +142,9 @@` + 上下文|LLM **数不准行号**。它要同时算旧行号、新行号、hunk 长度。任何一个错，`git apply` 直接拒。实践中失败率高得离谱|
-|**C. 锚定替换（anchored replace）**|`old_string` / `new_string`，**不带行号**|要求 `old_string` 在文件中唯一，否则歧义|
+| 方案                            | LLM 输出什么                             | 问题                                                                                                                |
+| ----------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| **A. 整文件重写**                  | 完整新文件内容                              | ① **laziness**：模型会写 `# ... 其余代码不变 ...` 然后你真的把代码删了；② token 成本随文件长度线性增长；③ **爆炸半径无法判定**——整文件都是"改动"，fix_guard 判据 1 失效 |
+| **B. 真·unified diff（带行号）**    | `@@ -142,7 +142,9 @@` + 上下文          | LLM **数不准行号**。它要同时算旧行号、新行号、hunk 长度。任何一个错，`git apply` 直接拒。实践中失败率高得离谱                                               |
+| **C. 锚定替换（anchored replace）** | `old_string` / `new_string`，**不带行号** | 要求 `old_string` 在文件中唯一，否则歧义                                                                                       |
 
 
 
 
 ## 2.2 实证数据指向一个混合方案
 
-
-
-
 Aider 做过一个专门测 laziness 的 benchmark，结论很有意思：
-
-
-
 
 - SEARCH/REPLACE 格式：GPT-4 Turbo 得分 20%，12 个任务出现"偷懒注释"
 - **unified diff 格式：61%，只有 4 个任务偷懒**
 
-
-
-
 但关键细节在这句：
-
-
-
 
 > "Aider tells GPT **not to include line numbers**, and just interprets each hunk from the unified diffs **as a search and replace operation**."
 
-
-
-
 也就是说，**Aider 所谓的 "unified diff" 其实是 B 的外形 + C 的语义**：
-
-
-
 
 - 用 diff 的 `-` / `+` / 空格前缀语法（模型在训练数据里见过海量 diff，格式熟悉度高）
 - **但不要行号**（避开模型不会算数的短板）
 - 服务端把每个 hunk 当"上下文 + `-` 行 = 要找的文本，上下文 + `+` 行 = 要换的文本"来做搜索替换
 
-
-
-
 而且 diff 形状本身**降低偷懒**——因为 `-` / `+` 的逐行结构让"省略一段"在语法上显得不自然，而整文件重写里省略一段太容易了。
-
-
-
 
 **这对你直接相关**：laziness 就是 fix_guard 判据 4 要抓的东西。**wire format 的选择本身就在影响你的假修复率**。选对格式，你在源头上就少了一批假修复。
 
-
-
-
 ## 2.3 我建议的 `edit` schema
-
-
-
 
 ```python
 edit(
@@ -1238,16 +1098,9 @@ edit(
 
 
 
-
 ## 2.4 服务端 11 步流水线
 
-
-
-
 这是**全部新增工程量的核心**，我逐步写清楚：
-
-
-
 
 ```
 ┌─ 0. 前置检查 ────────────────────────────────────────┐
@@ -1336,98 +1189,48 @@ edit(
 
 
 
-
 ## 2.5 回答你的原问题
-
-
-
 
 > diff 是根据两次 LLM 修改的文件计算出来的，还是 LLM 直接生成 diff？
 
-
-
-
 **都不是，是第三种**：
-
-
-
 
 - LLM 生成的是 **hunk 形状的锚定替换指令（无行号）**——对模型自然，格式熟悉度高，不用算数
 - **服务端做锚定**，把锚点解析成真实行号
 - **服务端用 difflib 生成规范 udiff**——行号一定正确，`git apply` 一定能吃
 - 再交给 git 落盘
 
-
-
-
 > 这个对 LLM 修改代码来说会不会不自然？
 
-
-
-
 不会，而且比另外两种都自然：
-
-
-
 
 - 比整文件重写自然：不用重复输出没改的几百行
 - 比带行号 udiff 自然：不用算行号（这是模型的已知短板）
 - 锚定失败时，服务端返回**带真实行号的相似候选**，LLM 第二次几乎必中
 
-
-
-
 `context_before/after` 就是"哪一处"的自然表达，和人读 diff 的方式一致。
-
-
-
 
 ---
 
 
 
-
 # 三、git 的事务机制：它到底怎么保证原子性？
-
-
-
 
 先说清一件事：**git 不是 ACID 数据库，没有通用事务**。但它有三个**原子原语**，组合起来足够支撑你要的事务语义。
 
-
-
-
 ## 3.1 原语一：对象库是 content-addressed + 不可变
 
-
-
-
 blob / tree / commit 的文件名 = 内容的 SHA。所以：
-
-
-
 
 - 写对象**天然幂等**：写两次结果一样，不存在"写坏一半"
 - 对象**永不原地修改**
 - 实现上仍是"写临时文件 → `rename(2)` 就位"
 
-
-
-
 意义：**历史数据永远不会被破坏**。你的 baseline commit 一旦生成，物理上不会被后续操作损坏。
-
-
-
 
 ## 3.2 原语二：lockfile API（`O_CREAT|O_EXCL` + 原子 rename）
 
-
-
-
 对于**有固定名字**的可变文件（`index`、`refs/heads/main`、`packed-refs`），git 走统一的 lockfile 协议：
-
-
-
 
 ```
 1. open("index.lock", O_CREAT | O_EXCL)   ← 互斥：已存在则失败
@@ -1435,33 +1238,17 @@ blob / tree / commit 的文件名 = 内容的 SHA。所以：
 3. rename("index.lock", "index")          ← 提交：POSIX 保证原子
 ```
 
-
-
-
 `rename(2)` 的原子性意味着：**任何并发读者看到的，要么是完整旧内容，要么是完整新内容，绝无中间态**。
 
-
-
-
 而且 git 注册了 `atexit(3)` + 信号处理器，进程异常退出时自动清理残留 lockfile。
-
-
-
 
 > 这个机制你其实已经在用了——verify 的工作区 flock 是同一思路。
 
 
 
-
 ## 3.3 原语三：ref transaction（两阶段提交）
 
-
-
-
 `git update-ref --stdin` 支持显式事务动词：
-
-
-
 
 ```
 start      # 开始事务
@@ -1472,48 +1259,21 @@ commit     # 全部提交
 abort      # 全部回滚，释放锁
 ```
 
-
-
-
 语义是：**"如果所有 ref 都能同时锁住且 old-oid 匹配，则全部执行；否则一个都不执行。"** 这是真正的 all-or-nothing。
-
-
-
 
 而且"事务在会话结束时若无显式 commit 则自动 abort"——**默认安全**。
 
-
-
-
 （注意文档的诚实说明：并发读者仍可能看到修改的子集。所以这是**写者之间的原子性**，不是完整的快照隔离。对你的单 Agent 场景足够。）
-
-
-
 
 ## 3.4 原语四（最直接相关）：`git apply` 默认就是全或无
 
-
-
-
 man page 原话：
 
-
-
-
-> "**For atomicity, `git apply` by default fails the whole patch and does not touch the working tree when some of the hunks do not apply.** This option (`--reject`) makes it apply the parts of the patch that are applicable..."
-
-
-
+> "**For atomicity,** `git apply` **by default fails the whole patch and does not touch the working tree when some of the hunks do not apply.** This option (`--reject`) makes it apply the parts of the patch that are applicable..."
 
 **这就是你要的语句级事务，白送的。**
 
-
-
-
 所以：
-
-
-
 
 - ✅ `git apply patch` — 全或无
 - ❌ `git apply --reject patch` — **绝对不要用**。它会半截应用 + 留 `.rej` 文件，把工作区搞成不一致中间态
@@ -1521,11 +1281,7 @@ man page 原话：
 
 
 
-
 ## 3.5 组装成你的事务模型：三层回滚粒度
-
-
-
 
 ```
 会话级         intake_baseline (commit B0)
@@ -1538,21 +1294,16 @@ man page 原话：
 ```
 
 
-
-
-|层级|触发条件|操作|成本|
-|---|---|---|---|
-|**语句级**|hunk 不匹配 / guard reject|什么都不做（git apply 本就没动盘）|**零**|
-|**轮级**|verify 显示根因变多、或 `OSCILLATION_ESCALATE`|`git reset --hard <上一轮 sha>` + `git clean -fd -e .godot` + `codeindex sync` 受影响文件|低|
-|**会话级**|`CIRCUIT_OPEN` / 放弃|`git reset --hard B0`，或直接删工作区重跑 intake|中|
+| 层级      | 触发条件                                   | 操作                                                                                | 成本    |
+| ------- | -------------------------------------- | --------------------------------------------------------------------------------- | ----- |
+| **语句级** | hunk 不匹配 / guard reject                | 什么都不做（git apply 本就没动盘）                                                            | **零** |
+| **轮级**  | verify 显示根因变多、或 `OSCILLATION_ESCALATE` | `git reset --hard <上一轮 sha>` + `git clean -fd -e .godot` + `codeindex sync` 受影响文件 | 低     |
+| **会话级** | `CIRCUIT_OPEN` / 放弃                    | `git reset --hard B0`，或直接删工作区重跑 intake                                            | 中     |
 
 
 
 
 ## 3.6 具体实现：`edit` 的事务代码骨架
-
-
-
 
 ```python
 def edit_apply(file, hunks, ...):
@@ -1614,13 +1365,7 @@ def edit_apply(file, hunks, ...):
     return {"ok": True, "commit": commit, "guard": verdict}
 ```
 
-
-
-
 commit message 编码审计信息，让 git log 本身成为 trace 的冗余副本：
-
-
-
 
 ```
 fix(round=7): res://scripts/player.gd
@@ -1637,137 +1382,69 @@ patch-hash: 9c1f...
 
 
 
-
 ## 3.7 四个必须知道的坑
-
 
 
 
 ### 坑 1：`*.uid` 和 baseline commit 的顺序 ⚠️ 最容易踩
 
-
-
-
-你的 intake **首轮会 wipe `*.uid`**。如果你的 baseline commit 拍在 wipe **之前**，那么任何 `git reset --hard B0` 都会**把 `.uid` 文件恢复回来**——而这些 uid 是 Godot 3 时代的、你本来故意删掉的。verify 的 UID 重复簇压缩逻辑会突然看到一批不该存在的文件。
-
-
-
+你的 intake **首轮会 wipe** `*.uid`。如果你的 baseline commit 拍在 wipe **之前**，那么任何 `git reset --hard B0` 都会**把** `.uid` **文件恢复回来**——而这些 uid 是 Godot 3 时代的、你本来故意删掉的。verify 的 UID 重复簇压缩逻辑会突然看到一批不该存在的文件。
 
 **解法（二选一）**：
-
-
-
 
 - baseline commit 拍在 `*.uid` wipe **之后**（推荐，语义最干净：baseline = "intake 完成态"）
 - 或者 `.gitignore` 加 `*.uid`，让它们永远不进版本控制
 
-
-
-
 另外 `.gitignore` 必须包含：`.godot/`、`.import/`、`*.uid`（如选方案二）、`.codeindex/`。否则 verify 的 import 缓存和 codeindex 的库会被 `reset --hard` / `clean -fd` 毁掉，下一轮强制变 COLD，白跑一次 V3。
-
-
-
 
 import的全部内容和uid都不进入git之中。
 
-
-
-
 ### 坑 2：`reset --hard` 不删 untracked 文件
 
-
-
-
-如果 LLM 通过 `edit(kind="create")` 新建了文件但还没 commit，`reset --hard` 留着它。必须配 `git clean -fd`，但**一定要带 `-e`**：
-
-
-
+如果 LLM 通过 `edit(kind="create")` 新建了文件但还没 commit，`reset --hard` 留着它。必须配 `git clean -fd`，但**一定要带** `-e`：
 
 ```bash
 git clean -fd -e .godot -e .import -e .codeindex
 ```
 
-
-
-
 漏了 `-e` 会把 verify 的 import 缓存删光。（被gitignore忽略的文件也会别删除，要慎用）
-
-
-
 
 这个要再次考虑
 
-
-
-
 ### 坑 3：不要用 `git stash`
-
-
-
 
 `stash` 有自己的状态机（`stash@{0}` 栈、可能冲突的 pop、untracked 要 `-u`），而且 pop 冲突时会留 conflict marker。**commit + reset 的状态机简单得多，而且每一步都留下不可变的物证**。审计场景下永远选 commit。
 
-
-
-
 ### 坑 4：不要用 `git worktree` / 多工作区
-
-
-
 
 你的 verify 是**进程内单槽状态、一对一工作区**，工作区路径来自 config。多 worktree 会让"LLM 改的"和"verify 看的"分叉——这正是我上一轮建议拿掉"edit 自建工作区"的原因。
 
-
-
-
 ### 兜底：reflog
-
-
-
 
 即使误操作了 `reset --hard`，`git reflog` 在默认 90 天内还能找回被丢弃的 commit。设 `gc.reflogExpire` 长一点，你的实验数据就有额外保险。
 
-
-
-
 ---
-
 
 
 
 # 四、fix_guard 五条判据：原理与设计动机
 
-
-
-
 先说 guard 存在的根本原因，这决定了所有判据的形状：
 
-
-
-
 > **verify 能告诉你"错误消失了"，但它在原理上无法区分"错误消失"的两种路径：**
-> 
+>
+>
 > - **真修复**：代码语义修正，符合 4.7.1 API
 > - **假修复**：把报错的代码删掉 / 注释掉 / 换成 `pass`
-> 
+>
+>
 > 因为对 `--check-only` 来说，**这两者是完全等价的输入**。
-
-
-
 
 这不是 verify 的缺陷，是**编译器类验证器的固有盲区**。任何"编译通过 = 成功"的 reward 都可以被"删掉不通过的代码"这条捷径 hack。这在 RL 里叫 reward hacking，在你这里的表现就是**假修复**。
 
-
-
-
 所以 guard 不是 verify 的补丁，它是**一个正交维度的验证器**：verify 看"错误是否消失"，guard 看"消失的方式是否合法"。
 
-
-
-
 ---
-
 
 
 
@@ -1775,21 +1452,11 @@ git clean -fd -e .godot -e .import -e .codeindex
 
 
 
-
 ### 原理：修复的局部性假设
-
-
-
 
 一次合法的编译错误修复，其改动应当**空间上局部化在错误位置附近**。这不是启发式，是有依据的：Godot 的 `SCRIPT ERROR` 已经精确指到 `res_path` + `line`，修它需要改的就是那一行或它所在的函数。
 
-
-
-
 形式化：
-
-
-
 
 ```
 Δ = { (file, line) | 本次 patch 的 hunk 覆盖的行 }
@@ -1805,110 +1472,53 @@ C = { (e.res_path, e.line) | e ∈ 本轮 root_cause_errors }
 
 
 
-
 ### 为什么在你的系统里必要性特别高
-
-
-
 
 **① 你是唯一有条件做这个检查的人。**
 
-
-
-
 通用 coding agent 拿不到"干净的根因 + 精确行号"——它们的编译输出里混着级联症状、警告、包装行。你的 verify 已经做完了 **parse → classify → protected → 哨兵人造边 → autoload FP → 级联压缩 → UID 簇压缩 → warning 降级 → 签名去重** 这一整条流水线，输出的 `root_cause_errors` 是**最小必要集合且带行号**。
-
-
-
 
 这意味着 `C` 这个集合是**干净且小**的。如果你用未过滤的日志，`C` 会包含几百个级联症状的位置，覆盖半个项目，爆炸半径检查就退化成恒真——毫无约束力。
 
-
-
-
 **你的去噪 verify 是判据 1 能成立的唯一前提。这是你系统的独特资产。**
-
-
-
 
 **② 它抓的是"越改越远"这个特定失效模式。**
 
-
-
-
 假修复最常见的形态不是"改错了一行"，而是"改动范围失控"：
-
-
-
 
 - 为了让 `Identifier not found` 消失，把引用它的整个函数删掉
 - 为了让某个 preload 解析通过，把整个 `preload` 块注释掉
 - 在 `A→B→A` 震荡中，每轮改动范围越来越大（典型的"试探性乱改"）
 
-
-
-
 这些在"改动位置分布 vs 错误位置分布"上有**极强的信号**，而且**不需要理解任何语义**就能检测。
-
-
-
 
 **③ 它天然对 pointer 下钻规则做了强制。**
 
-
-
-
-你已经定了纪律：**pointer 必须对 `target_res_path` 下钻，禁止对 `res_path`（引用方）下钻**。判据 1 把这条从"prompt 里的建议"升级为"落盘前的硬检查"——因为 `res_path` 不在 `C` 里，改引用方会直接被拒。
-
-
-
+你已经定了纪律：**pointer 必须对** `target_res_path` **下钻，禁止对** `res_path`**（引用方）下钻**。判据 1 把这条从"prompt 里的建议"升级为"落盘前的硬检查"——因为 `res_path` 不在 `C` 里，改引用方会直接被拒。
 
 **这是把软约束硬化的典型例子，而且零额外成本。**
 
-
-
-
 **④ 实现成本几乎为零。** verify 已经返回 `res_path` 和 `line`，patch 的行号在第 4 步生成 udiff 时就有了。就是个区间比较。
-
-
-
 
 ### 必须设计的豁免通道（否则会挡死正常修复）
 
-
-
-
 判据 1 的最大风险是**误伤合法的跨文件改动**。比如 signal 改名，定义方和所有连接方都要改，但报错可能只在定义方。
-
-
-
 
 所以必须有三条豁免：
 
 
-
-
-| 豁免             | 机制                                                             | 为什么安全                                         |
+| 豁免             | 机制                                                             | 为什么安全                                         |
 | -------------- | -------------------------------------------------------------- | --------------------------------------------- |
-| **pointer 目标** | `pointers[].target_res_path` 自动进 `C`                           | 这是 verify 自己给出的合法下钻目标                         |
-| **规则驱动**       | `rule_id` 非空且来自 retrieve 的 A 层 → 允许改该规则声明的所有 `old_symbol` 出现位置 | 规则库是人工审核过的知识，可信                               |
-| **显式声明**       | `declared_scope=[...]` + `justification`                       | 强迫 LLM **先声明再改**，而不是事后解释。声明本身进 trace，可事后统计滥用率 |
-
-
+| **pointer 目标** | `pointers[].target_res_path` 自动进 `C`                           | 这是 verify 自己给出的合法下钻目标                         |
+| **规则驱动**       | `rule_id` 非空且来自 retrieve 的 A 层 → 允许改该规则声明的所有 `old_symbol` 出现位置 | 规则库是人工审核过的知识，可信                               |
+| **显式声明**       | `declared_scope=[...]` + `justification`                       | 强迫 LLM **先声明再改**，而不是事后解释。声明本身进 trace，可事后统计滥用率 |
 
 
 第三条是关键设计：**它不阻止跨文件改动，它只要求跨文件改动必须被显式声明。** 这把"不受控的扩散"变成"有记录的扩散"。滥用率本身就是一个可报告的指标。
 
-
-
-
 这里需要进一步展开。
 
-
-
-
 ---
-
 
 
 
@@ -1916,16 +1526,9 @@ C = { (e.res_path, e.line) | e ∈ 本轮 root_cause_errors }
 
 
 
-
 ### 原理：用符号数作为"功能存量"的代理指标
 
-
-
-
 假修复的另一大类是**删除式修复**。`--check-only` 只做语法 + 标识符解析，所以：
-
-
-
 
 ```gdscript
 # 原文（报错：Identifier "KinematicBody" not found）
@@ -1949,18 +1552,9 @@ func move_player(delta):
 # (整个函数被删掉了)
 ```
 
-
-
-
 第三种情况，verify 返回 `CLEAN`、`gdscript_complete=true`。**verify 在原理上永远看不见这个问题。**
 
-
-
-
 判据 2 的做法：apply 前后对同一文件做 AST 符号抽取，比较**符号集合**：
-
-
-
 
 ```
 S_before = { (kind, name) | 符号 ∈ old_text }   # func / signal / class_name / const / enum / var
@@ -1975,70 +1569,35 @@ disappeared = S_before − S_after
 
 
 
-
 ### 为什么是 P0
-
-
-
 
 **① 它覆盖的是最高频、最隐蔽的假修复形态。** "删掉报错的东西"是让编译器满意的最短路径，模型在优化压力下会自然发现它。
 
-
-
-
 **② 它和 verify 完全正交。** 判据 1 看"改动位置"，判据 2 看"改动后果"。一个 patch 可以在爆炸半径内（就改了那一行所在的函数）但删掉了整个函数——判据 1 放过，判据 2 拦住。
-
-
-
 
 **③ 用 AST 而非文本，避免误报。** 这是你已有 tree-sitter 索引的直接红利：注释里的 `func foo()`、字符串里的 `"signal_name"` 都不算符号。纯文本 grep 会大量误报。
 
-
-
-
 **④ 你的 codeindex 已经在做这件事了。** 它入库的正是 `class_name / extends / func / signal / var / const / enum`。你只需要读它，不需要新写 parser。
 
-
-
-
-**⑤ 对 Godot 特别重要：符号是跨文件契约。** GDScript 的 `func` / `signal` 会被 `.tscn` 的信号连接、其他脚本的 `call()` / `connect()` 引用。删掉一个 `signal`，编译期无感，**运行期整条交互链断掉**。而你的 codeindex **不含 `.tscn`**，所以这个断裂没有任何静态检查会发现——除了判据 2。
+**⑤ 对 Godot 特别重要：符号是跨文件契约。** GDScript 的 `func` / `signal` 会被 `.tscn` 的信号连接、其他脚本的 `call()` / `connect()` 引用。删掉一个 `signal`，编译期无感，**运行期整条交互链断掉**。而你的 codeindex **不含** `.tscn`，所以这个断裂没有任何静态检查会发现——除了判据 2。
 这一条需要格外注意一些。
 
-
-
-
 ### 实现上的一个关键选择
-
-
-
 
 有两种做法，我建议第二种：
 
 
-
-
-|方案|流程|问题|
-|---|---|---|
-|A. 落盘后比对|apply → `codeindex sync` → 查符号 → 违规则 reset + 再 sync|要写两次库，回滚时索引可能处于中间态；而且违反了"guard 在落盘前跑"的原则|
-|**B. 内存 parse** ✅|直接用 tree-sitter 对 `old_text` / `new_text`抽符号，**不落库**|需要复用 parser 但不走 daemon。工程量小，语义干净|
-
-
+| 方案                | 流程                                                   | 问题                                       |
+| ----------------- | ---------------------------------------------------- | ---------------------------------------- |
+| A. 落盘后比对          | apply → `codeindex sync` → 查符号 → 违规则 reset + 再 sync  | 要写两次库，回滚时索引可能处于中间态；而且违反了"guard 在落盘前跑"的原则 |
+| **B. 内存 parse** ✅ | 直接用 tree-sitter 对 `old_text` / `new_text`抽符号，**不落库** | 需要复用 parser 但不走 daemon。工程量小，语义干净         |
 
 
 方案 B 的额外好处：`create` / 新文件也能处理（库里还没这个文件）。
 
-
-
-
 ### 必须处理的合法删除
 
-
-
-
 有些删除是对的——比如 4.x 移除了某个虚函数，`func _notification()` 里的老逻辑就该删。所以：
-
-
-
 
 ```
 declared_scope 里显式列出要删的符号，如：
@@ -2046,16 +1605,9 @@ declared_scope 里显式列出要删的符号，如：
   justification  = "4.x 移除 _integrate_forces，逻辑迁移到 _physics_process"
 ```
 
-
-
-
 同样是**先声明再改**。声明进 trace，事后可抽样人工复核——这就是你"假修复率"的标注入口。
 
-
-
-
 ---
-
 
 
 
@@ -2063,28 +1615,15 @@ declared_scope 里显式列出要删的符号，如：
 
 
 
-
 ### 为什么它不被判据 1、2 覆盖
-
-
-
 
 - 判据 1 管**位置**（改在哪）
 - 判据 2 管**符号**（有没有丢功能单元）
 - 判据 3 管**体量**（丢了多少代码）
 
-
-
-
 漏网场景：LLM 保留了 `func compute():` 的签名（判据 2 通过：符号还在），但把函数体 40 行全删了换成 `pass`。位置也在根因附近（判据 1 通过）。**只有体量检查能抓住。**
 
-
-
-
 ### 规则设计
-
-
-
 
 ```
 added   = udiff 里 '+' 行数
@@ -2098,21 +1637,11 @@ reject 条件：
   # 即：大量删除 且 几乎没有对应新增
 ```
 
-
-
-
 为什么要这个"且"：合法的 API 迁移常常是 `removed ≈ added`（一行换一行），或 `added > removed`（一行拆成三行）。**单纯看删除量会误伤**。真正的信号是"**删了很多，但没补回来**"。
-
-
-
 
 判据 3 设 P1 而非 P0，因为它的信号强度不如 1、2，阈值需要在你的语料上调。建议**先以 warn 上线，收集分布后再决定是否 block**。 
 
-
-
-
 ---
-
 
 
 
@@ -2120,21 +1649,11 @@ reject 条件：
 
 
 
-
 ### 为什么需要它：它对应 Aider 实测的 laziness 现象
-
-
-
 
 Aider 的 benchmark 显示 GPT-4 Turbo 在 12/133 的重构任务上输出"lazy comments"——写 `# ...add logic here...` 代替实现。这不是个别模型的毛病，是**长代码生成的普遍倾向**。
 
-
-
-
 GDScript 场景下的具体形态（这些都是"编译通过但语义为空"）：
-
-
-
 
 ```gdscript
 func compute_damage(base): pass              # 空实现
@@ -2146,40 +1665,19 @@ func on_hit(): push_error("not implemented")  # 假实现
 func update(): return                         # 提前返回
 ```
 
-
-
-
 第三种（**注释掉报错行**）在迁移场景下极其高频，因为它是让 `Identifier not found` 消失的最省力方式——而且它同时绕过判据 2（符号还在）和可能绕过判据 3（注释不算删除行，`-x` / `+#x` 是 1删1增）。
-
-
-
 
 **所以判据 4 不是判据 3 的补充，它抓的是一个判据 3 结构上看不见的形态。**
 
-
-
-
 ### 为什么正则够用，不需要 AST
 
-
-
-
 三个理由：
-
-
-
 
 1. **形态有限**且高度模板化，正则召回率很高
 2. 这是**新增内容检测**（只扫 udiff 的 `+` 行），不是全文件分析，上下文需求低
 3. **误报成本低**——返回的是 violation 文本，LLM 看到就能自纠（"我确实写了 pass，我补上实现"）。这和硬拒的成本完全不同
 
-
-
-
 具体规则（只扫 `+` 行）：
-
-
-
 
 ```python
 LAZY_PATTERNS = [
@@ -2194,16 +1692,9 @@ LAZY_PATTERNS = [
 #   → COMMENTED_OUT violation（这条是最值钱的）
 ```
 
-
-
-
 **最后那条"注释化检测"是判据 4 的核心，不要漏**。它是纯字符串比较，十行代码，抓的是迁移场景第一高频的假修复。
 
-
-
-
 ---
-
 
 
 
@@ -2211,16 +1702,9 @@ LAZY_PATTERNS = [
 
 
 
-
 ### 原理：你的索引有一个结构性盲区
 
-
-
-
-你的 codeindex **只索引 `.gd/.cs/.cpp/.h/.hpp`，明确不索引 `.tscn/.tres`**。而 `.tscn` 里存着：
-
-
-
+你的 codeindex **只索引** `.gd/.cs/.cpp/.h/.hpp`**，明确不索引** `.tscn/.tres`。而 `.tscn` 里存着：
 
 ```ini
 [ext_resource type="Script" uid="uid://c8xyz" path="res://player.gd" id="1_7bt6s"]
@@ -2229,23 +1713,11 @@ script = ExtResource("1_7bt6s")
 [connection signal="health_changed" from="Player" to="HUD" method="_on_health_changed"]
 ```
 
-
-
-
-这意味着：**符号在 `.gd` 和 `.tscn` 之间形成契约，但你没有任何工具能同时看到两端。**
-
-
-
+这意味着：**符号在** `.gd` **和** `.tscn` **之间形成契约，但你没有任何工具能同时看到两端。**
 
 后果：LLM 把 `class_name Player` 改成 `class_name PlayerBody`，或把 `signal health_changed` 改名，`.tscn`里的引用**不会报编译错误**（场景是运行期加载的），但场景实际已经坏了。
 
-
-
-
 ### 检测方式
-
-
-
 
 ```
 若 patch 改动了 .gd 中的 class_name / func / signal 名字：
@@ -2257,62 +1729,37 @@ script = ExtResource("1_7bt6s")
 
 
 
-
 ### 为什么是 P2
 
+因为 `rule_codemod` **会吃掉大部分改名**（它同时改 `.gd` 和 `.tscn`，见第六节）。判据 5 只是兜住 LLM **自由改名**时的漏网情况。
 
-
-
-因为 **`rule_codemod` 会吃掉大部分改名**（它同时改 `.gd` 和 `.tscn`，见第六节）。判据 5 只是兜住 LLM **自由改名**时的漏网情况。
-
-
-
-
-但它的**指标价值很高**：它直接产出你清单里的"**跨 `.gd` + `.tscn` 符号改名是否原子一致**"这个数字。
-
-
-
+但它的**指标价值很高**：它直接产出你清单里的"**跨** `.gd` **+** `.tscn` **符号改名是否原子一致**"这个数字。
 
 ---
-
 
 
 
 ## guard 的整体裁决策略
 
-
-
-
 不要所有判据都硬拒——那会让循环卡死。建议分级：
 
 
-
-
-|判据|默认动作|override 途径|
-|---|---|---|
-|1 爆炸半径|**block**|`declared_scope` / `rule_id`|
-|2 符号消失|**block**|`declared_scope` 显式列出要删的符号|
-|3 净删除|warn（观察期）→ block|`justification`|
-|4 懒惰标记|**block**（注释化）/ warn（TODO）|无（这个不该 override）|
-|5 tscn 一致性|warn + 附命中位置|自动进下一轮待办|
-
-
+| 判据         | 默认动作                       | override 途径                  |
+| ---------- | -------------------------- | ---------------------------- |
+| 1 爆炸半径     | **block**                  | `declared_scope` / `rule_id` |
+| 2 符号消失     | **block**                  | `declared_scope` 显式列出要删的符号   |
+| 3 净删除      | warn（观察期）→ block           | `justification`              |
+| 4 懒惰标记     | **block**（注释化）/ warn（TODO） | 无（这个不该 override）             |
+| 5 tscn 一致性 | warn + 附命中位置               | 自动进下一轮待办                     |
 
 
 三条铁律：
-
-
-
 
 1. **block 时不写盘、不 commit、不计 verify 轮次。** 这很重要——guard 拒绝是"LLM 的一次草稿被退回"，不是"一轮修复失败"。如果计轮，LLM 会因为格式问题耗光预算。
 2. **返回结构化 violations，附具体位置和原因。** LLM 要能据此自纠，而不是盲猜。
 3. **所有 override 都记进 trace_store。** override 率本身是个指标；override 后的 patch 是人工复核的优先抽样对象。
 
-
-
-
 ---
-
 
 
 
@@ -2320,114 +1767,57 @@ script = ExtResource("1_7bt6s")
 
 
 
-
 ## 5.1 `scene_check`：补上"场景"这个系统性盲区
-
 
 
 
 ### 你当前系统里，场景是完全的盲区
 
-
-
-
 把你的三个工具对场景的覆盖列出来：
 
 
+| 工具        | 对 `.tscn` / `.tres` 的覆盖                                                                |
+| --------- | -------------------------------------------------------------------------------------- |
+| verify    | 快照后缀 `.gd/.gdshader/.shader/.tres/.uid` —— **明确不含** `.tscn`；`--check-only` 只编译脚本，不加载场景 |
+| codeindex | 只索引 `.gd/.cs/.cpp/.h/.hpp` —— **不索引** `.tscn`                                          |
+| retrieve  | 迁移知识库，不看仓库文件                                                                           |
 
 
-|工具|对 `.tscn` / `.tres` 的覆盖|
-|---|---|
-|verify|快照后缀 `.gd/.gdshader/.shader/.tres/.uid` —— **明确不含 `.tscn`**；`--check-only` 只编译脚本，不加载场景|
-|codeindex|只索引 `.gd/.cs/.cpp/.h/.hpp` —— **不索引 `.tscn`**|
-|retrieve|迁移知识库，不看仓库文件|
-
-
-
-
-结论：**一个 Godot 项目所有场景文件都可以是完全损坏的，而你的三个工具一致报告 `CLEAN` + `gdscript_complete=true`。**
-
-
-
+结论：**一个 Godot 项目所有场景文件都可以是完全损坏的，而你的三个工具一致报告** `CLEAN` **+** `gdscript_complete=true`**。**
 
 这对 Godot 迁移是致命的，因为 Godot 项目的**大部分结构信息在场景里而不在脚本里**：节点树、类型、信号连接、资源引用。
 
-
-
-
 ### 为什么这些损坏是静默的
-
-
-
 
 `.tscn` 是**运行期/编辑器期加载**的，不参与脚本编译。三类静默损坏：
 
-
-
-
 **① 类型名未迁移**
-
-
-
 
 ```ini
 [node name="Player" type="KinematicBody2D"]   # 4.x 已改名 CharacterBody2D
 ```
 
-
-
-
 脚本编译不受影响。加载场景时 Godot 找不到这个类 → 节点丢失或整场景加载失败。
 
-
-
-
-**② `ext_resource` 死引用**
-
-
-
+**②** `ext_resource` **死引用**
 
 ```ini
 [ext_resource type="Script" path="res://scripts/old_name.gd" id="1_abc"]
 ```
 
-
-
-
 脚本改名/移动后 path 失效。而且——
-
-
-
 
 **③ UID 失效（这条和你的 intake 直接相关）**
 
-
-
-
-你的 intake **首轮 wipe `*.uid`**。Godot 4 的 `.tscn` 里 `ext_resource` 同时带 `uid://` 和 `path=`。uid 文件被删后，uid 解析失败，Godot 会 fallback 到 `path`。**如果 path 也因为重构变了，引用就彻底断了**——而这个断裂只有加载时才暴露。
-
-
-
+你的 intake **首轮 wipe** `*.uid`。Godot 4 的 `.tscn` 里 `ext_resource` 同时带 `uid://` 和 `path=`。uid 文件被删后，uid 解析失败，Godot 会 fallback 到 `path`。**如果 path 也因为重构变了，引用就彻底断了**——而这个断裂只有加载时才暴露。
 
 **你自己的 intake 行为，在特定条件下会制造场景断链。** 这是 `scene_check` 存在的最直接理由。
 
-
-
-
 ### 两级实现
-
-
-
 
 **Level 1：静态解析（零成本、确定性、必做）**
 
-
-
-
 `.tscn` / `.tres` 是纯文本 INI-like 格式，正则/简单 parser 就能完整提取。不需要起 Godot。
-
-
-
 
 ```
 输入：workspace 内所有 .tscn / .tres
@@ -2450,24 +1840,12 @@ script = ExtResource("1_7bt6s")
   ⑥ dangling_script    : script 指向的 .gd 存在但 class_name 已改
 ```
 
-
-
-
 注意 ③ 和 ⑤ 的巧妙之处：**它们复用你已有的 rules.db 和 codeindex，不需要新知识。**
-
-
-
 
 - ③ 用 rules.db 的 `old_symbol` 列表当"过时类型名黑名单"
 - ⑤ 用 codeindex 查 `find_symbol(M)` 是否存在于目标脚本 —— 这正好补上"信号连接"这个 codeindex 看不见的边
 
-
-
-
 **Level 2：加载 smoke（可选，收尾跑一次）**
-
-
-
 
 ```gdscript
 # __scene_smoke.gd
@@ -2478,13 +1856,7 @@ func _init():
             print("SMOKE_FAIL: ", path)
 ```
 
-
-
-
-**为什么只 `load` 不 `instantiate`：**
-
-
-
+**为什么只** `load` **不** `instantiate`**：**
 
 - `instantiate()` 会触发 `_init()`，进入 SceneTree 后触发 `_ready()` / `_enter_tree()`
 - 用户代码可能有无限循环、网络请求、文件写入、`get_node()` 空指针崩溃
@@ -2493,33 +1865,17 @@ func _init():
 
 
 
-
 ### 为什么必须独立，不能塞进 verify
-
-
-
 
 **这是一个重要的设计决策，理由有三条：**
 
-
-
-
 1. **你不想改 verify**（你明确说了）
-2. **会污染 `signature_set`。** verify 的 Gate 靠"根因签名集合"做震荡/无进展判定。场景错误的生命周期和脚本错误完全不同（场景错误往往要等脚本全部修完才能修），混进去会让 `A→B→A` 误判和 `NO_PROGRESS_WARN` 乱响
+2. **会污染** `signature_set`**。** verify 的 Gate 靠"根因签名集合"做震荡/无进展判定。场景错误的生命周期和脚本错误完全不同（场景错误往往要等脚本全部修完才能修），混进去会让 `A→B→A` 误判和 `NO_PROGRESS_WARN` 乱响
 3. **语义分层更清晰。** verify 的契约是"GDScript 编译根因"，这个契约的干净是它的价值所在。场景是另一个维度
 
-
-
-
-所以 `scene_check` 的输出**不进 Gate、不影响 `hard_stop`**，它是一个独立的报告。`decision` 由 verify 独占。
-
-
-
+所以 `scene_check` 的输出**不进 Gate、不影响** `hard_stop`，它是一个独立的报告。`decision` 由 verify 独占。
 
 ### 调用时机
-
-
-
 
 ```
 intake 之后                → 拿 baseline 场景健康度（对照基线！）
@@ -2527,16 +1883,9 @@ intake 之后                → 拿 baseline 场景健康度（对照�
 verify 报 CLEAN 之后       → 收尾必跑（Level 1 + Level 2）
 ```
 
-
-
-
 **最后一条是关键**：你已经定了"CLEAN + `gdscript_complete=true` 若伴随 caveat 不是迁移完成"。`scene_check`让这个判断**有了正面证据**——"GDScript 干净 **且** 所有场景可加载"才是完成。
 
-
-
-
 ---
-
 
 
 
@@ -2544,76 +1893,38 @@ verify 报 CLEAN 之后       → 收尾必跑（Level 1 + Level 2）
 
 
 
-
 ### 为什么必须存在：三个硬约束
-
-
-
 
 **约束 1：verify 的状态是内存态，MCP 退出即丢。**
 
-
-
-
 你自己写的：
-
-
-
 
 > "状态在内存里，MCP 退出即丢；**进程重启会丢掉熔断计数和快照**"
 
-
-
-
 所以跨会话的任何统计都不可能从 verify 里拿到。
 
-
-
-
-**约束 2：`remaining_budget` 只有 `rounds_used / rounds_limit`。**
-
-
-
+**约束 2：**`remaining_budget` **只有** `rounds_used / rounds_limit`**。**
 
 你自己写的：
 
-
-
-
 > "只有 `rounds_used` / `rounds_limit`（默认上限 40）。**不管 token/美元**"
 
-
-
-
 所以"每文件成本"这个指标，verify 一个字节都提供不了。
-
-
-
 
 **约束 3：你的四个目标指标全部是跨轮聚合量。**
 
 
-
-
-|指标|需要什么|单次 verify 能给吗|
-|---|---|---|
-|假修复率|所有 patch + guard 裁决 + 人工复核标注|❌ verify 看不见 patch|
-|残差清除率|baseline 根因数 **和** 终态根因数|❌ 只有当轮|
-|每文件成本|token / 美元 / 触碰文件数|❌ 完全不管钱|
-|vs Claude Code|两条 pipeline 的可比记录|❌|
-
-
+| 指标             | 需要什么                         | 单次 verify 能给吗      |
+| -------------- | ---------------------------- | ------------------ |
+| 假修复率           | 所有 patch + guard 裁决 + 人工复核标注 | ❌ verify 看不见 patch |
+| 残差清除率          | baseline 根因数 **和** 终态根因数     | ❌ 只有当轮             |
+| 每文件成本          | token / 美元 / 触碰文件数           | ❌ 完全不管钱            |
+| vs Claude Code | 两条 pipeline 的可比记录            | ❌                  |
 
 
 **没有 trace_store，你的实验部分写不出来。** 它不是工程便利，它是论文的数据层。
 
-
-
-
 ### 表设计
-
-
-
 
 ```sql
 -- 会话级
@@ -2727,39 +2038,20 @@ CREATE TABLE scene_checks (
 
 
 
-
 ### 关键设计点
 
-
-
-
-**① 为什么存 `signature_set_hash` 而不是全文**
-
-
-
+**① 为什么存** `signature_set_hash` **而不是全文**
 
 - 全文可能很大（几百个签名 × 40 轮）
 - hash 足够复现 Gate 的判定：`NO_PROGRESS` 就是连续 N 轮 hash 相同，`A→B→A` 就是 hash 序列 `h1,h2,h1`
 - **你能离线复现 verify 的 Gate 决策，甚至离线重新调阈值**——把 3/3/3/3/40 换成别的值，重跑判定，看哪组参数更好。这是一个免费的消融实验
 - 明细在 `root_causes` 表里，需要时能 join 回来
 
-
-
-
-**② 为什么 `patch_hash` 是重要字段**
-
-
-
+**② 为什么** `patch_hash` **是重要字段**
 
 同一个 `patch_hash` 在一个 session 里出现两次 = LLM **提交了完全相同的补丁两次**。这是 `A→B→A` 震荡的**物证级证据**——比签名震荡更硬，因为它证明的是"Agent 在重复同一个动作"而不只是"错误在循环"。
 
-
-
-
-**③ `source` 字段让成本论点能成立**
-
-
-
+**③** `source` **字段让成本论点能成立**
 
 ```sql
 -- rule_codemod 消化了多少 vs LLM 消化了多少
@@ -2767,23 +2059,11 @@ SELECT source, COUNT(*), SUM(lines_added + lines_removed)
 FROM patches WHERE applied = 1 GROUP BY source;
 ```
 
-
-
-
 如果 codemod 吃掉 70% 的改动而成本为 0，你的"每文件成本"优势就有了**机制解释**，而不是"我们省了 token"这种没有说服力的说法。
 
+**④** `human_label` **是假修复率的唯一 ground truth**
 
-
-
-**④ `human_label` 是假修复率的唯一 ground truth**
-
-
-
-
-guard 只能给出"被拦下的可疑 patch"。真实的假修复率需要**对 `guard_verdict='pass'` 的 patch 做抽样人工复核**——因为 guard 会漏。
-
-
-
+guard 只能给出"被拦下的可疑 patch"。真实的假修复率需要**对** `guard_verdict='pass'` **的 patch 做抽样人工复核**——因为 guard 会漏。
 
 ```
 guard 拦截率      = count(reject) / count(*)
@@ -2792,18 +2072,9 @@ guard 召回率      = count(reject ∧ label=fake) / count(label=fake)
 真实假修复率      = count(label=fake) / count(applied=1)
 ```
 
-
-
-
 **这四个数字是你这篇工作最硬的贡献。** 没有 `human_label` 字段，你只能报"我们拦了 X 个"，报不出"我们拦对了多少、漏了多少"。
 
-
-
-
 **⑤ 指标推导公式**
-
-
-
 
 ```sql
 -- 残差清除率
@@ -2830,88 +2101,48 @@ SUM(scene_checks.unmigrated_type_count + broken_connection_count)
 rounds_used, 以及 root_cause_count 随 round_index 的下降曲线
 ```
 
-
-
-
 **⑥ 它顺便解决了 verify 的状态易失问题**
-
-
-
 
 进程重启后，从 trace_store 读最近 N 轮的 `project_status` 和 `signature_set_hash`，就能**在宿主层重建**熔断计数和震荡检测。你不用改 verify 一行代码，只是在外面加了一层持久化的 Gate 影子。
 
-
-
-
 ---
-
 
 
 
 # 六、`rule_codemod`：你的理解对不对？
 
-
-
-
 > 我理解的是：将 converter 无法覆盖的文件，用官方迁移规则表先自己过一遍机械性的符号重命名。
-
-
-
 
 **方向完全正确，核心机制你抓住了。** 但有三处需要扩展，每一处都影响它的价值。
 
-
-
-
 ---
-
 
 
 
 ## 修正 1：它补的不只是"文件覆盖盲区"，还有"时间差"和"规模盲区"
 
-
-
-
 "converter 无法覆盖的"这个说法太窄了。实际有四类缺口：
 
 
-
-
-|缺口|说明|为什么 converter 不管|
-|---|---|---|
-|**① 时间差**★最重要|`--convert-3to4` 的映射表是 **3.x → 4.0** 时代的。你的 target 是 **4.7.1**。4.0→4.7 之间 Godot 自己又改过一批 API|converter 根本不知道 4.7 的存在|
-|**② 规模盲区**|超大文件（>4MB / 超长行）converter **静默跳过**，不报错|设计如此，为了避免卡死|
-|**③ 语义盲区**|`extents → size` 这类改完不报错但逻辑已坏的（你的 `static_scan_post_l0`）|converter 做的是文本/符号映射，不做语义|
-|**④ 上下文依赖**|同名符号在不同基类上有不同映射，converter 的表是扁平的|表达力不够|
-
-
+| 缺口            | 说明                                                                                          | 为什么 converter 不管          |
+| ------------- | ------------------------------------------------------------------------------------------- | ------------------------- |
+| **① 时间差**★最重要 | `--convert-3to4` 的映射表是 **3.x → 4.0** 时代的。你的 target 是 **4.7.1**。4.0→4.7 之间 Godot 自己又改过一批 API | converter 根本不知道 4.7 的存在   |
+| **② 规模盲区**    | 超大文件（>4MB / 超长行）converter **静默跳过**，不报错                                                      | 设计如此，为了避免卡死               |
+| **③ 语义盲区**    | `extents → size` 这类改完不报错但逻辑已坏的（你的 `static_scan_post_l0`）                                    | converter 做的是文本/符号映射，不做语义 |
+| **④ 上下文依赖**   | 同名符号在不同基类上有不同映射，converter 的表是扁平的                                                            | 表达力不够                     |
 
 
 **① 是你最有力的论点**：你的 rules.db 是**锁定 4.7.1 的**。这意味着 `rule_codemod` 不是"重做 converter 做过的事"，而是**填补 converter 在时间轴上的空白**——这是 converter 原理上不可能做到的（它是 4.0 时代冻结的代码）。
 
-
-
-
 **② 直接解决你清单里的"哪些大文件被静默跳过"**：intake 的 precheck 标出被跳过的文件，`rule_codemod` 专门处理它们。这两个组件是配对设计的。
-
-
-
 
 ---
 
 
 
-
 ## 修正 2：它不是"先跑一次"，而是**循环内可重入**
 
-
-
-
 你的措辞"先自己过一遍"暗示它是个前置步骤。实际上它应该在循环里被反复调用：
-
-
-
 
 ```
 intake
@@ -2934,36 +2165,17 @@ intake
   └─────────────────────────────────────────────┘
 ```
 
-
-
-
 **为什么必须可重入：错误是分层暴露的。**
-
-
-
 
 GDScript 的编译是短路的。文件 A 有个 parse error，编译器根本不会走到它后面的代码，所以后面的 `KinematicBody` 引用**这一轮不会报**。修掉 parse error 之后，下一轮才暴露出来。
 
-
-
-
 同理，你的 `pointers` 机制本身就说明这一点——preload 链要一层层下钻，每层都可能暴露新的待改名符号。
-
-
-
 
 **所以"机械改名"这件事在整个会话里是持续需要的，不是一次性的。**
 
-
-
-
 这也带来一个漂亮的成本论点：**路由让确定性的改动走 codemod（成本 0），只把需要判断的残差给 LLM。**这才是"每文件成本"能显著低于 baseline 的真实机制。
 
-
-
-
 ---
-
 
 
 
@@ -2971,16 +2183,9 @@ GDScript 的编译是短路的。文件 A 有个 parse error，编译器根本�
 
 
 
-
 ### 3a. 同时改场景 —— 这是 codemod 最独特的价值
 
-
-
-
 类型改名在两个地方出现：
-
-
-
 
 ```gdscript
 # player.gd
@@ -2988,59 +2193,29 @@ extends KinematicBody2D          ← codemod 改这里
 var body: KinematicBody2D
 ```
 
-
-
-
 ```ini
 # player.tscn
 [node name="Player" type="KinematicBody2D"]    ← 也必须改这里！
 ```
 
-
-
-
 **只改脚本 = 制造场景断链。** 而你的 codeindex 不含场景、verify 快照不含 `.tscn`，这个断链没有任何工具会发现。
 
-
-
-
 好消息：`.tscn` 的类型名出现位置是**结构化且有限**的：
-
-
-
 
 - `[node ... type="X"]`
 - `[ext_resource type="X" ...]`
 - `[sub_resource type="X" ...]`
 - `[gd_resource type="X" ...]`
 
-
-
-
 **只改这些字段的值，不碰任何用户文本**（`name=`、property 值、字符串）。这是安全的、确定性的。
 
-
-
-
-**这一步直接消掉你清单里"跨 `.gd` + `.tscn` 符号改名是否原子一致"这个空白**——而且不需要把场景塞进 codeindex（那会是个大工程）。
-
-
-
+**这一步直接消掉你清单里"跨** `.gd` **+** `.tscn` **符号改名是否原子一致"这个空白**——而且不需要把场景塞进 codeindex（那会是个大工程）。
 
 ### 3b. 必须带守卫 —— 不能全仓无脑 sed
 
-
-
-
 四类必须处理的风险：
 
-
-
-
 **① 只在标识符位置替换，不碰字符串/注释**
-
-
-
 
 ```gdscript
 var s = "KinematicBody2D is deprecated"   # ✗ 不能改（字符串）
@@ -3048,28 +2223,13 @@ var s = "KinematicBody2D is deprecated"   # ✗ 不能改（字符串）
 extends KinematicBody2D                   # ✓ 改（标识符）
 ```
 
-
-
-
 这需要 AST 定位。**你已经有 tree-sitter parser 了**，用它拿到 identifier 节点的字节区间，只在这些区间内替换。
-
-
-
 
 （附带说明：你写了"tree-sitter parsers 只服务索引，不能改写 AST，无 codemod API"。这里**不需要 AST 改写**——只需要 AST **定位** + 文本替换。这是最稳的 codemod 形态，不用处理 AST → 源码的还原问题，注释和格式全部原样保留。）
 
-
-
-
 **② owner / 上下文约束**
 
-
-
-
 rules.db 的 `owner` 字段就是为这个准备的。同一个方法名在不同类上可能有不同的迁移路径：
-
-
-
 
 ```
 rule: old_symbol="get_node_or_null", owner="Node"        → 不变
@@ -3077,23 +2237,11 @@ rule: old_symbol="instance",         owner="PackedScene" → instantiate
 rule: old_symbol="instance",         owner=<其他>        → 不动！
 ```
 
-
-
-
 无 owner 约束的规则只能改**全局唯一**的符号（如类名 `KinematicBody2D`）。有 owner 约束的需要类型推断——**做不到就别改，交给 LLM**。这是正确的取舍：codemod 只做它 100% 确定的部分。
-
-
-
 
 **③ 幂等 / 已迁移检测**
 
-
-
-
 如果符号已经是 `new_symbol`，跳过。如果一个 token 被多条规则命中，**报冲突不猜**：
-
-
-
 
 ```json
 { "conflict": "res://a.gd:42", "token": "size",
@@ -3101,13 +2249,7 @@ rule: old_symbol="instance",         owner=<其他>        → 不动！
   "action": "escalate_to_llm" }
 ```
 
-
-
-
 **④ dry-run 先出 plan**
-
-
-
 
 ```
 rule_codemod(mode="plan", rule_ids=[...])
@@ -3121,40 +2263,21 @@ rule_codemod(mode="plan", rule_ids=[...])
     "skipped": [{"reason":"in_string_literal", ...}] }
 ```
 
-
-
-
-plan 审过之后才 apply，**而且 apply 必须走 `edit` 同一个通道**（带 `rule_id` 豁免）。理由：
-
-
-
+plan 审过之后才 apply，**而且 apply 必须走** `edit` **同一个通道**（带 `rule_id` 豁免）。理由：
 
 - 所有写入经过 fix_guard 的不变式不能破
 - 自动 commit + `codeindex sync` 的流程复用
 - patch 进 trace_store，`source='rule_codemod'`，成本归因能算
 
-
-
-
 ---
-
 
 
 
 ## 顺带解决：`static_scan_post_l0`
 
-
-
-
 你说"协议要求另写扫描器，扫描器还没写"。
 
-
-
-
-**它就是 `rule_codemod` 的同一套引擎，只是 mode 不同。**
-
-
-
+**它就是** `rule_codemod` **的同一套引擎，只是 mode 不同。**
 
 ```
 rule_codemod(mode="plan")  → 输出建议的替换点
@@ -3162,93 +2285,52 @@ rule_codemod(mode="apply") → 落盘
 rule_codemod(mode="scan")  → 只输出 warning，不生成 patch   ← 这就是 static_scan_post_l0
 ```
 
-
-
-
 因为 `static_scan_post_l0` 类规则（`extents → size`：改完不报错但逻辑已坏，因为 `extents` 是半长、`size` 是全长，数值要 ×2）的特点是：**符号定位是确定的，但正确的修法需要判断**（要不要乘 2 取决于上下文）。
 
-
-
-
 所以：
-
-
-
 
 - 用同一个 AST 定位引擎找到所有 `extents` 出现点
 - **不自动改**，输出 warning 交给 LLM 或人工
 - 同时进 `scene_checks` / 独立的 `semantic_warnings` 表，作为"假修复"的一个可量化类别
 
-
-
-
 **这几乎零额外工程量**（共用定位引擎 + 共用 rules.db），而且它是"编译通过但语义已坏"在迁移域**最硬的实证例子**——非常适合写进论文当 motivating example。
-
-
-
 
 需要注意的是：`static_scan_post_l0` 的规则在你当前协议里对 `retrieve` **不可见**（`detection_method` 白名单只含 `agent_retrieval` / `agent_retrieval_or_escalate`）。所以 `rule_codemod` 需要**直接读 rules.db**，而不是通过 `retrieve` 拿规则。这是一个实现细节但很重要：**codemod 是 rules.db 的第二个消费者，权限比 Agent 大**。
 
-
-
-
 ---
-
 
 
 
 # 七、汇总：落地优先级
 
 
-
-
-|顺序|组件|工程量|解锁什么|不做的后果|
-|---|---|---|---|---|
-|1|**`read` + `grep`**|小|LLM 能看见场景文件；`edit` 的锚点来源|edit 必然失败|
-|2|**`edit`（锚定 + git 事务）**|**中大（核心）**|写通道|没有闭环|
-|3|**fix_guard 判据 1 + 2**|小（复用 verify line + tree-sitter）|**假修复率这个指标**|论文最大卖点没有|
-|4|**`trace_store`**|小（纯 SQLite）|**全部四个指标**|实验部分写不出来|
-|5|`intake`（converter + 4MB precheck + baseline commit）|中|"converter 吃掉多少 / 跳过什么"|缺 baseline，残差率没分母|
-|6|**`rule_codemod`（AST 定位 + `.tscn`）**|中|成本论点 + 场景一致性|成本打不赢 baseline|
-|7|`scene_check` Level 1（静态）|小|"`.tscn` 是否损坏"|CLEAN 是假的|
-|8|codeindex / retrieve 的 MCP adapter|小（纯包装）|LLM 能用（且不需要 bash）|只能给 bash，回到第一节的问题|
-|9|fix_guard 判据 3/4/5|小|覆盖率提升|guard 召回率偏低|
-|10|`scene_check` Level 2（smoke）|中|加载正确性|静态检查已覆盖大部分|
-
-
+| 顺序  | 组件                                                   | 工程量                             | 解锁什么                     | 不做的后果             |
+| --- | ---------------------------------------------------- | ------------------------------- | ------------------------ | ----------------- |
+| 1   | `read` **+** `grep`                                  | 小                               | LLM 能看见场景文件；`edit` 的锚点来源 | edit 必然失败         |
+| 2   | `edit`**（锚定 + git 事务）**                              | **中大（核心）**                      | 写通道                      | 没有闭环              |
+| 3   | **fix_guard 判据 1 + 2**                               | 小（复用 verify line + tree-sitter） | **假修复率这个指标**             | 论文最大卖点没有          |
+| 4   | `trace_store`                                        | 小（纯 SQLite）                     | **全部四个指标**               | 实验部分写不出来          |
+| 5   | `intake`（converter + 4MB precheck + baseline commit） | 中                               | "converter 吃掉多少 / 跳过什么"  | 缺 baseline，残差率没分母 |
+| 6   | `rule_codemod`**（AST 定位 +** `.tscn`**）**             | 中                               | 成本论点 + 场景一致性             | 成本打不赢 baseline    |
+| 7   | `scene_check` Level 1（静态）                            | 小                               | "`.tscn` 是否损坏"           | CLEAN 是假的         |
+| 8   | codeindex / retrieve 的 MCP adapter                   | 小（纯包装）                          | LLM 能用（且不需要 bash）        | 只能给 bash，回到第一节的问题 |
+| 9   | fix_guard 判据 3/4/5                                   | 小                               | 覆盖率提升                    | guard 召回率偏低       |
+| 10  | `scene_check` Level 2（smoke）                         | 中                               | 加载正确性                    | 静态检查已覆盖大部分        |
 
 
 **3 和 4 是投入产出比最高的两项**：加起来可能两三天，但它们是"假修复率"和"残差清除率"这两个数字存在的前提。而这两个数字是你区别于"又一个 coding agent"的全部。
 
-
-
-
 ---
-
-
-
 
 **一句话收尾**：你的 verify 已经把"错误信号"做到了很干净——这是稀缺资产，而且它恰好是 fix_guard 判据 1 能成立的唯一前提。现在缺的不是更多工具，而是**把这个干净信号变成对写操作的约束**（`edit` + guard），以及**把过程记下来**（trace_store）。至于 bash——一旦给了它，上面所有约束都只是建议。
 
-
-
-
 ---
-
-
-
 
 要不要我接着写：
 
-
-
-
-- **A. `edit` 的完整实现**（锚定算法 + 三级降级 + git 事务 + 错误返回格式，约 250 行，可直接跑）
+- **A.** `edit` **的完整实现**（锚定算法 + 三级降级 + git 事务 + 错误返回格式，约 250 行，可直接跑）
 - **B. fix_guard 五条判据的实现**（含爆炸半径的豁免逻辑和 tree-sitter 符号抽取）
-- **C. `rule_codemod` 的 AST 定位 + `.tscn` 替换 + 冲突检测**
-
-
-
+- **C.** `rule_codemod` **的 AST 定位 +** `.tscn` **替换 + 冲突检测**
 
 建议 **A → B → C**，因为 A 是写通道的前置，B 挂在 A 的第 5 步上。
 
@@ -3260,7 +2342,8 @@ rule_codemod(mode="scan")  → 只输出 warning，不生成 patch   ← 这�
 一、先做证据核对：converter 真实遗留什么
 官方文档（4.x upgrading_to_godot_4）的原话，按对你的影响排序：
 
-#	官方原文（要点）	遗留物形态	谁能修
+# 官方原文（要点）	遗留物形态	谁能修
+
 E1	"not all API renames can be performed automatically. The list below contains all renames that must be performed manually using the script editor" —— 涵盖 method / property / signal / constant	编译错误，成百上千条，但名单是官方给的、有限、可机器读	⭐ 规则表 + codemod（零 LLM 成本）
 E2	"Scripts will likely contain various errors as well (possibly hundreds in large projects) ... a large part of the upgrade process remains manual"	大量编译错误	verify + LLM
 E3	被移除/替换的节点："The setup must be done from scratch again, as the project converter doesn't support updating existing setups"	⭐ 场景层损坏，且 converter 明确声明不管	scene_check
@@ -3285,7 +2368,9 @@ I7（属性存在性）	I2′（.tscn 里的过时类型名）
 图例：暴露方式 T=LLM 工具 / W=工作流固定环节（LLM 不可见不可跳过） / L=内部库
 
 P0 — 没有它们，闭环不成立 / 指标算不出来
-#	功能	位置 / 层	签名	暴露	量	解锁
+
+# 功能	位置 / 层	签名	暴露	量	解锁
+
 1	read	新 workspace MCP	read(path, start=1, limit=400) → {lines[], total, truncated}，带绝对行号	T	小	edit 的锚点来源
 2	grep（含 glob）	同上	grep(pattern=None, glob=None, path=None, max=100, context=0)；pattern=None 退化为列文件	T	小	唯一检索入口，替代 bash
 3	edit（锚定 + git 事务）	同上	edit(kind, file, hunks[{context_before,remove,add,context_after}], content?, to_commit?, declared_scope?, rule_id?, justification?) —— 无任何行号字段	T	中大	唯一写通道
@@ -3296,7 +2381,9 @@ P0 — 没有它们，闭环不成立 / 指标算不出来
 C1/C2/C4c 三条的选择理由：C1 复用 verify 已有的 res_path+line（零新知识）；C2 复用 #5；C4c（注释化检测）是十行字符串比较，抓迁移场景第一高频的假修复形态。C3/C5 推到 P2。
 
 P1 — 论文核心论点的载体
-#	功能	位置	签名	暴露	量	解锁
+
+# 功能	位置	签名	暴露	量	解锁
+
 8	⭐ rule_codemod（AST 定位 + 文本替换，不改写 AST）	宿主 L0，直读 rules.db	rule_codemod(mode="plan"|"apply"|"scan", rule_ids=None, files=None) → {plan[], conflicts[], skipped[]}。apply 必须走 edit（带 rule_id）	T + W：首轮 W 批量跑，循环内 retrieve 命中 A 层机械规则时 LLM 可调	中	⭐ E1+E5+E8；成本论点
 9	tscn_parse	共享库 L	parse(text) → {ext_res[], sub_res[], nodes[], connections[]}	L	小	8/10/11 的共同前提
 10	codemod 的 .tscn 类型字段替换	并入 #8	只改 [node type=] / [ext_resource type=] / [sub_resource type=] / [gd_resource type=] 的值	W	小	⭐ 跨 .gd+.tscn 原子一致（指标之一）
@@ -3306,7 +2393,9 @@ P1 — 论文核心论点的载体
 13	codeindex scene 旁路（同库异表）	codeindex server	新表 scene_files/scene_nodes/scene_res/scene_refs + 索引 idx_refs_target；find-symbol 返回追加 scene_usages[]，edges 不动	不加新工具，从已有返回漏出	中	LLM 改符号前就知道场景在用它
 14	codeindex / retrieve 的 MCP adapter	各 server	纯包装	T	小	让 LLM 用得上（否则只能给 bash）
 P2 — 有余力再做
-#	功能	签名 / 要点	暴露	量
+
+# 功能	签名 / 要点	暴露	量
+
 15	guard C3（净删除 removed-added>10 且 added<0.3×removed）+ C4a/b（pass/TODO 正则）	先 warn 观察期，收集分布后再 block	W	小
 16	guard C5（.gd↔.tscn 改名一致性）	grep 旧名于 *.tscn；warn	W	小
 17	scene_outline	scene_outline(path) → 紧凑节点树	T	小
@@ -3341,3 +2430,208 @@ M3 打磨（#13–21）	scene 旁路 / 剩余 guard / load sweep / I7	召回率�
 所以顺序是：先建可信写通道（edit+guard）与记账（trace_store）→ 再用 codemod 吃掉机械大头 → 再用 scene_check 堵住 CLEAN 的谎言。 其余（load sweep、I7、ClassDB dump、bash）在这三步交付前都不值得投入。
 
 要不要我下一步直接写 #3 edit 的完整实现（锚定三级降级 + 11 步流水线 + git 事务 + 结构化错误返回）？它是 M1 里唯一"中大"的一项，也是 #6 guard 的挂载点。
+
+
+
+
+
+
+
+# 最终实现决定：
+结论先给
+
+代码库已实现的部分（verify 单工具、codeindex 7 子命令 CLI、rag.retriever、rules.db）逐条核对无漂移，inline_tools/README.md 对本库契约的校正是对的，不需要推翻。PENDINGS.md 相对 inline_tools 的增量价值主要在三处：converter 证据核对（E1-E8）纠正了优先级、edit/fix_guard/git 事务的落地细节更完整、scene_check/trace_store 的表结构设计更具体。下面是把两份材料合并后的最终待实现清单，按依赖顺序排列，越靠前越不依赖后面的项。
+
+---
+
+一、已实现，不要动
+
+┌──────────────────────┬──────────────────────────┬──────────────────────────────────────────────────────────────────┐
+│         模块         │           位置                 状态                               │
+├──────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────┤
+│ verify               │ codebase_index/godot_mfile/check_workspace，内部                  │
+│                      │                          │ phase∈{intake,iteration,final_gate}                              │
+├──────────────────────┼───────────────────────────────────────────────────────────────────┤
+│ codeindex CLI        │ codebase_index/index     │ 7 子命令，只索引                                                 │
+│                      │                        edges.kind∈{call,extends,preload}          │
+├──────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────┤
+│ Parser.parse(path,   │ codeindex/parsers/*    态可复用，不用磁盘路径                     │
+│ source)              │                          │                                                                  │
+├──────────────────────┼───────────────────────────────────────────────────────────────────┤
+│ rag.retriever        │ rag/retriever            │ retrieve_cached/load()，RetrievalQuery.target_version 正则拒     │
+│                      │                                                                   │
+├──────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────┤
+│ rules.db             │ rag/build             /detection_method/agent_action 已入库       │
+└──────────────────────┴──────────────────────────┴──────────────────────────────────────────────────────────────────┘
+
+---
+
+二、待实现总表（按依赖顺序，去重合并）
+
+图例：T=LLM 可见 MCP 工具　W=宿主工作流环节（LLM 不可见）　L=共享库函数
+
+P0 — 闭环必需（M1）
+
+#: 1
+功能: grep
+位置/层: 新 inline_tools adapter
+签名草案: (pattern?, glob?, context?, max_resul
+暴露: T
+ROI 依据: 唯一能看见 .tscn/.tres/.gdshader 的通些后缀
+量级: 小（包一层 rg --json）
+────────────────────────────────────────
+#: 2
+功能: read
+位置/层: 同上
+签名草案: (path, line_from, line_to) -> 带行号
+暴露: T
+ROI 依据: git apply 要精确原文行号，没有它 edit
+量级: 极小
+────────────────────────────────────────
+#: 3
+功能: gd_symbols（内存态符号抽取）
+位置/层: L，直接复用 codeindex.parsers.gdscript.GdscriptParser().parse(path, source)
+签名草案: extract(source:str) -> {funcs,signals
+暴露: L
+ROI 依据: fix_guard 判据2（符号消失）所需，零新另写一个小库"是多余的，Parser 协议本就吃字符串
+量级: 零（薄封装）
+────────────────────────────────────────
+#: 4
+功能: tscn_parse
+位置/层: L，新写（无现成解析器）
+签名草案: parse(source:str) -> {ext_resource[],nections[]}
+暴露: L
+ROI 依据: rule_codemod（改场景引用）、scene_che 单行扫描状态机即可，不需要完整 tree-sitter
+grammar
+量级: 中（~150 行状态机）
+────────────────────────────────────────
+#: 5
+功能: edit（apply/revert）+ fix_guard P0（C1 爆炸半径、C2 符号消失）
+位置/层: 新 inline_tools，唯一写通道
+签名草案: apply(unified_diff) -> {ok,commit,guard:{verdict,violations[]},applied_files[]} / revert(to_commit?)
+暴露: T
+ROI 依据: 全项目唯一能落盘的入口；guard 埋在落盘前，拒绝不消耗 verify 轮次；C1 复用 verify 已返回的
+root_cause_errors[].line，C2 复用 #3
+量级: 大（主工作量：锚定替换→udiff→guard→git apply→commit→codeindex sync）
+────────────────────────────────────────
+#: 6
+功能: codeindex MCP adapter
+位置/层: 同上，只包查询
+签名草案: kind∈{find_symbol,call_chain,class_hi
+暴露: T
+ROI 依据: 现成 CLI 包一层；不暴露 up/status/dow
+量级: 小
+────────────────────────────────────────
+#: 7
+功能: retrieve_migration_rule adapter + config.
+位置/层: 同上
+签名草案: (error_text?,symbols?,query_text?,kin
+暴露: T
+ROI 依据: RetrievalQuery 已实现但缺生产 schema 确认目前没有 target_version 字段，需新增
+量级: 小
+
+P1 — 论点闭环所需（M2）
+
+#: 8
+功能: session_intake
+位置/层: 新宿主 workflow，会话开始恰好一次
+签名草案: 隔离仓 + git init+baseline commit +  --convert-3to4 + 大文件 precheck(>4MB/100k行) +
+codeindex up
+暴露: W
+ROI 依据: E5（converter 静默跳过大文件）必须在此处落报告，否则后面把"没转"误判成"Agent 没修好"
+量级: 中
+────────────────────────────────────────
+#: 9
+功能: rule_codemod
+位置/层: 新宿主 workflow，L0 之后、LLM 之前，循
+签名草案: 吃 detection_method∈{agent_retrieval*} AND agent_action=apply_rename 的规则，同时改 .gd+.tscn/.tres，走 edit
+通道
+暴露: W
+ROI 依据: 本表 ROI 最高单项：E1（官方成百上千条r 是 3→4.0 时代规则，target 4.7.1，4.0→4.7 API
+变动完全未覆盖）。这是"每仓库成本"能打赢 baseline 的核心机制，0 token 吃掉大头
+量级: 中大（AST 定位+文本替换，需 owner 约束/幂
+────────────────────────────────────────
+#: 10
+功能: trace_store
+位置/层: 新宿主 workflow，SQLite
+签名草案: 每轮一行：{round_index,signature_set_hash,decision,patch_hash,guard_verdict,tokens,cost_usd,commit}
+暴露: W
+ROI 依据: InMemoryStateStore 进程退出即丢，remaining_budget 只有轮次；$/仓库、假修复率的唯一 ground truth 来源
+量级: 中
+────────────────────────────────────────
+#: 11
+功能: scene_check Level 1（静态）
+位置/层: 新宿主 workflow，收尾触发（hard_stop  ）
+签名草案: 第一条规则：.tscn 中 type= 命中 rules.db.old_symbol → 报未迁移类型名
+暴露: T(changed范围)+W(全量收尾)
+ROI 依据: E3（converter 明确不更新既有场景 setup）+ 复用现成 old_symbol 列表，成本比 I7 低一个数量级；取代原 I7
+排第一的方案
+量级: 小中
+
+P2 — 打磨（M3，收益递减，可选做）
+
+#: 12
+功能: trap_scan
+位置/层: 新宿主 workflow，rule_codemod 之后
+签名草案: 吃 detection_method=static_scan_post_w，不调 edit
+暴露: W
+ROI 依据: 官方文档写死的"改完不再报错但语义已坏reward 信号本身覆盖不到
+量级: 小
+────────────────────────────────────────
+#: 13
+功能: fix_guard P1/P2（C3净删除量、C4懒惰标记、
+位置/层: edit 内部追加
+签名草案: C3/C4 先 warn 观察；C5 grep 旧符号名
+暴露: 内嵌
+ROI 依据: 防"删行/注释化/pass 空函数体"偷懒修复
+量级: 小
+────────────────────────────────────────
+#: 14
+功能: codeindex 场景旁路表 + find_symbol 追加 s
+位置/层: codeindex 新增独立表（scene_files/nodes/res/refs，不进 edges）
+签名草案: find_symbol 返回追加 scene_usage_coun
+暴露: T(自动附带)
+ROI 依据: 把场景约束塞进 LLM 必读返回结构，而非4
+量级: 中
+────────────────────────────────────────
+#: 15
+功能: load sweep（smoke 收尾）
+位置/层: 新宿主 workflow，final_gate 之后
+签名草案: --headless -s <MainLoop脚本>，只 Resontiate()，###BEGIN/END 哨兵+崩溃续跑
+暴露: W
+ROI 依据: 覆盖 verify 明确不做的 instantiate 层
+量级: 中
+────────────────────────────────────────
+#: 16
+功能: ClassDB dump + I7（@export 属性存在性检查
+位置/层: 新宿主 workflow
+签名草案: 依赖继承树+属性白名单
+暴露: W
+ROI 依据: 触发条件是推测性的（LLM 恰好改了 expo 降级为 P2
+量级: 大
+
+---
+
+三、明确不做（去重合并）
+
+- 给 LLM Bash / write_file / 独立 glob / 网络 / 裸 git —— 绕过 edit 即绕过 fix_guard
+- 给 LLM codeindex up/status/down/sync —— 索引
+- 改 codeindex CLI、verify 签名、RetrievalQuery 字段 —— 已实现不动
+- session_intake 做成 MCP 工具、fix_guard/rever单槽约束
+- verify 内做 scene instantiate/_ready —— 已写进非目标
+- .tscn 塞进 codeindex.edges —— 场景走 grep+rul
+- 用 trace_store 替换 InMemoryStateStore —— Gate 算法与跨会话指标生命周期不同
+- 第七个 Agent 工具（escalate/read_scene_tree/a
+- git apply --reject/--3way、git stash/git worktree、--quit-after
+- scene_check 作为编辑阻塞 gate —— 只能阻塞"任
+- I5b 自由文本 grep 消失符号（误报率高）、聚合 MCP proxy server（多一跳+归因模糊）
+
+---
+
+四、三个里程碑
+
+- M1（1-7）：闭环打通——read/grep/adapter/edit+guard P0，能从 N 个 error 跑到 0 或拒绝。
+- M2（8-11）：论点成立——rule_codemod 证明"L0 之oken"，scene_check L1证明"编译通过≠场景没坏"，trace_store 让 $/仓库 可算。
+- M3（12-16）：收益递减区，视时间预算取舍，trap
+
+---

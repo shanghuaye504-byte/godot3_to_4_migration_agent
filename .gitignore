@@ -17,7 +17,7 @@ __pycache__/
 .ruff_cache/
 .setuptools-build/
 
-# L3 就地设计说明书（根 CLAUDE.md 里的 {{DESIGN_NOTES_FILE}}，具体化为 DESIGN_NOTES.md）
+# L3 就地设计说明书（根 CLAUDE.md / AGENTS.md 里的 DESIGN_NOTES.md）
 # 每个目录就地存放，给开发者/AI 看设计思路用，不提交进 Git。
 DESIGN_NOTES.md
 
