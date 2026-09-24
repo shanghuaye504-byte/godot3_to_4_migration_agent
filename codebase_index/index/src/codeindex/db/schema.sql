@@ -129,5 +129,5 @@ CREATE TABLE IF NOT EXISTS classes (
 CREATE INDEX IF NOT EXISTS idx_classes_name ON classes(name);       -- 起点 / 往上爬祖先
 CREATE INDEX IF NOT EXISTS idx_classes_base ON classes(base_name);  -- 列出子类
 
--- SCENE_INDEX_TODO(step3-schema): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
--- 不要改 files / symbols / edges / classes。场景建表在 scene/schema.sql，由 connect_rw 额外执行。
+-- 场景旁路表在 scene/schema.sql，由 connect_rw 在本文件之后额外执行。
+-- 不要改 files / symbols / edges / classes。

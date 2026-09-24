@@ -57,9 +57,9 @@ class Config:
     """运行时状态目录。约定为 project_root/.codeindex/，里面是系统生成的文件，不是用户填的。"""
     godot_binary: str
     """Godot 4 可执行文件名或绝对路径。仅 Layer 3 用；Layer 2 读进来是为了和 MCP 共用一份配置。"""
-    # SCENE_INDEX_TODO(step4-rules-db): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
-    # 实现时增加可选字段 migration_rules_db。缺省时场景校验不报 E_UNMIGRATED_TYPE。
-    # godot_mcp 读同一份 yaml 时忽略未知键，不要改那边的 Config。
+    migration_rules_db: Path | None = None
+    """可选。指向已建好的 rules.db（SQLite）。缺省时场景校验不报 E_UNMIGRATED_TYPE。
+    godot_mcp 读同一份 yaml 时忽略这个键。"""
 
     @property
     def db_path(self) -> Path:
@@ -112,4 +112,9 @@ def load_config(path: Path | None = None) -> Config:
         project_root=project_root,
         index_state_dir=index_state_dir,
         godot_binary=str(raw.get("godot_binary") or "godot4"),
+        migration_rules_db=(
+            Path(raw["migration_rules_db"]).expanduser().resolve()
+            if raw.get("migration_rules_db")
+            else None
+        ),
     )

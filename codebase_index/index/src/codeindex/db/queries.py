@@ -21,6 +21,30 @@ import sqlite3
 from typing import Any
 
 
+class FindSymbolResult(dict):
+    """find_symbol 的返回。dict 存新字段；__iter__ 兼容旧的 list 遍历。
+
+    旧代码 ``for row in find_symbol(...)`` 或 ``[r["path"] for r in rows]``
+    仍然拿到 matches 的每一行。新代码用 ``result["matches"]`` 等键。
+    """
+
+    def __iter__(self):
+        return iter(self["matches"])
+
+    def __len__(self):
+        return len(self["matches"])
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self["matches"][key]
+        return super().__getitem__(key)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self["matches"] == other
+        return super().__eq__(other)
+
+
 def _fetch_dicts(conn: sqlite3.Connection, sql: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
     """跑一条 SELECT，把每一行收成 ``列名 → 值`` 的 dict。
 
@@ -32,21 +56,13 @@ def _fetch_dicts(conn: sqlite3.Connection, sql: str, params: tuple[Any, ...] = (
     return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
-def find_symbol(conn: sqlite3.Connection, name: str) -> list[dict[str, Any]]:
-    # SCENE_INDEX_TODO(step3-find-symbol): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
-    # 实现时在返回里追加场景引用。下面这条查询的列保持不动，matches[].line 仍是 0-based。
-    """精确匹配符号名，返回定义位置列表（文件 / 行号 / 所属类 / 签名）。
+def find_symbol(conn: sqlite3.Connection, name: str) -> FindSymbolResult:
+    """精确匹配符号名，返回定义位置 + 场景引用。
 
-    功能：回答「``take_damage`` 写在哪个文件第几行」。
-    ``WHERE s.name = ?`` 走 ``idx_symbols_name``；等号是精确匹配，不是 LIKE 子串。
-    ``JOIN files`` 把 ``file_id`` 换成路径——symbols 表里只有整数外键，没有路径字符串。
-
-    同名可以有多行（两个文件都定义了 ``take_damage``，或同文件重载）。
-    ``ORDER BY f.path, s.line`` 让输出稳定，CLI / 测试可以对着列表断言。
-
-    查无结果返回空列表，不抛异常；退出码 1 是 CLI 的事。
+    matches 的列保持不动，matches[].line 仍是 0-based。
+    scene_usages[].line 是 1-based。scene_usage_count 是全表计数，不受 LIMIT 影响。
     """
-    return _fetch_dicts(
+    matches = _fetch_dicts(
         conn,
         """
         SELECT
@@ -63,6 +79,92 @@ def find_symbol(conn: sqlite3.Connection, name: str) -> list[dict[str, Any]]:
         ORDER BY f.path, s.line
         """,
         (name,),
+    )
+
+    # 场景引用：按符号名查（node_type / res_type / conn_signal / conn_method /
+    # group / script_class / prop_key / nodepath），再 UNION 按目标文件查
+    # （script_ref / ext_path / instance）。
+    _SYMBOL_KINDS = (
+        "node_type", "res_type", "conn_signal", "conn_method",
+        "group", "script_class", "prop_key", "nodepath",
+    )
+    _TARGET_KINDS = ("script_ref", "ext_path", "instance")
+
+    # 符号定义所在的 .gd（matches 为空时这一支可以没有）
+    symbol_files = [m["path"] for m in matches if m["path"].endswith(".gd")]
+
+    # scene_refs 表可能不存在（手工建库的旧测试没跑 scene/schema.sql）
+    table_exists = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='scene_refs'"
+    ).fetchone()[0]
+    if not table_exists:
+        return FindSymbolResult(
+            matches=matches,
+            scene_usages=[],
+            scene_usage_count=0,
+            scene_usage_truncated=False,
+            scene_index_stale=False,
+        )
+
+    # count 是全表计数：symbol 支 + target_file 支
+    symbol_count = conn.execute(
+        "SELECT COUNT(*) FROM scene_refs WHERE symbol = ? AND kind IN (%s)"
+        % ",".join("?" for _ in _SYMBOL_KINDS),
+        (name, *_SYMBOL_KINDS),
+    ).fetchone()[0]
+    target_count = 0
+    if symbol_files:
+        target_count = conn.execute(
+            "SELECT COUNT(*) FROM scene_refs WHERE target_file IN (%s) AND kind IN (%s)"
+            % (
+                ",".join("?" for _ in symbol_files),
+                ",".join("?" for _ in _TARGET_KINDS),
+            ),
+            (*symbol_files, *_TARGET_KINDS),
+        ).fetchone()[0]
+    scene_usage_count = symbol_count + target_count
+
+    # 列表：LIMIT 50
+    usages = _fetch_dicts(
+        conn,
+        """
+        SELECT path AS file, line, kind, node_path, symbol, detail
+        FROM scene_refs
+        WHERE symbol = ? AND kind IN (%s)
+        """ % ",".join("?" for _ in _SYMBOL_KINDS)
+        + (
+            """
+            UNION ALL
+            SELECT path AS file, line, kind, node_path, symbol, detail
+            FROM scene_refs
+            WHERE target_file IN (%s) AND kind IN (%s)
+            """ % (
+                ",".join("?" for _ in symbol_files),
+                ",".join("?" for _ in _TARGET_KINDS),
+            )
+            if symbol_files
+            else ""
+        )
+        + " LIMIT 50",
+        (
+            name, *_SYMBOL_KINDS,
+            *(symbol_files if symbol_files else ()),
+            *(_TARGET_KINDS if symbol_files else ()),
+        ),
+    )
+
+    # scene_index_stale：是否有场景文件的 mtime 新于 indexed_at
+    stale_row = conn.execute(
+        "SELECT COUNT(*) FROM scene_files WHERE mtime > indexed_at"
+    ).fetchone()
+    scene_index_stale = bool(stale_row and stale_row[0] > 0)
+
+    return FindSymbolResult(
+        matches=matches,
+        scene_usages=usages,
+        scene_usage_count=scene_usage_count,
+        scene_usage_truncated=len(usages) >= 50,
+        scene_index_stale=scene_index_stale,
     )
 
 

@@ -638,7 +638,7 @@ SCENE_INDEX_TODO(<id>): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标
 
 - [x] 骨架：下面列出的新文件已经放好，里面只有注释；上表的标记已经加在已有文件里。还没有函数实现，也没有跑测试。
 
-- [ ] Step 1 — L0 + L1。生产路径靠 span 切原文，不靠把文件打印回去。
+- [x] Step 1 — L0 + L1。生产路径靠 span 切原文，不靠把文件打印回去。
 
   新建（目前只有注释）：
 
@@ -662,7 +662,7 @@ SCENE_INDEX_TODO(<id>): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标
   - [ ] 每个 `P_*` 至少 1 个正例 + 1 个易混淆反例。
   - [ ] `PoolByteArray(...)` / `NotARealType(...)` 保留为 call，不报语法错误。
 
-- [ ] Step 2 — L2。单文件关系，不碰文件系统。
+- [x] Step 2 — L2。单文件关系，不碰文件系统。
 
   新建（目前只有注释）：
 
@@ -681,7 +681,7 @@ SCENE_INDEX_TODO(<id>): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标
   - [ ] 语料上 `ext_use` / `sub_use` 的条数，等于在字符串之外数到的 `ExtResource("` / `SubResource("` 次数。
   - [ ] `resolve.py` 的导入不含 `os` / `pathlib` / `sqlite3`。
 
-- [ ] Step 3 — L3 + `find-symbol`。
+- [x] Step 3 — L3 + `find-symbol`。
 
   新建（目前只有注释）：
 
@@ -706,7 +706,7 @@ SCENE_INDEX_TODO(<id>): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标
   - [ ] 无场景引用时，`matches` 的字段与改之前一致（`line` 仍是 0-based）。不要求整个 JSON 逐字节相同。
   - [ ] 不破坏旧实现：重跑 `index/tests/test_queries.py`、`index/tests/test_connection.py`、`index/tests/test_watcher_debounce.py`，全部仍通过。`call-chain` 与 `class-hierarchy` 的返回不变。
 
-- [ ] Step 4 — L4 ERROR。每次现算，不缓存 problem。
+- [x] Step 4 — L4 ERROR。每次现算，不缓存 problem。
 
   新建（目前只有注释）：
 
@@ -720,6 +720,11 @@ SCENE_INDEX_TODO(<id>): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标
   验收：
 
   - [ ] 小语料里 Godot 能 `ResourceLoader.load` 成功的文本场景，不报任何 ERROR。只 load，不 instantiate。单文件超时；进程崩溃则记下该文件并从下一个续跑。不要求「load 失败就必须报 ERROR」。
+
+    > **提醒**：这一条尚未实现。8 个孤立夹具旁边没有脚本和贴图，`ResourceLoader.load` 必然失败，
+    > 不能用来验证「能 load 就不报 ERROR」。需要以后单独准备一个可加载的小工程
+    > （自带 `.gd`、贴图、`project.godot`），再跑这项验收。
+
   - [ ] 在干净文件上注入每一类 E 级故障，每类多例。检出率 100%，`code` 正确，`subject` 不含行号。
   - [ ] 同样的注入放进实例子树或继承场景：ERROR 数为 0，且 `suppressed_checks` 用 `node_path` 记下来。
   - [ ] 仓库里有 `class_name KinematicBody2D` 时，不报 `E_UNMIGRATED_TYPE`。
@@ -728,7 +733,7 @@ SCENE_INDEX_TODO(<id>): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标
   - [ ] 同输入跑多次，problem 集合一致。
   - [ ] 不破坏旧实现：重跑 `index/tests/test_config.py`。没有 `migration_rules_db` 的旧 yaml 仍能加载。
 
-- [ ] Step 5 — L5 + `scene-check`。
+- [x] Step 5 — L5 + `scene-check`。
 
   新建（目前只有注释）：
 

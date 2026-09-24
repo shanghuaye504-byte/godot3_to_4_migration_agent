@@ -32,6 +32,7 @@ from typing import Any
 
 from .config import Config, load_config
 from .db import connection, queries, writer
+from .scene.check import scene_check
 
 EXIT_OK = 0
 EXIT_NO_RESULT = 1
@@ -429,16 +430,35 @@ def _open_ro(config: Config) -> sqlite3.Connection:
 
 def cmd_find_symbol(config: Config, args: argparse.Namespace) -> int:
     """精确匹配符号名 → 定义位置列表（走只读连接）。"""
-    # SCENE_INDEX_TODO(step3-find-symbol-exit): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
-    # 实现时：没有代码符号但 scene_usages 非空，退出码用 0，不要用下面的 EXIT_NO_RESULT。
     conn = _open_ro(config)
     try:
-        rows = queries.find_symbol(conn, args.name)
+        result = queries.find_symbol(conn, args.name)
     finally:
         conn.close()
-    if not rows:
-        return _emit({"name": args.name, "matches": []}, EXIT_NO_RESULT)
-    return _emit({"name": args.name, "matches": rows})
+    matches = result["matches"]
+    scene_usages = result["scene_usages"]
+    if not matches and not scene_usages:
+        return _emit(
+            {
+                "name": args.name,
+                "matches": [],
+                "scene_usages": [],
+                "scene_usage_count": 0,
+                "scene_usage_truncated": False,
+                "scene_index_stale": result["scene_index_stale"],
+            },
+            EXIT_NO_RESULT,
+        )
+    return _emit(
+        {
+            "name": args.name,
+            "matches": matches,
+            "scene_usages": scene_usages,
+            "scene_usage_count": result["scene_usage_count"],
+            "scene_usage_truncated": result["scene_usage_truncated"],
+            "scene_index_stale": result["scene_index_stale"],
+        }
+    )
 
 
 def cmd_call_chain(config: Config, args: argparse.Namespace) -> int:
@@ -501,6 +521,21 @@ def cmd_sync(config: Config, args: argparse.Namespace) -> int:
     )
 
 
+def cmd_scene_check(config: Config, args: argparse.Namespace) -> int:
+    """场景侧的 L4/L5 校验。跑完退出码 0，库没准备好退出码 2。"""
+    conn = _open_ro(config)
+    try:
+        result = scene_check(
+            conn,
+            config.project_root,
+            paths=args.path,
+            rules_db_path=config.migration_rules_db,
+        )
+    finally:
+        conn.close()
+    return _emit(result)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """构建子命令解析器。--help 文本即 Agent 的「命令手册」（design.md 2.8）。
 
@@ -525,8 +560,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     sub = parser.add_subparsers(dest="command", metavar="COMMAND")
-    # SCENE_INDEX_TODO(step5-scene-check): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
-    # 实现时在这里注册 scene-check。跑完退出码 0，库没准备好退出码 2。不要用 1 表示有 regression。
 
     def _sub(name: str, **kwargs: Any) -> argparse.ArgumentParser:
         return sub.add_parser(name, parents=[json_flag], **kwargs)
@@ -620,6 +653,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="一个或多个源文件路径（相对项目根或绝对路径）",
     )
     p_sync.set_defaults(func=cmd_sync)
+
+    p_scene = _sub(
+        "scene-check",
+        help="场景侧的 L4/L5 校验（regression / pre_existing / fixed）",
+        description=(
+            "对场景文件现算 ERROR，与冻结 baseline 做三分法。"
+            "不传 --path 时全量；传入 .gd 时用 scene_refs.target_file 反查相关场景。"
+            "跑完退出码 0（有没有 regression 只看 JSON），库没准备好退出码 2。"
+        ),
+    )
+    p_scene.add_argument(
+        "--path",
+        nargs="*",
+        default=None,
+        help="只检查这些文件及引用它们的场景（不传则全量）",
+    )
+    p_scene.set_defaults(func=cmd_scene_check)
 
     return parser
 

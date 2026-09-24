@@ -1,13 +1,64 @@
--- L3：场景旁路表。尚未实现，下面不是可执行 SQL。
--- 实现时改成 CREATE TABLE，并由 connect_rw 在 schema.sql 之后执行。
--- 不要把这些表并进 files / symbols / edges / classes。
--- 列定义以 codebase_index/NEXT_STEP.md 第 4.2 节为准。
---
--- scene_files          一个场景或资源文件一行：format、parse_status、根数量、是否继承
--- scene_nodes          物体路径、类型、脚本编号、是否落在看不全的子树、1-based 行号
--- scene_ext            外部资源编号、类型、路径、解析后的文件、行号
--- scene_sub            内部子资源编号与类型
--- scene_conn           信号线的信号名、两端路径、回调函数名、行号
--- scene_refs           按名字或目标文件反查的引用；find-symbol 的数据来源
--- scene_baseline       冻结时已有错误的指纹，之后只读，不含行号
--- scene_member_baseline 冻结时脚本上的 class_name 与 func，之后只读
+-- L3：场景旁路表。由 connect_rw 在 schema.sql 之后执行。
+-- 不并进 files / symbols / edges / classes。列定义以 NEXT_STEP.md 第 4.2 节为准。
+-- scene_files / scene_nodes / scene_refs 的 line 都是 1-based；symbols.line 仍是 0-based。
+
+CREATE TABLE IF NOT EXISTS scene_files(
+  path TEXT PRIMARY KEY,
+  doc_kind TEXT,
+  format INT,
+  uid TEXT,
+  script_class TEXT,
+  sha TEXT,
+  mtime INT,
+  parse_status TEXT,          -- OK | MALFORMED | BINARY | SKIPPED_OVERSIZE
+  problem_count INT,
+  root_count INT,
+  is_inherited INT,
+  indexed_at INT
+);
+
+CREATE TABLE IF NOT EXISTS scene_nodes(
+  path TEXT, node_path TEXT, name TEXT, type TEXT, parent_path TEXT,
+  script_ext_id TEXT, instance_ext_id TEXT, is_placeholder INT,
+  in_unresolved_subtree INT,  -- 弃权用的是这一列，不是 subject 字符串
+  line INT,                   -- 1-based
+  PRIMARY KEY(path, node_path)
+);
+
+CREATE TABLE IF NOT EXISTS scene_ext(
+  path TEXT, ext_id TEXT, type TEXT, uid TEXT,
+  ref_path TEXT, resolved_file TEXT,   -- NULL = 解析不到
+  line INT,
+  PRIMARY KEY(path, ext_id)
+);
+
+CREATE TABLE IF NOT EXISTS scene_sub(
+  path TEXT, sub_id TEXT, type TEXT, line INT,
+  PRIMARY KEY(path, sub_id)
+);
+
+CREATE TABLE IF NOT EXISTS scene_conn(
+  path TEXT, signal TEXT, from_path TEXT, to_path TEXT, method TEXT,
+  line INT
+);
+
+CREATE TABLE IF NOT EXISTS scene_refs(
+  path TEXT, line INT, col INT, kind TEXT,
+  symbol TEXT, node_path TEXT, target_file TEXT, detail TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_refs_symbol ON scene_refs(symbol);
+CREATE INDEX IF NOT EXISTS idx_refs_target ON scene_refs(target_file);
+CREATE INDEX IF NOT EXISTS idx_refs_kind   ON scene_refs(kind, symbol);
+
+-- 只在「冻结 baseline」时写一次，之后只读
+CREATE TABLE IF NOT EXISTS scene_baseline(
+  fingerprint TEXT PRIMARY KEY,
+  path TEXT, code TEXT, tier TEXT, subject TEXT
+);
+
+CREATE TABLE IF NOT EXISTS scene_member_baseline(
+  script_path TEXT,          -- 相对 project_root 的 .gd
+  kind TEXT,                 -- 本阶段只有 class | func
+  name TEXT,
+  PRIMARY KEY(script_path, kind, name)
+);

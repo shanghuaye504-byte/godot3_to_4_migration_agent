@@ -18,6 +18,9 @@ from pathlib import Path
 
 from ..parsers import registry
 from ..parsers.base import ParseResult
+from ..scene.store import store_scene
+
+_SCENE_SUFFIXES = frozenset({".tscn", ".tres"})
 
 
 def reindex_batch(
@@ -55,10 +58,13 @@ def reindex_batch(
     """
     stats = {"reindexed": 0, "skipped": 0, "failed": 0}
     with conn:
-        # SCENE_INDEX_TODO(step3-writer): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
-        # 实现时在这个事务里按后缀分叉：.tscn / .tres 走 scene.store，不进 tree-sitter，不进 files。
         for path in paths:
-            outcome = _reindex_single_file(conn, path, project_root, synced_by)
+            if path.suffix.lower() in _SCENE_SUFFIXES:
+                abs_path = path if path.is_absolute() else project_root / path
+                rel = _relpath(path, project_root)
+                outcome = store_scene(conn, abs_path, rel, project_root)
+            else:
+                outcome = _reindex_single_file(conn, path, project_root, synced_by)
             stats[outcome] += 1
     return stats
 

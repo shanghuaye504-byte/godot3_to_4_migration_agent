@@ -28,6 +28,9 @@ from pathlib import Path
 # 和本文件同目录的 schema.sql。connect_rw 建库时整份执行，是表结构的唯一入口。
 _SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 
+# 场景旁路表。connect_rw 在 schema.sql 之后执行；只读连接不建表。
+_SCENE_SCHEMA_PATH = Path(__file__).parent.parent / "scene" / "schema.sql"
+
 # 与 design.md 2.5 一致：读者碰到写者正在提交时，最多等这么久，而不是立刻报 locked。
 _BUSY_TIMEOUT_MS = 3000
 
@@ -83,8 +86,7 @@ def connect_rw(db_path: Path) -> sqlite3.Connection:
     )
     _apply_pragmas(conn, writer=True)
     conn.executescript(_SCHEMA_PATH.read_text(encoding="utf-8"))
-    # SCENE_INDEX_TODO(step3-connection): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
-    # 实现时在这里再执行 scene/schema.sql。只读连接仍然不建表。
+    conn.executescript(_SCENE_SCHEMA_PATH.read_text(encoding="utf-8"))
     return conn
 
 
