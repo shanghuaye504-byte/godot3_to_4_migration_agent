@@ -47,6 +47,9 @@ def _should_index(path: Path) -> bool:
     """
     if any(part in _SKIP_DIR_NAMES for part in path.parts):
         return False
+    # SCENE_INDEX_TODO(step3-scan): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+    # 实现时让 .tscn / .tres 也返回 True。_watch_filter 复用本函数，不必改 watcher.py。
+    # 不要把这两种后缀塞进 tree-sitter registry。
     return registry.get_parser(path) is not None
 
 

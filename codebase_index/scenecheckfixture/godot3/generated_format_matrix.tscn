@@ -1,0 +1,18 @@
+; semicolon comment must be skipped by the lexer
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="icon.png" type="Texture" id=1]
+[ext_resource path="res://player.tscn" type="PackedScene" id=2]
+
+[node name="Level" type="Node" instance=ExtResource( 2 )]
+
+[node name="Body" type="KinematicBody2D" parent="." groups=["player", "hurtbox"]]
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "say \"hello\""
+empty_path = NodePath("")
+points = PoolVector2Array( 0, 0, 1, 2, )
+
+[node name="Placeholder" type="Position2D" parent="Body" instance_placeholder="res://optional.tscn"]
+
+[node name="Sprite" type="Sprite" parent="."]
+texture = ExtResource( 1 )

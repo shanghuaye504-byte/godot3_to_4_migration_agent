@@ -10,3 +10,6 @@ index_state_dir: /path/to/your/godot/project/.codeindex
 
 # Godot 4 可执行文件（需在 PATH 中，或写绝对路径）
 godot_binary: godot4
+
+# SCENE_INDEX_TODO(step4-rules-db): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+# 实现时增加可选字段 migration_rules_db，指向 rules.db。缺省时不报 E_UNMIGRATED_TYPE。

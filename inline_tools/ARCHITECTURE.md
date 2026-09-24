@@ -50,7 +50,7 @@ inline_tools/
 
 - 不写盘。调用前后工作区字节不变。
 - 不调用 `codeindex`，不把结果写进索引。
-- 不解析 `.tscn` / `.tres`，不做场景校验，不跑 Godot。场景索引进 codeindex 是 `NEXT_STEP.md` 的后续工作，不放进这两个包。
+- 不解析 `.tscn` / `.tres`，不做场景校验，不跑 Godot。场景索引进 codeindex 是 `codebase_index/NEXT_STEP.md` 的后续工作，不放进这两个包。
 - 当前 codeindex 仍不索引 `.tscn` / `.tres` / `.gdshader`。在那一步落地之前，`grep` 是模型看见这些后缀的通道。`read` 则按路径读任意允许的文本文件，包括这些后缀。
 - 不检索迁移规则（那是 `rag.retriever`）。
 - 不提供网络、git、Godot 子进程。

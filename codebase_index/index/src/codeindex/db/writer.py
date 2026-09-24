@@ -55,6 +55,8 @@ def reindex_batch(
     """
     stats = {"reindexed": 0, "skipped": 0, "failed": 0}
     with conn:
+        # SCENE_INDEX_TODO(step3-writer): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+        # 实现时在这个事务里按后缀分叉：.tscn / .tres 走 scene.store，不进 tree-sitter，不进 files。
         for path in paths:
             outcome = _reindex_single_file(conn, path, project_root, synced_by)
             stats[outcome] += 1

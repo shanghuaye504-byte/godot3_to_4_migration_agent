@@ -33,6 +33,8 @@ def _fetch_dicts(conn: sqlite3.Connection, sql: str, params: tuple[Any, ...] = (
 
 
 def find_symbol(conn: sqlite3.Connection, name: str) -> list[dict[str, Any]]:
+    # SCENE_INDEX_TODO(step3-find-symbol): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+    # 实现时在返回里追加场景引用。下面这条查询的列保持不动，matches[].line 仍是 0-based。
     """精确匹配符号名，返回定义位置列表（文件 / 行号 / 所属类 / 签名）。
 
     功能：回答「``take_damage`` 写在哪个文件第几行」。

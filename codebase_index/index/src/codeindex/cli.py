@@ -429,6 +429,8 @@ def _open_ro(config: Config) -> sqlite3.Connection:
 
 def cmd_find_symbol(config: Config, args: argparse.Namespace) -> int:
     """精确匹配符号名 → 定义位置列表（走只读连接）。"""
+    # SCENE_INDEX_TODO(step3-find-symbol-exit): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+    # 实现时：没有代码符号但 scene_usages 非空，退出码用 0，不要用下面的 EXIT_NO_RESULT。
     conn = _open_ro(config)
     try:
         rows = queries.find_symbol(conn, args.name)
@@ -523,6 +525,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     sub = parser.add_subparsers(dest="command", metavar="COMMAND")
+    # SCENE_INDEX_TODO(step5-scene-check): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+    # 实现时在这里注册 scene-check。跑完退出码 0，库没准备好退出码 2。不要用 1 表示有 regression。
 
     def _sub(name: str, **kwargs: Any) -> argparse.ArgumentParser:
         return sub.add_parser(name, parents=[json_flag], **kwargs)

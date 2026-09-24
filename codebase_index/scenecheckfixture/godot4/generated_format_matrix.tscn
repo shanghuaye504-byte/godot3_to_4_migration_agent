@@ -1,0 +1,36 @@
+; semicolon comment must be skipped by the lexer
+[gd_scene format=3 uid="uid://cecaux1sm7mo0"]
+
+[ext_resource type="Texture2D" path="icon.png" id="1_7bt6s"]
+[ext_resource type="PackedScene" uid="uid://bexamplepacked01" path="res://ball.tscn" id="2_scene"]
+
+[sub_resource type="SphereShape3D" id="1_7bt6s"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_4w3ye"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k54se"]
+albedo_color = Color(1, 0.639216, 0.309804, 1)
+
+[node name="Ball" type="RigidBody3D" unique_id=1358867382 instance=ExtResource("2_scene")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1279975976]
+shape = SubResource("1_7bt6s")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=558852834]
+mesh = SubResource("SphereMesh_4w3ye")
+surface_material_override/0 = SubResource("StandardMaterial3D_k54se")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+libraries/"" = ExtResource("1_7bt6s")
+nodes = Array[Node]([])
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=1581292810 node_paths=PackedStringArray("follow_node")]
+light_color = Color(1, 0.698039, 0.321569, 1)
+omni_range = 10.0
+follow_node = NodePath("..")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=795715540]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 1, 3)
+
+[node name="Placeholder" parent="." instance_placeholder="res://optional.tscn"]
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered" binds= [1]]

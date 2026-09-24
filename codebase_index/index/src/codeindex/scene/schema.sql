@@ -1,0 +1,13 @@
+-- L3：场景旁路表。尚未实现，下面不是可执行 SQL。
+-- 实现时改成 CREATE TABLE，并由 connect_rw 在 schema.sql 之后执行。
+-- 不要把这些表并进 files / symbols / edges / classes。
+-- 列定义以 codebase_index/NEXT_STEP.md 第 4.2 节为准。
+--
+-- scene_files          一个场景或资源文件一行：format、parse_status、根数量、是否继承
+-- scene_nodes          物体路径、类型、脚本编号、是否落在看不全的子树、1-based 行号
+-- scene_ext            外部资源编号、类型、路径、解析后的文件、行号
+-- scene_sub            内部子资源编号与类型
+-- scene_conn           信号线的信号名、两端路径、回调函数名、行号
+-- scene_refs           按名字或目标文件反查的引用；find-symbol 的数据来源
+-- scene_baseline       冻结时已有错误的指纹，之后只读，不含行号
+-- scene_member_baseline 冻结时脚本上的 class_name 与 func，之后只读

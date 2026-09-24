@@ -83,6 +83,8 @@ def connect_rw(db_path: Path) -> sqlite3.Connection:
     )
     _apply_pragmas(conn, writer=True)
     conn.executescript(_SCHEMA_PATH.read_text(encoding="utf-8"))
+    # SCENE_INDEX_TODO(step3-connection): 见 codebase_index/NEXT_STEP.md 第 7 节开头的「标记」说明。
+    # 实现时在这里再执行 scene/schema.sql。只读连接仍然不建表。
     return conn
 
 

@@ -26,12 +26,13 @@ src/codeindex/
 │   ├── connection.py # WAL / busy_timeout pragma；connect_ro / connect_rw 两种连接工厂
 │   ├── writer.py     # reindex_batch —— 唯一允许写库的模块
 │   └── queries.py    # find_symbol / call_chain（递归 CTE）/ class_hierarchy —— 唯一允许读库的模块
-└── parsers/
-    ├── base.py       # Parser 协议：parse(path, source) -> (symbols, edges)
-    ├── gdscript.py   # tree-sitter-gdscript
-    ├── csharp.py     # tree-sitter-c-sharp
-    ├── cpp.py        # tree-sitter-cpp
-    └── registry.py   # 扩展名 → parser 映射，新增语言只改这一个文件（明确标出的扩展点）
+├── parsers/
+│   ├── base.py       # Parser 协议：parse(path, source) -> (symbols, edges)
+│   ├── gdscript.py   # tree-sitter-gdscript
+│   ├── csharp.py     # tree-sitter-c-sharp
+│   ├── cpp.py        # tree-sitter-cpp
+│   └── registry.py   # 扩展名 → parser 映射，新增语言只改这一个文件（明确标出的扩展点）
+└── scene/            # .tscn / .tres 解析与校验。骨架已放，函数尚未实现。见 ../NEXT_STEP.md
 ```
 
 **权限边界（看目录结构即知谁能改状态）：**
