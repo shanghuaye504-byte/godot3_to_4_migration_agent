@@ -1,0 +1,16 @@
+[project]
+name = "godot-migration-agent"
+version = "0.1.0"
+description = "Godot 3->4 迁移收尾 Agent：仓库根项目聚合（codeindex / rag / inline_tools 等子模块统一开发环境）"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+# 本地开发/测试工具，不进运行时也不进 build 产线
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+# pytest 从仓库根运行时，collect inline_tools 下的测试
+testpaths = ["inline_tools/tests"]
