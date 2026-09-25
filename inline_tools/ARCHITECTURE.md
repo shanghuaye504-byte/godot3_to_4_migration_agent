@@ -1,6 +1,6 @@
 # inline_tools 架构
 
-本文件锁定本目录的形态和两个只读工具的共同边界。函数尚未实现。签名与验收的细则在 `read/ARCHITECTURE.md` 和 `grep/ARCHITECTURE.md`。
+本文件锁定本目录的形态和只读工具的共同边界。`read` / `grep` 的签名与验收在各自目录的 `ARCHITECTURE.md`。写通道的步骤在 `editandfixguard/NEXT_STEP.md`。
 
 依据是历史讨论和 `PENDINGS.md` 第 1.3–1.4 节、文末「最终实现决定」。不采用 `DESIGN_NOTES.md` 里的子模块目录。
 
@@ -13,7 +13,8 @@ inline_tools/
 ├── ARCHITECTURE.md      # 本文件
 ├── read/                # 一个工具一个包
 ├── grep/
-└── tests/               # 空测试文件，断言还没写
+├── editandfixguard/     # 唯一写通道。顺序见其中 NEXT_STEP.md
+└── tests/               # read / grep 的测试
 ```
 
 - 一个工具一个文件夹、一个包。以后若加工具，同样只加一个子包，不把多个工具塞进一个 `tools/` 模块。
@@ -21,7 +22,7 @@ inline_tools/
 - 不是 MCP server。模型调用的是宿主注册的 Python 函数，参数个数固定。
 - 模型没有 Bash，也看不到 argv。给 Bash 之后，模型可以用 `sed -i` 绕过以后的写通道守卫，也可以自己拼 Godot 参数（包括已排除的 `--debug`）。能力边界由最宽的入口决定，所以这里不提供 shell。
 
-本步只存在 `read` 和 `grep`。不建 `edit`、`scene`、`codemod`、`intake` 等目录。
+`read` 和 `grep` 保持只读。写通道只建 `editandfixguard/`，不另建 `edit/`、`fix_guard/`、`scene`、`codemod`、`intake`。该目录的实现顺序以 `editandfixguard/NEXT_STEP.md` 为准，read/grep 的代码不随那些步骤改动。
 
 ## 2. 工作区与路径
 
