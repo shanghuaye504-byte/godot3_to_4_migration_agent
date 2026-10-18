@@ -1,42 +1,57 @@
-# `inline_tools/` 模块路标文档 (LANDMARKS)
+# 原生工具：实现路标
 
-> **上级路标**：[根目录 `LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/LANDMARKS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-本目录提供 Agent 在迁移循环中使用的原生进程内工具：只读工具 `read`、`grep` 以及唯一受守卫保护的写通道 `editandfixguard`。
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
----
+## 当前边界
 
-## 一、下级路标导航（Child Landmarks）
+`read` 和 `grep` 已实现；路径归一化位于 `_workspace.py`。这两项保持只读，后续主要修 `editandfixguard` 并由宿主绑定工作区。一次修复不应顺带更改读工具已有的路径边界。
 
-* 📄 **[`inline_tools/editandfixguard/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/LANDMARKS.md)** — `edit()` 写通道与 `fix_guard` 守卫的 6 项代码缺陷修补与测试补齐指南
+工具本身不负责创建工作区、首次 Git 提交、UID 规范化或场景冻结；这些属于 L0。模型只有受控工具，没有 Bash、裸 Git 或自由 Godot 命令。
 
----
+## 跨包联动
 
-## 二、本目录实现现状核实
+- 修改前需要最新诊断和稳定文件路径，模型提供的 scope 不等于无限放宽守卫。
+- 修改后检查 `ok`、`commit`、`index_stale`；同步失败先修复索引，再查询根因。
+- 运行期缓存、日志和报告不能阻塞干净树检查，具体由 L0 安排。
 
-1. **已完整实现且无需改动的模块**：
-   * [`_workspace.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/_workspace.py)：`resolve_project_root` 与 `resolve_workspace_path`（强制相对路径/`res://` 归一、防 `../` 与 symlink 逃逸、拦截 `.godot`/`.import`/`.codeindex`）。
-   * [`read/__init__.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/read/__init__.py)：`read(project_root, path, line_from=1, line_to=None)`，返回 1-based 行号与逐字文本（上限 2000 行）。
-   * [`grep/__init__.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/grep/__init__.py)：`grep(project_root, pattern=None, glob=None, path=None, context=0, max_results=100)`，底层安全调用 `rg`（`pattern=None` 时自动退化为 `rg --files` 列文件）。
-   * [`tests/test_read.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/tests/test_read.py) 与 [`tests/test_grep.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/tests/test_grep.py)：共 19 个测试用例全部完备。
-2. **存在代码断线需修补的子包**：
-   * `editandfixguard/`：Step 1–10 的 9 个 Python 文件已落地，但存在顶层导出缺失、判据 5 未接线、落盘后场景复核误杀存量错误等 6 处问题，详见下级路标 [`inline_tools/editandfixguard/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/LANDMARKS.md)。
+## 下级导航
 
----
+- [受控编辑与守卫](editandfixguard/LANDMARKS.md)
 
-## 三、本目录陈旧文档同步指南（Doc Sync Checklist）
+## 本目录执行清单
 
-本目录下的多份 `README.md` 与 `ARCHITECTURE.md` 仍停留在代码编写前的占位状态，需按以下清单同步更新：
+<a id="s06"></a>
 
-- [ ] **更新 [`inline_tools/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/README.md)**：
-  * 将标题「原生只读工具」修正为「迁移 Agent 的原生只读工具与受控写通道」。
-  * 删除第 7、13 行「`editandfixguard` 目前只有文档和空包」的过时描述，改为已实现并通过 Step 1–10 验收。
-  * 移除对不存在的 `docs/edit_and_fix_guard.md` 的死链引用。
-- [ ] **更新 [`inline_tools/ARCHITECTURE.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/ARCHITECTURE.md)**：
-  * 第 54–55 行修正说明：`codeindex` 现已通过场景旁路表（`scene_*`）索引 `.tscn`/`.tres`，但 `read` 和 `grep` 本身保持纯文本只读，不直接查询 `codeindex`。
-- [ ] **更新 [`inline_tools/read/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/read/README.md) 与 [`inline_tools/read/ARCHITECTURE.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/read/ARCHITECTURE.md)**：
-  * 删除「本目录目前只有文档，没有实现」与「断言未写」；在返回值示例中补齐 `"ok": true` 字段。
-- [ ] **更新 [`inline_tools/grep/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/grep/README.md) 与 [`inline_tools/grep/ARCHITECTURE.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/grep/ARCHITECTURE.md)**：
-  * 删除「没有实现」字样；在返回值示例中补齐 `"ok": true` 字段；在错误码表中补齐 `RG_NOT_FOUND` 与 `RG_FAILED`。
-- [ ] **更新 [`inline_tools/tests/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/tests/README.md)**：
-  * 删除「这里只有空文件，没有断言」，说明包含 19 个针对 `read` 与 `grep` 的完整回归测试。
+- [ ] **S06 · 接通改名守卫和公开编辑入口**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s06)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s07"></a>
+
+- [ ] **S07 · 统一 create 与场景写后验收**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s07)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s08"></a>
+
+- [ ] **S08 · 补所有文本后缀守卫与适用范围**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s08)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s11"></a>
+
+- [ ] **S11 · 绑定每次运行的状态、锁和索引同步**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s11)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s25"></a>
+
+### S25：验收崩溃恢复、观测降级并完成清理
+
+- [ ] 完成 [S25](../LANDMARKS.md#s25) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：清理本范围旧 README/ARCHITECTURE 的只读/空包说法及死链；实际修复随前面步骤同步，不拖到这里才写。
+
+**交付物**：交付与当前代码一致的工具说明。
+
+**验收**：链接、公开 API 和逐后缀守卫说明一致。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

@@ -1,131 +1,83 @@
-# `codebase_index/godot_mcp` 模块路标 (LANDMARKS)
+# Godot 验证栈：实现路标
 
-> **上级路标**：[`codebase_index/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/LANDMARKS.md)
-> **叶子节点**：本目录无下级子目录路标。
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-## 1. 模块现状与已核实的 Bug 清单
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
-`godot_mcp` 实现了完整的四阶段 Godot Headless 验证栈：
-1. `verify/`：进程组管理、超时强杀、stderr 状态机解析、autoload/ext_resource 富化、诊断指纹计算。
-2. `verify_filter/`：硬丢弃（`HARD_DROP`）、条件信号抑制（`UID_WARNING`、`AUTOLOAD_FALSE_POSITIVE`、`RES_PATH_MISSING`）、`CASCADE_SYMPTOM` 级联折叠。
-3. `verify_gate/`：单工作区状态机（轮次上限、无进展升级、A→B→A 震荡中止、Patch 回滚、基础设施熔断）。
-4. `verify_shell/`：V3 一次性全量修复重导触发器、工作区快照与原子回滚。
+## 现有验证链要保留
 
-经源码逐行核查，发现以下 **5 个具体缺陷** 与 **1 项去过度设计清理**：
+`run_verify_tool` → `collect_workspace_view` → `run_verify(V1/V2/V3)` → filter/merge → `evaluate`。
 
-| 编号 | 文件与行号 | 问题描述 | 严重度 |
-| :--- | :--- | :--- | :--- |
-| **MCP-BUG-1** | [`src/godot_mcp/verify_gate/tool.py:98-105`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/tool.py#L98-L105) | **`check_file` 污染 `check_workspace` 的状态机历史**：`run_verify_tool(kind="check_file")` 与 `check_workspace` 共用同一个 `WorkspaceVerifyState` 并调用 `evaluate()`。当 Agent 执行 `check_workspace` (`{A, B}`) → `check_file("clean.gd")` (`∅`) → `check_workspace` (`{A, B}`) 时，`signature_history` 变为 `[{A,B}, ∅, {A,B}]`，满足 `history[-1] == history[-3] != history[-2]`，**100% 误触发 `OSCILLATION_ESCALATE` (`hard_stop=True`)**，还会白白消耗 `rounds_used` 并误报 `REGRESSION_DETECTED` | **致命 (P0)** |
-| **MCP-BUG-2** | [`src/godot_mcp/verify_gate/algorithm.py:101-136`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/algorithm.py#L101-L136) | **`circuit_state == "OPEN"` 未在 `evaluate()` 入口短路**：当连续 3 次基础设施故障将 `state.circuit_state` 置为 `"OPEN"` 后，若后续再次调用且 `infra_status == "OK"`，第 126 行会将 `infra_failure_streak` 清零并返回 `CONTINUE`，使半永久打开的熔断器失效 | **高 (P0)** |
-| **MCP-BUG-3** | [`src/godot_mcp/verify_gate/tool.py:66`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/tool.py#L66) | **`load_retry_gate_config()` 未传入配置文件路径**：第 66 行无参调用 `load_retry_gate_config()`（默认 `path=None`），导致 `config.yaml` 中的 `retry_gate:` 配置段永远被忽略 | **中 (P1)** |
-| **MCP-BUG-4** | [`src/godot_mcp/verify_shell/snapshot.py:14`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/snapshot.py#L14) | **工作区快照漏掉 `.tscn` 与 `.godot` 文件**：`SNAPSHOT_SUFFIXES = {".gd", ".gdshader", ".shader", ".tres", ".uid"}` 未包含 `.tscn` 和 `.godot`（如 `project.godot`），导致 V3 自动修复或 Agent 修改场景/项目配置失败回滚时无法恢复 `.tscn` 与 `project.godot` | **高 (P1)** |
-| **MCP-BUG-5** | [`src/godot_mcp/verify_shell/trigger.py:18,34`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/trigger.py#L18)、[`class_cache.py:15`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/class_cache.py#L15)、[`uid_cluster.py:70`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/uid_cluster.py#L70) | **V3 触发器两处盲区**：① `class_name` 正则 `r"^class_name\s+(\S+)"` 无法匹配同一行带有 `@tool` 前缀的声明（`@tool class_name Foo`）；② `UID_DUPLICATE` 事件仅在 `event.res_path` 记录了 `min(path_a, path_b)`，若 Agent 修改的是 `max(path_a, path_b)` 来消除重复 UID，`is_uid_duplicate_repair` 无法触发 V3 重刷缓存 | **中 (P1)** |
-| **MCP-CLN-1** | [`src/godot_mcp/verify_gate/state_store.py:148-167`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/state_store.py#L148-L167) | **删除过度设计的 `RedisStateStore` 占位类**：架构已明确移除 Redis 服务层，`InMemoryStateStore` 即可满足单工作区进程内闭环需求 | **低 (P2)** |
+- V1：生成 `__probe_sentinel.gd`，preload 枚举到的 `.gd`，随后 check-only 解析。
+- V2：对 pointer 指向的目标脚本做局部解析；不是改调用方来代替根因。
+- V3：editor/import，参与 shader、UID 和 class cache 处理。`shader_checked=True` 只表示该阶段执行过，不证明所有渲染行为。
 
----
+使用 `run_verify_tool(kind, target=None, *, config, gate_cfg, state_store, ...)`。实际决策是 CONTINUE、NO_PROGRESS_WARN、FILE_STUCK_WARN、OSCILLATION_ESCALATE、BUDGET_EXCEEDED、CIRCUIT_OPEN。升级模型和补丁回滚由宿主 S18 实现。
 
-## 2. 逐项修复指导
+## 不要混淆状态
 
-### 2.1 隔离 `check_file` 与 `check_workspace` 的门控状态 (`MCP-BUG-1`)
+局部 check_file 不消费全库轮次；每 run 使用独立 StateStore。基础设施 TIMEOUT/CRASH 与脚本错误分开。OPEN 后先短路，不继续跑引擎。只有显式新 run/重置才解除。
 
-在 [`src/godot_mcp/verify_gate/tool.py:94-108`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/tool.py#L94-L108) 中：
-- `check_file` 的定位是**局部语法/类型快速探测**（只检查单个 `.gd` 文件，不包含全工作区其他文件的错误签名）。
-- 因此，当 `kind == "check_file"` 时：
-  1. 如果 `state.circuit_state == "OPEN"` 或 `infra_status != "OK"`，仍然走 `evaluate()` 更新基础设施熔断计数并持久化。
-  2. 如果 `infra_status == "OK"`，**不要**将单文件 `sig_set` 追加到 `state.signature_history`，**不要**递增 `state.rounds_used`，也**不要**与全库 `last_good_signatures` 对比触发 `REGRESSION_DETECTED`；而是直接根据单文件 `error_count` 构造 `GateOutput(action="PASS" if error_count == 0 else "CONTINUE", ...)` 返回。
+快照用于观察 diff 与重导触发；它没有恢复文件的能力。源码恢复和 trace 对账归 S19。补充 sweep 由宿主 S17 提供固定模式，不能把自由 argv 暴露出去。
 
-```python
-    if kind == "check_file" and filter_result.infra_status == "OK" and state.circuit_state != "OPEN":
-        sig_set = frozenset(d.signature for d in filter_result.primary_diagnostics)
-        gate_output = GateOutput(
-            action="PASS" if len(sig_set) == 0 else "CONTINUE",
-            reason="check_file passed." if len(sig_set) == 0 else "check_file has errors.",
-            hard_stop=False,
-            rollback_patch_id=None,
-            target_signatures=sorted(sig_set),
-            active_error_count=len(sig_set),
-            rounds_used=state.rounds_used,
-            no_progress_streak=state.no_progress_streak,
-            circuit_state=state.circuit_state,
-        )
-    else:
-        gate_output = evaluate(state, request, retry_cfg)
-        store.save(state)
-```
+## 测试入口
 
----
+`uv run --project codebase_index/godot_mcp pytest codebase_index/godot_mcp/tests -q`。先注入 run_verify_fn 测控制流，再使用 S00 锁定的引擎跑 S01 案例；模拟通过和引擎实测分别记录。
 
-### 2.2 在 `evaluate()` 入口短路已开启的熔断器 (`MCP-BUG-2`)
+## 宿主恢复接线
 
-在 [`src/godot_mcp/verify_gate/algorithm.py:110-125`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/algorithm.py#L110-L125) 中，在检查 `request.infra_status != "OK"` 之前，先判断 `state.circuit_state == "OPEN"`：
+现有 InMemoryStateStore 是进程内实现，不自带跨进程恢复。S11 先隔离每 run；S18 将完整 Gate 状态与图 checkpoint 对接，S19 校验重入回执避免重复累计历史。底层 Gate 不另引入全局 checkpoint/saver，运行句柄仍由宿主注入，详见 [恢复契约](../../migration_agent/orchestrator/LANDMARKS.md#checkpoint-contract)。
 
-```python
-    # Step 1a: 若熔断器已处于 OPEN 状态，直接短路返回 CIRCUIT_OPEN
-    if state.circuit_state == "OPEN":
-        return _make_output(
-            state,
-            action="CIRCUIT_OPEN",
-            reason="Infrastructure circuit breaker is already OPEN.",
-            hard_stop=True,
-            rollback_patch_id=None,
-            sig_set=sig_set,
-        )
-```
+## 本目录执行清单
 
----
+<a id="s09"></a>
 
-### 2.3 传递配置文件路径给 `load_retry_gate_config` (`MCP-BUG-3`)
+### S09：隔离局部检查、修熔断和阈值接线
 
-1. 在 [`src/godot_mcp/config.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/config.py) 的 `McpConfig` 数据类中增加字段 `config_path: Path | None = None`，并在 `load_config()` 中记录实际加载的 `resolved_path`。
-2. 在 [`src/godot_mcp/verify_gate/tool.py:66`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/tool.py#L66) 中改为：
+- [ ] 完成 [S09](../../LANDMARKS.md#s09) 的本范围任务。
 
-```python
-retry_cfg = load_retry_gate_config(cfg.config_path)
-```
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
----
+**做什么**：局部检查不进入全库历史；OPEN 在启动 Godot 前短路；入口注入实际 RetryGateConfig。
 
-### 2.4 扩展快照后缀与修复 V3 触发器 (`MCP-BUG-4`、`MCP-BUG-5`)
+**交付物**：交付稳定的 VerifyGateResult；继续使用真实 decision 枚举，明确重置策略。
 
-1. **快照后缀扩展**（[`src/godot_mcp/verify_shell/snapshot.py:14`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/snapshot.py#L14)）：
+**验收**：全库 A→局部空→全库 A 不假震荡；真全库循环会停；OPEN 后 spawn=0；自定义阈值生效。
 
-```python
-SNAPSHOT_SUFFIXES = {".gd", ".gdshader", ".shader", ".tres", ".tscn", ".uid", ".godot"}
-```
+**问题详情与复现**：[VER-01 · 局部检查污染全库历史，造成假震荡](DEFECTS.md#ver-01)；[VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](DEFECTS.md#ver-02)；[VER-03 · retry_gate YAML 没接到默认工具入口](DEFECTS.md#ver-03)。
 
-2. **支持 `@tool class_name` 同行声明**（[`src/godot_mcp/verify_shell/trigger.py:18`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/trigger.py#L18) 与 [`src/godot_mcp/verify_shell/class_cache.py:15`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/class_cache.py#L15)）：
+<a id="s10"></a>
 
-```python
-_CLASS_NAME_RE = re.compile(r"^(?:@tool\s+)?class_name\s+(\S+)", re.MULTILINE)
-```
+### S10：补验证快照与重导触发范围
 
-3. **记录 `UID_DUPLICATE` 的雙侧路径**（[`src/godot_mcp/verify_filter/uid_cluster.py:70`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_filter/uid_cluster.py#L70) 与 [`src/godot_mcp/verify_shell/trigger.py:34`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_shell/trigger.py#L34)）：
-   - 在 `uid_cluster.py:70` 构造 `UID_DUPLICATE` 的 `ConditionalSignalEvent` 时，将 `target_res_path=max(path_a, path_b)` 填入（当前为 `None`）。
-   - 在 `trigger.py:34` 的 `is_uid_duplicate_repair` 中同时匹配 `event.res_path` 与 `event.target_res_path`：
+- [ ] 完成 [S10](../../LANDMARKS.md#s10) 的本范围任务。
 
-```python
-    for event in prev_conditional_events:
-        if event.kind == "UID_DUPLICATE":
-            candidate_paths = {p for p in (event.res_path, event.target_res_path) if p}
-            if candidate_paths & norm_touched:
-                return True
-```
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
----
+**做什么**：快照包含实际编辑后缀；识别内嵌 shader/项目配置、class_name 与重复 UID 双端修复。
 
-### 2.5 移除 `RedisStateStore` 并更新文档 (`MCP-CLN-1`)
+**交付物**：交付差异可见性及按需 V3 触发。快照仍只作观察，不充当文件恢复协议。
 
-1. 从 [`src/godot_mcp/verify_gate/state_store.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/state_store.py) 与 [`src/godot_mcp/verify_gate/__init__.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/src/godot_mcp/verify_gate/__init__.py) 中移除 `RedisStateStore`（以及 `tests/test_verify_gate.py` 中测试 `RedisStateStore` 抛 `NotImplementedError` 的用例）。
-2. 更新 [`README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/README.md) 与 [`ARCHITECTURE.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/ARCHITECTURE.md)，将其中“当前只有 `run_verify` 占位实现”的过期描述更新为实际的四阶段流水线说明。
+**验收**：逐后缀 diff、UID 两端与 class 声明变体；用注入 spawn 验证 V3 次数，再补真实引擎检查。
 
----
+**问题详情与复现**：[VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](DEFECTS.md#ver-04)；[VER-05 · class_name 与重复 UID 的重导触发有盲区](DEFECTS.md#ver-05)。
 
-## 3. 验证要求
+<a id="s11"></a>
 
-在 `codebase_index/godot_mcp/` 下执行测试：
+### S11：绑定每次运行的状态、锁和索引同步
 
-```bash
-uv run pytest
-```
+- [ ] 完成 [S11](../../LANDMARKS.md#s11) 的本范围任务。
 
-确保全部单测通过。
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：隔离每 run StateStore，串行状态读改写；向宿主明确生命周期锁与 verify 锁的嵌套方式。
+
+**交付物**：交付状态/锁边界测试；不在此模块复制宿主或编辑器。
+
+**验收**：顺序复用 worker 不串状态，重复接管被拒，不发生锁自死。
+
+**问题详情与复现**：[VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](DEFECTS.md#ver-06)。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

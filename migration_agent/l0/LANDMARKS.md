@@ -1,97 +1,66 @@
-# `migration_agent/l0` 模块路标 (LANDMARKS)
+# 确定性预处理：实现路标
 
-> **上级路标**：[`migration_agent/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/LANDMARKS.md)
-> **叶子节点**：本目录无下级子目录路标。
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-## 1. 模块职责与设计目标
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
-`migration_agent/l0/` 负责 **零 Token 消耗的确定性预处理流水线（L0 阶段）**。它的目标是在唤醒 LLM Agent 之前，用确定性工具吃掉 80% 以上的机械重命名，并把转换器遗留的“静默运行时陷阱”提前暴露为结构化待办项。
+## 文件与执行顺序
 
-本目录需实现以下 3 个源码文件：
-1. `intake.py`：工作区隔离拷贝、Git 事务仓库初始化、调用 `godot --headless --convert-3to4`、构建 `.codeindex.db` 并执行 `scene-freeze`。
-2. `codemod.py`：基于 `rag/artifacts/rules.db` 与 `tree-sitter-gdscript` 的两阶段确定性 AST 重写器。
-3. `trap_scan.py`：针对 `--check-only` 抓不到的 Godot 3→4 静默语义陷阱进行全库预扫描。
+待新增 `intake.py/codemod.py/trap_scan.py`。推荐 `run_l0_pipeline(source_repo, target_workspace, config, run_context)` 返回来源/L0 完成 SHA、转换状态、替换/跳过清单、冻结标记、初始诊断与日志引用。
 
----
+1. 检查目标为空、输入支持范围、引擎版本；目前 verifier 拒收 C#/GDExtension 工程，不能等模型修到一半才告知。
+2. 复制源码，排除旧 `.git/.godot/.import/.codeindex`、锁和上次运行产物。必要 ignore 在首提交前确定；状态和报告默认在项目外。
+3. 形成原始来源提交；识别支持的 config_version（Godot 3 常见为 4，Godot 4 为 5），其他版本明确拒绝/需人工。已是 4.x 可跳官方转换，但不跳后续残余验证。
+4. 受控运行 --convert-3to4，使用独立进程组、超时和日志；这是新 converter 执行器，现有 runner 只支持 V1/V2/V3。非零/超时按结果分类，停止部分转换，不擅自继续。
+5. 受控暂存新增/删除/修改并提交；空修改不强行 commit。S16 插入小白名单 codemod 后，再做约定的 UID 规范化与首次 V3。
+6. 形成 **B0=L0 完成提交**，不是原始 3.x 提交；所有 Agent revert 不得越过 B0。全量索引后冻结场景一次，保存 commit/规则指纹。
 
-## 2. 逐文件实现指导
+## codemod 的最小安全域
 
-### 2.1 `intake.py` — 工作区接管与官方转换器封装
+只读真实 migration_rules，筛 `change=rename`、`agent_action=apply_rename`、版本适用、无语义风险的候选；confidence 是标签。初版 .gd 只处理已证明的引擎类型位置；局部遮蔽、未知 receiver、多跳冲突和坏 AST 跳过。
 
-#### 核心函数签名：
-```python
-@dataclass
-class L0IntakeResult:
-    workspace: Path
-    base_commit_sha: str
-    convert_commit_sha: str | None
-    codemod_commit_sha: str | None
-    convert_timed_out: bool
-    convert_exit_code: int
-    frozen_scene_problems: int
-    codemod_replacements: int
+场景 type 槽位覆盖 node/gd_resource/sub_resource/ext_resource；不要全局替换字符串。span 在 UTF-8 bytes 上处理；大于当前写通道 4MB 上限的文件先标需人工，不绕过守卫承诺“全修”。
 
-def run_l0_pipeline(
-    source_repo: Path,
-    target_workspace: Path,
-    config: MigrationConfig,
-) -> L0IntakeResult: ...
-```
+启动期允许 L0 自己的受控批量事务，保存 dry-run/规则/patch 证据；循环期 targeted codemod 必须经 edit。`.instance()` 的真实规则为 apply_and_warn，不能当无条件安全映射。
 
-#### 实现要点：
-1. **隔离工作区初始化**：
-   - 若 `target_workspace` 不存在，使用 `shutil.copytree(source_repo, target_workspace, ignore=shutil.ignore_patterns(".git", ".godot", ".import"))` 拷贝源码。
-   - 初始化独立 Git 仓库（`git init` -> `git add -A` -> `git commit -m "chore(l0): baseline godot 3 source"`），确保 `inline_tools/editandfixguard/git_txn.py` 的快照与回滚拥有干净的工作树基线。
-2. **安全调用 `--convert-3to4`**：
-   - 检查 `project.godot` 中的 `config_version`。若 `config_version < 5`（即 Godot 3.x 项目），使用 `godot_mcp.verify.runner.run_subprocess`（带独立进程组与 `convert_timeout_ms` 超时强杀）运行：
-     `godot --headless --path <workspace> --convert-3to4`
-   - 提交转换结果：`git commit -am "chore(l0): official --convert-3to4"`。
-3. **执行 `codemod.py`（Phase A 确定性替换）**：
-   - 调用 `apply_global_codemod(target_workspace, config.rules_db_path)`，若产生修改则提交：`git commit -am "chore(l0): deterministic rule_codemod"`。
-4. **首次构建代码索引与场景基线冻结**：
-   - 调用 `codeindex` 的全量扫描与写入逻辑生成 `<workspace>/.codeindex.db`。
-   - 调用 `codeindex.scene.check.run_scene_freeze(conn, config.rules_db_path)` 冻结 L0 转换后的场景基线。
+## 陷阱结果要能结案
 
----
+StaticTrapFinding 至少有 rule_id、版本、相对路径、行/片段、严重度、证据、建议与 OPEN/RESOLVED/DISMISSED/NEEDS_HUMAN。扫描 yield/setget/Tween/connect 残余、shader 确定不兼容点，以及按类型确定的 extents 尺寸语义；合法关键词不作裸词黑名单。修后重扫，疑似项可澄清，不要求靠修改正确代码让列表归零。
 
-### 2.2 `codemod.py` — 两阶段确定性规则重写器
+## 本目录执行清单
 
-#### 为什么不能盲目全局正则替换？
-`rag/artifacts/rules.db` 中共有 6,626 条结构化迁移规则，但其中大量的 `method` / `property` / `signal` / `enum` 规则（如 `instance -> instantiate`、`empty -> is_empty`）可能与用户自定义同名函数冲突。因此必须实现**两阶段策略**：
+<a id="s15"></a>
 
-#### Phase A：L0 无条件安全替换（`apply_global_codemod`）
-仅筛选 `rules.db` 中满足 `confidence >= 0.9` 且无歧义的规则：
-1. **全局类/单例重命名（`symbol_kind == 'class'`）**：如 `KinematicBody2D -> CharacterBody2D`、`Spatial -> Node3D`、`OS.get_ticks_msec -> Time.get_ticks_msec`。
-   - 使用 `tree-sitter-gdscript` 解析每个 `.gd` 文件的 AST，仅替换 `identifier` / `type` 节点（自动避开字符串字面量与注释）。
-2. **`.tscn` / `.tres` 节点与资源类型重命名**：
-   - 仅替换 `[node ... type="OldClass"]` 与 `[ext_resource ... type="OldClass"]` 头部属性中的 `OldClass -> NewClass`。
+### S15：实现隔离 intake 与 L0 事务边界
 
-#### Phase B：验证报错驱动的受控替换（`apply_targeted_codemod`）
-供 Orchestrator 在 L1/L2 降级（`rule_only` 模式）或 Triage 预处理时调用：
-- 输入 `VerifyResult` 中的 `Diagnostic` 列表。
-- 当报错为 `UNDECLARED_IDENTIFIER` 或 `NONEXISTENT_FUNCTION`，且报错行的 `extracted_symbols` 在 `rules.db` 中存在**唯一**的 `new_symbol` 映射（如 `.instance()` -> `.instantiate()`，`.empty()` -> `.is_empty()`）时，仅对该报错行对应的 AST 节点执行替换。
+- [ ] 完成 [S15](../../LANDMARKS.md#s15) 的本范围任务。
 
----
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
-### 2.3 `trap_scan.py` — 静默运行时陷阱预扫描器
+**做什么**：受控复制项目、原始提交、转换、UID/首次导入，形成 L0 完成提交；刷新索引并冻结一次。
 
-Godot 4 的 `--headless --check-only` 只能捕获编译期语法与类型错误，无法捕获**合法语法但语义已坏**或**不纳入脚本检查范围**的静默陷阱。`trap_scan.py` 需扫描全工作区并输出 `list[StaticTrapFinding]`：
+**交付物**：交付 run_l0_pipeline 初版及超时/不支持类型/已有目标的明确出口；转换执行器单独封装，不引用不存在的 run_subprocess。
 
-```python
-@dataclass(frozen=True)
-class StaticTrapFinding:
-    trap_id: str          # 如 "TRAP_SHADER_3X", "TRAP_TWEEN_NODE", "TRAP_YIELD_RESIDUAL", "TRAP_EXPORT_HINT"
-    rel_path: str
-    line: int
-    snippet: str
-    suggestion: str
-```
+**验收**：源不变、转换新增文件入提交、缓存不弄脏树、失败不标完成、二次启动非 resume 被拒。
 
-#### 必检的 5 类静默陷阱规则：
-1. **`TRAP_SHADER_3X`**：扫描 `.gdshader`、`.shader` 及 `.tscn` 内嵌 `Shader` 子资源，检测残留的 Godot 3 着色器内置变量/关键字（如 `TIME` 以外的 `TEXTURE_PIXEL_SIZE` 误用、`hint_albedo` -> `source_color`、`hint_black_albedo`、`world_vertex_coords` 等——issue #63673 证明 `--check-only` 不会检查 `.gdshader`）。
-2. **`TRAP_YIELD_RESIDUAL`**：扫描 `.gd` 文件中残留的 `yield(` 调用或转换器生成的错误 `await` 语法。
-3. **`TRAP_TWEEN_NODE`**：检测 `.gd` 或 `.tscn` 中残留的 Godot 3 `Tween` 节点调用模式（如 `.interpolate_property(`、`.interpolate_callback(`，Godot 4 必须改为 `create_tween().tween_property(...)`）。
-4. **`TRAP_CONNECT_CALLABLE`**：检测残留的 Godot 3 字符串风格 `.connect("signal_name", target, "method_name", binds, flags)` 五参数/四参数调用。
-5. **`TRAP_SETGET_SYNTAX`**：检测残留的 Godot 3 `setget setter_func, getter_func` 语法。
+**问题详情与复现**：[L0-03 · 接管工作区会带脏产物，转换提交还可能漏新增文件](DEFECTS.md#l0-03)。
 
-扫描出的 `StaticTrapFinding` 列表将直接注入 Orchestrator 的 `MigrationState.pending_traps`，与编译器报错一同纳入修复队列。
+<a id="s16"></a>
+
+### S16：增加小白名单 codemod 和可结案陷阱扫描
+
+- [ ] 完成 [S16](../../LANDMARKS.md#s16) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：从真实规则筛候选，证明归属后才修改；扫描静默语义风险并支持复扫/确认/排除。循环期确定性替换也走唯一写工具。
+
+**交付物**：交付 dry-run 清单、逐规则替换证据与 StaticTrapFinding；初版超大/未解析文件升级人工，不承诺机械修完。
+
+**验收**：安全改名正例加同名用户符号反例；场景四类 type 槽位；合法 shader 不误报；无修改算子不计收益。
+
+**问题详情与复现**：[L0-01 · 把文字置信标签按数值筛选，选中了错误规则](DEFECTS.md#l0-01)；[L0-02 · AST 找到同名节点，不代表它属于引擎 API](DEFECTS.md#l0-02)；[L0-04 · 静态陷阱误报合法语法，且没有消项机制](DEFECTS.md#l0-04)。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

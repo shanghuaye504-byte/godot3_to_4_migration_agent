@@ -1,33 +1,35 @@
-# `rag/build/` 编译产线路标文档 (LANDMARKS)
+# 知识库构建：实现路标
 
-> **上级路标**：[`rag/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/LANDMARKS.md)  
-> **下级路标**：*(当前为叶子节点，无下级路标文档)*
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-本目录包含将 `vault/` 原材料编译为 `artifacts/rules.db`（A 层）与 `artifacts/corpora/<id>/corpus.lance`（B 层）的全部脚本。
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
----
+## 修复时不要重建无关产物
 
-## 一、待修复的代码与测试路径错位
+A 层真实入口为 `build_all.sh`；B 层为 `chunk_and_embed.py`（内部 chunk_prose + embed_prose）。先在临时输出测试路径和清单，确认没有回归后再受控重建产物。
 
-### 修复 1：统一类型 A `.prose.jsonl` 的落盘与读取路径
-* **问题现状**：
-  * [`parse_upgrading_docs.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/parse_upgrading_docs.py#L612) 第 612、639 行已将从官方 `.rst` 抽出的非表格散文写入子目录：
-    `rag/vault/tier_b_prose/_raw/official_upgrading_guide/*.prose.jsonl`（磁盘上 8 个文件目前确实在此路径）。
-  * 但以下 3 处代码仍硬编码查找旧路径 `rag/vault/tier_b_prose/*.prose.jsonl`：
-    1. [`build_tier_a.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/build_tier_a.py#L324) 第 324 行（构建 `manifest.lock.json` 时漏锁了 `_raw/official_upgrading_guide/*.prose.jsonl`）。
-    2. [`clean_prose_jsonl.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/clean_prose_jsonl.py#L15) 第 15 行（`PROSE_DIR = VAULT / "tier_b_prose"`）。
-    3. [`rag/test/test_build_artifacts.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/test/test_build_artifacts.py#L18) 第 18、166 行（因在旧路径找不到 `.prose.jsonl` 而触发 `pytest.skip`）。
-* **修改方案**：
-  * 将 `build_tier_a.py`、`clean_prose_jsonl.py` 及 `rag/test/test_build_artifacts.py` 中的类型 A 散文路径统一指向 `vault/tier_b_prose/_raw/official_upgrading_guide/*.prose.jsonl`（或复用 `prose_preprocessing_util/chunker.py:type_a_paths()` 的兼容逻辑）。
+统一 `vault/tier_b_prose/_raw/official_upgrading_guide/*.prose.jsonl` 的写入、清理、测试和 manifest 枚举；共享路径函数避免四处再次漂移。manifest 保存相对路径及内容哈希，不只保存文件名。
 
-### 修复 2：清理废弃的 `build_tier_b.py` 占位脚本
-* **问题现状**：[`build_tier_b.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/build_tier_b.py) 仍是早期 `sys.exit(...)` 占位壳，真实 B 层构建已由 [`chunk_and_embed.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/chunk_and_embed.py)（调用 `chunk_prose.py` + `embed_prose.py`）完成。
-* **修改方案**：让 `build_tier_b.py` 直接转发调用 `chunk_and_embed.main()`（或删除该 stub 并更新 `rag/README.md`）。
+保留旧入口时必须转发真实 CLI 及参数，不可再仅抛占位异常；测试兼容路径时使用 `--skip-embed` 或注入调用桩，避免意外下载/重建。`build_all.sh` 只构建 A 层，这一点写清而非声称 B 层也已更新。
 
----
+## 本目录执行清单
 
-## 二、执行与文档同步 Checklist
+<a id="s12"></a>
 
-- [ ] 修复 `build_tier_a.py`、`clean_prose_jsonl.py`、`rag/test/test_build_artifacts.py` 中的 `.prose.jsonl` 路径，确保 `test_prose_jsonl_present` 不再 skip 且测试通过。
-- [ ] 将 `build_tier_b.py` 改为调用 `chunk_and_embed.main()`。
-- [ ] 更新 [`rag/build/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/README.md) 与 [`rag/build/PARSING.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/PARSING.md)，移除「Parser 还没写」、「`build_all.sh` 目前还是空的」等历史备注。
+### S12：修 RAG 输入路径并清理失效入口
+
+- [ ] 完成 [S12](../../LANDMARKS.md#s12) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：统一 prose 枚举和 manifest 输入哈希；旧命令转发到真实 build/eval；移除误生成会话文件。
+
+**交付物**：交付不靠 skip 的产物检查；构建测试使用临时输出，不覆盖已冻结语料。
+
+**验收**：8 份散文被锁定，修改输入使指纹变化；缺预期产物 fail；--skip-embed 不联网。
+
+**问题详情与复现**：[RAG-01 · 散文写入与读取路径不一致，测试靠 skip 避开](DEFECTS.md#rag-01)；[RAG-05 · 旧构建和评测命令仍是占位壳](DEFECTS.md#rag-05)。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

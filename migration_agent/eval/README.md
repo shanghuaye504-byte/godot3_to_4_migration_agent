@@ -1,5 +1,5 @@
 # `migration_agent/eval` — Agent-as-Judge 与批处理评测套件
 
-本子模块包含独立审查 Git Diff 语义保真度的 Agent-as-Judge、生成带精确 Ground Truth 退化样本的 Godot 4→3 反向变异器，以及基于本地进程池与 Godot 进程信号量的多仓库并发批处理运行器。
+当前只有包骨架。按阶段实现独立验证器、真值隔离、反向变异、Judge/人工校准和对比实验，评分关联 Langfuse/Phoenix；先交付正常进程池批处理，再验收 worker 崩溃。
 
-详细实现规范参见：[`LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/eval/LANDMARKS.md)。
+父进程负责清理进程/槽位和重排原 run；新 worker 使用同一 thread_id 接入原生 checkpoint 与外部副作用对账。具体顺序见 [LANDMARKS](LANDMARKS.md)，复现与验收见 [DEFECTS](DEFECTS.md)。

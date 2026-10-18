@@ -1,37 +1,53 @@
-# `rag/` 模块路标文档 (LANDMARKS)
+# 迁移知识库：实现路标
 
-> **上级路标**：[根目录 `LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/LANDMARKS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-本目录是 Godot 3→4.7.1 迁移知识库（A 层结构化 SQLite 规则库 `rules.db` + B 层散文混合检索库 `corpus.lance`）的构建与运行时检索组件。目前整体完成度已达 **98%**，仅需做少量配置回写、路径对齐与杂物清理。
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
----
+## 当前已具备什么
 
-## 一、下级路标导航（Child Landmarks）
+真实规则库在 `artifacts/rules.db`：上一轮读取 8260 行，目标版本元数据 4.7.1；B 层在 `artifacts/corpora/default/corpus.lance`，上一轮读取 317 行。数量是快照，不写死进业务逻辑。
 
-* 📄 **[`rag/build/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/build/LANDMARKS.md)** — 编译产线 `.prose.jsonl` 路径对齐与废弃占位脚本清理指南
-* 📄 **[`rag/retriever/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/retriever/LANDMARKS.md)** — 生产 `retriever.yaml` 最优超参同步与报错符号提取正则扩充指南
+运行时使用 `rag.retriever` 的 `load/retrieve/retrieve_cached`；build、eval 不进入 Agent 工具依赖路径。S12/S13 修接线，S21 在独立测试集复验配置；不以“98% 完成”代替剩余验收条目。
 
----
+## 对宿主的约定
 
-## 二、本目录实现现状核实
+每 worker 启动后 `load(artifacts_dir=..., config_path=...)` 一次；不把 SQLite/Lance/嵌入模型句柄跨进程传递。查询必须带 target_version；语料/配置/模型指纹进入 trace。命中结构化规则不代表自动允许修改，还要看 agent_action 和归属。
 
-1. **已就绪且无需重建的编译产物（`rag/artifacts/`）**：
-   * [`artifacts/rules.db`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/artifacts/rules.db)：SQLite（`schema_version="2"`，目标版本 `4.7.1`），`migration_rules` 表共 **8260 行**（`api_diff`: 6612，`official_renames`: 1101，`official_prose`: 444，`official_renames_skipped`: 84，`manual_rewrite`: 10，`manual_trap`: 5，`official_prose_3to4_shader`: 4）。
-   * [`artifacts/agent_context/upgrading_to_godot_4.rst`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/artifacts/agent_context/upgrading_to_godot_4.rst)：供宿主系统提示词引用的官方总指南原文。
-   * `artifacts/chunks/default/chunks.jsonl` 与 `artifacts/corpora/default/corpus.lance/`：共 **317 个 `ProseChunk`**（384 维 `BAAI/bge-small-en-v1.5` 向量 + LanceDB FTS 全文索引）。
-2. **已完成的离线评测（`rag/eval/`）**：
-   * [`eval/run_eval.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/eval/run_eval.py) 已在 30 条 A 层查询与 30 条 B 层查询上跑完消融实验，报告位于 [`eval/reports/eval_report.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/eval/reports/eval_report.md)。
+## 下级导航
 
----
+- [知识库构建](build/LANDMARKS.md)
+- [检索运行时](retriever/LANDMARKS.md)
+- [检索质量评测](eval/LANDMARKS.md)
 
-## 三、本目录顶层清理与文档同步清单（Checklist）
+## 本目录执行清单
 
-- [ ] **删除误生成的空会话文件**：删除 `rag/:memory:.ses`（SQLite 内存连接误落盘的 0 字节文件）。
-- [ ] **清理 `rag/eval/` 下的废弃占位脚本**：
-  * 删除或标记废弃 [`rag/eval/gen_eval_set.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/eval/gen_eval_set.py) 与 [`rag/eval/run_ablation.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/eval/run_ablation.py)（二者仅抛 `NotImplementedError`，已被 [`build_eval_set.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/eval/build_eval_set.py) 与 [`run_eval.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/eval/run_eval.py) 取代）。
-- [ ] **同步更新 [`rag/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/README.md)**：
-  * 第 209–211 行依赖表：将 `pyyaml` 与 `fastembed` 列入 `[project.dependencies]`，`beautifulsoup4` 与 `trafilatura` 列入 `build` 组。
-  * 第 61、132 行：将 `artifacts/corpus.lance/` 修正为 `artifacts/corpora/default/corpus.lance/`。
-  * 第 81–91 行目录树：更新 `test/`（补齐 5 个 `test_retriever_*.py`）与 `eval/`（替换为 `build_eval_set.py` 与 `run_eval.py`）。
-- [ ] **同步更新 [`rag/vault/tier_b_prose/CHECKPOINT.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/rag/vault/tier_b_prose/CHECKPOINT.md)**：
-  * 标注阶段 2/3（19 份 curation YAML 与 27 份 `.ir.json`）及阶段 4（317 chunks 与 `corpus.lance`）均已于 2026-08-29 全部完成。
+<a id="s12"></a>
+
+- [ ] **S12 · 修 RAG 输入路径并清理失效入口**：[知识库构建](build/LANDMARKS.md#s12)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s13"></a>
+
+- [ ] **S13 · 修检索配置、符号提取和 OTel 观测事件**：[检索运行时](retriever/LANDMARKS.md#s13)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s21"></a>
+
+- [ ] **S21 · 扩展变异、复验 RAG 并接入平台实验**：[检索质量评测](eval/LANDMARKS.md#s21)、[检索运行时](retriever/LANDMARKS.md#s21)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s25"></a>
+
+### S25：验收崩溃恢复、观测降级并完成清理
+
+- [ ] 完成 [S25](../LANDMARKS.md#s25) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：校正本范围 README/CHECKPOINT 中已实现内容、依赖组和 corpus 路径；保留历史评测来源，不冒充新成绩。
+
+**交付物**：交付可复现的构建/检索/评测使用说明。
+
+**验收**：路径和命令有效，模型缓存与产物要求写清。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

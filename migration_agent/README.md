@@ -1,12 +1,12 @@
 # `migration_agent` — Godot 3→4 批量迁移收尾 Agent 主控包
 
-本目录为 Godot 3→4 存量项目批量迁移收尾 Agent 的顶层编排与评测包，以进程内 Python 库调用方式串联 `rag`、`codebase_index/index`、`codebase_index/godot_mcp` 与 `inline_tools`。
+本目录是 Godot 3→4 游戏项目迁移 Agent 的宿主骨架；尚未实现完整编排、持久化 checkpoint 或恢复。后续通过进程内库调用组合 RAG、代码库索引、受控编辑和真实引擎验证。
 
-详细实现指导与子模块导航请参见本目录路标文档：[`LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/LANDMARKS.md)。
+按 [LANDMARKS](LANDMARKS.md) 执行，问题见 [DEFECTS](DEFECTS.md)。恢复统一采用 LangGraph 原生 checkpoint 管图状态、Git/业务 SQLite 核对外部操作、父进程监督批处理；[具体契约](orchestrator/LANDMARKS.md#checkpoint-contract) 与 [ADR-0001](../docs/adr/0001-langgraph-checkpoints-and-external-effects.md) 保持一致。
 
 ## 子模块概览
 
-- [`l0/`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/l0/README.md)：L0 确定性预处理流水线（官方 `--convert-3to4`、两阶段 AST `rule_codemod`、静默陷阱扫描、索引构建与基线冻结）。
-- [`orchestrator/`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/orchestrator/README.md)：L1/L2 LangGraph ReAct 修复编排器、Error Triage 与收尾全量 `load()` 扫描。
-- [`trace/`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/trace/README.md)：本地 SQLite 轨迹持久化、断点续跑、跨仓库 LLM 修复缓存与迁移报告导出。
-- [`eval/`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/eval/README.md)：Agent-as-Judge 语义保真评审、反向变异数据集生成器与多仓库本地并发批处理运行器。
+- [l0](l0/README.md)：受控预处理、转换、索引和一次性基线冻结。
+- [orchestrator](orchestrator/README.md)：修复图、原生 checkpoint 和分层验证。
+- [trace](trace/README.md)：审计、预算、saver 工厂、外部对账和观测。
+- [eval](eval/README.md)：独立评测、平台实验及批处理监督。

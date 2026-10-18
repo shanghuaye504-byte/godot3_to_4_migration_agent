@@ -1,96 +1,142 @@
-# `migration_agent/eval` 模块路标 (LANDMARKS)
+# 独立评测与批处理：实现路标
 
-> **上级路标**：[`migration_agent/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/LANDMARKS.md)
-> **叶子节点**：本目录无下级子目录路标。
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-## 1. 模块职责与设计目标
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
-`migration_agent/eval/` 负责回答两个决定项目含金量的核心问题：
-1. **“编译器过了，但代码逻辑有没有被 Agent 偷偷改坏？”** —— 通过独立的 **Agent-as-Judge (`judge.py`)** 审查每一个已提交的 Git Diff，产出与客观 `parse-clean` 率正交的**语义保真率（Semantic Fidelity Rate）**。
-2. **“如何在有 Ground Truth 的前提下大规模压测并横向扩展？”** —— 通过 **反向变异生成器 (`reverse_mutator.py`)** 从干净的 Godot 4.x 仓库合成带完美 Ground Truth 的退化样本，并通过 **本地多进程批处理运行器 (`batch_runner.py`)** 安全并发地处理多仓库。
+## 按四次交付，不等到编排后才开始
 
-本目录包含以下 3 个源码文件：
-- `judge.py`：独立 LLM 语义审计器（Agent-as-Judge）。
-- `reverse_mutator.py`：Godot 4→3 反向变异数据集生成器。
-- `batch_runner.py`：基于 `ProcessPoolExecutor` 与本地 Godot 进程信号量的批处理调度器。
+1. S01：`cases.py/verifier.py` 最小固定样本和独立成功/失败/证据不足分类，先于智能编排。
+2. S21：`reverse_mutator.py/metrics.py` 可复现变异及行为/字节/检索指标。
+3. S22/S23：`judge.py` 独立风险审计、人工校准、baseline/消融与可重算报告。
+4. S24/S25：`batch_runner.py` 正常并发，然后独立验收 worker 崩溃恢复。
 
----
+上面文件都待新增；现有探针/检索 eval 是可复用证据，不是完整 Agent 评测器。
 
-## 2. 逐文件实现指导
+最小 manifest 字段固定为 case_id、source_revision、engine_version、visible_project、private_truth、expected_checks、seed。verifier 读取最终磁盘并独立重跑所需引擎/行为检查，不能信任 Agent 写出的 report.status。先输出 PASS/FAIL/INVALID/INCOMPLETE 及逐项证据；环境不可用是 INVALID，单列且不计模型失败；Agent 流程未完成造成的 INCOMPLETE 不算成功，仍保留在有效试验分母，不能靠排除困难样本抬高修复率。至少用一例“报告自称 CLEAN 但文件仍坏”验证它不会被骗。
 
-### 2.1 `judge.py` — Agent-as-Judge 语义保真度评审器
+## 样本与评分
 
-#### 核心输出契约（Pydantic Schema）：
-```python
-from typing import Literal
-from pydantic import BaseModel, Field
+先用 `godot_test/probe_tests/fixtures/phase1/CleanControl` 作为健康候选，在锁定引擎重新验收；不要引用不存在的 clean-control-4x。每个样本含来源 commit/引擎/规则指纹、算子与 seed、可见项目目录和工作区外真值路径。
 
-class JudgeVerdict(BaseModel):
-    commit_sha: str
-    file_path: str
-    verdict: Literal["SEMANTIC_SAFE", "SUSPICIOUS", "FAKE_FIX"]
-    score: int = Field(ge=1, le=5, description="1=破坏逻辑的假修复, 3=存疑需人工看, 5=精确等价迁移")
-    failure_mode: Literal[
-        "NONE",
-        "DELETED_LOGIC",           # 直接删除或注释掉报错代码行
-        "STUBBED_WITH_PASS",       # 将函数体替换为 pass 或固定返回值骗过编译器
-        "COROUTINE_ORDER_BROKEN",  # yield 改 await 时语句执行顺序错乱
-        "SIGNAL_SEMANTICS_LOST",   # 断开信号或吞掉回调参数
-        "HALLUCINATED_API",        # 换成了语义不匹配的另一个 API
-    ] = "NONE"
-    rationale: str = Field(description="简明中文审计理由，指出具体行号与风险")
-```
+变异先做 class/注解等窄语法，接着做有上下文约束的 await/connect/method；FileAccess→File.new 不能当通用一行反转。每例先确认健康原版、变异造成目标差异、L0 后是否仍有残余。规则 ID 从真实库读取，例如 `official_renames:4.0:_:class:KinematicBody2D`。
 
-#### 实现要点：
-1. **输入上下文构建**：
-   - 提取目标 Commit 的 `git show <sha>` Unified Diff。
-   - 提取该 Patch 声称解决的 `Diagnostic`（报错信息）以及当时检索引用的 `MigrationRule`（`old_symbol -> new_symbol` 及 `migration_note`）。
-2. **双阶段检查（先规则快筛，再 LLM 深审）**：
-   - **静态快筛**：对比修改前后的 AST 有效语句数。如果一个 Patch 解决了报错，但删除了 `>= 3` 行函数调用且未新增对应调用，或新增了裸 `pass` 且原函数体非空，直接标为 `SUSPICIOUS` 并提示 Judge LLM 重点核查。
-   - **独立 LLM 评审**：调用 `config.judge_model`（强制使用 `with_structured_output(JudgeVerdict)`），按 Rubric 打分并写回 `TraceStore.round_traces.judge_verdict_json`。
+字节 Exact Match 按字节，不能删除字符串空白或缩进；独立行为断言接受等价修复。分别报告 L0-only 与 Agent 修复贡献、未调用检索与 Recall 未命中；调参/测试按来源仓库或规则族隔离。
 
----
+## Judge
 
-### 2.2 `reverse_mutator.py` — Godot 4→3 反向变异生成器
+输出包含 SAFE_BY_JUDGE/SUSPICIOUS/FAKE_FIX/INSUFFICIENT_EVIDENCE/JUDGE_ERROR、理由/具体位置及失败类型。SAFE_BY_JUDGE 仅代表未发现风险，不代表语义被证明。输入提供原始/最终函数、必要场景/调用上下文与引用规则；将项目内容作为不可信数据，不执行其中的指令。
 
-以项目中已验证零报错的 [`godot_test/clean-control-4x/`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/godot_test/clean-control-4x)（或其他健康 Godot 4.x 仓库）为基准，反向注入 Godot 3.x 破坏性语法，构造拥有 **100% 逐字精确 Ground Truth** 的评测集。
+人工校准先覆盖删除逻辑、pass stub、异步顺序、信号参数、幻觉 API 与合法重构。报告误放/误杀/分歧；Judge 故障单列为基础设施，不能算语义修复失败。
 
-#### 支援的 5 类反向变异算子（Mutation Operators）：
-1. **`OP_CLASS_DOWNGRADE`**：查询 `rules.db` 中 `symbol_kind == 'class'` 的高置信规则，将 `.gd` 和 `.tscn` 中的 Godot 4 类名退化回 Godot 3 类名（如 `CharacterBody2D -> KinematicBody2D`、`Node3D -> Spatial`、`AnimatedSprite2D -> AnimatedSprite`、`Time.get_ticks_msec -> OS.get_ticks_msec`）。
-2. **`OP_METHOD_DOWNGRADE`**：将 `.instantiate()` 退化为 `.instance()`，`.is_empty()` 退化为 `.empty()`，`FileAccess.open(...)` 退化为 Godot 3 `File.new()` 模式。
-3. **`OP_ANNOTATION_DOWNGRADE`**：将 `@export` 退化为 `export`，`@onready` 退化为 `onready`。
-4. **`OP_AWAIT_TO_YIELD`**：将 `await <expr>.<signal>` 退化为 `yield(<expr>, "<signal>")`。
-5. **`OP_CONNECT_TO_STRING`**：将 `sig.connect(_on_func)` 退化为 `connect("sig", self, "_on_func")`。
+## 批处理
 
-#### 输出产物结构：
-每次变异在输出目录下生成一个独立样本子目录 `sample_001/`，并写入 `ground_truth.json`：
-```json
-{
-  "sample_id": "sample_001",
-  "operator": "OP_CLASS_DOWNGRADE",
-  "file_path": "res://scripts/player.gd",
-  "line": 12,
-  "ground_truth_rule_id": "class:KinematicBody2D->CharacterBody2D",
-  "original_4x_content": "...",
-  "mutated_3x_content": "..."
-}
-```
-由此可直接计算：
-- **Exact-Match 修复率**：迁移后文件与 `original_4x_content` 忽略空白符后的完全一致率。
-- **RAG Recall@5**：报错触发检索时，`ground_truth_rule_id` 出现在 Top-5 检索结果中的比例。
+每仓独立 source/output/run_id；相同名字不能作为唯一键。每 worker 启动后新建句柄；所有 converter/V1/V2/V3/sweep 使用同一 Godot 限流边界。父进程跟踪子进程组与任务，崩溃后清理进程、核对槽位和 resume，再重排；不要假设 Manager semaphore 自动归还。
 
----
+## 评分进入 Langfuse/Phoenix 的顺序
 
-### 2.3 `batch_runner.py` — 本地多仓库批处理与信号量控制
+S01 先固定 case/run/trace 与评分结构；S14 验证 OTel 接线；S21 用版本化 SDK/API 关联 dataset/experiment/score；S22 加 Judge 与人工标注；S23 才据此做对比。OTLP 本身不会自动创建这些评分对象。
 
-在不引入 Redis 和微服务的条件下，安全高效地并发跑完 `godot_test/` 下的全部测试仓库（如 `godot-3-2d-day-night-cycle-demo`、`3d-squash-the-creeps`、`dodge-the-creeps`、`gdquest-2d-finite-state-machine`、`2d-GDQuest-grid-based-movement` 及变异样本集）：
+评分由独立验证器本地计算并保存，一份结果幂等同步两端；Agent 只看可见输入，不读取真值。程序结果、Judge 和人工意见分别命名且保留版本。新增 backend adapter 与 outbox 的“已接受未响应”测试，避免补传重复；评测全采样，本地/平台指标分母一致。批处理子进程显式传播 W3C 上下文，恢复创建关联的新 trace。详见 [观测契约](../trace/LANDMARKS.md#otel-contract)。
 
-#### 核心并发安全设计：
-1. **目录级天然隔离（无需分布式锁）**：
-   - 每个待迁移仓库在启动前都会在 `output_dir/<repo_name>/` 下创建独立的副本工作区、独立的 `.godot/` 缓存与独立的 `<workspace>/.codeindex.db`，从根源上消除并发写冲突。
-2. **Godot 进程全局信号量（防止内存打满）**：
-   - 每个 `godot --headless` 子进程峰值消耗 300MB–600MB 内存。
-   - 使用 `multiprocessing.Manager().BoundedSemaphore(max_godot_procs)`（默认 `max_godot_procs = 2`）包裹 Godot 子进程调用，确保即使开启 4 个 Python Worker 并发执行 RAG 检索与 LLM 推理，同一时刻最多只有 `max_godot_procs` 个 Godot 引擎进程在运行。
-3. **汇总评测表生成（`batch_summary.md`）**：
-   - 批处理结束后，自动聚合所有仓库的 `migration_report.json`，输出包含以下维度的 Markdown 汇总表：
-     - 仓库名 | 初始 Error 数 | L0 后 Error 数 | 最终 Error 数 | Error 削减率 | Parse-Clean | Judge 语义保真率 | 迭代轮数 | LLM 缓存命中 | 耗时 (s) | 成本 ($)
+## 批处理重启不另造恢复机制
+
+父进程保存任务与 run_id；worker 崩溃后清理残留进程/槽位，重新调度原 run，新 worker 自建原生 SqliteSaver 与运行句柄，持锁后调用同一 resume 入口。新 OTel trace 不改变 thread_id。checkpoint 只恢复图，工作区互斥、任务监督和外部副作用去重分别验收，见 [恢复契约](../orchestrator/LANDMARKS.md#checkpoint-contract)。
+
+## 本目录执行清单
+
+<a id="s01"></a>
+
+### S01：先建最小独立评测器与观测契约测试
+
+- [ ] 完成 [S01](../../LANDMARKS.md#s01) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：先定义固定 case、隐藏真值、结果分类与独立验证器；同时写 OTel span/评分字段契约和内存 exporter 反例。六类项目先用 fake verifier，再补锁定引擎集成验证。
+
+**交付物**：交付正确/错误/等价替代对照，隐藏答案位于 Agent 工作区外。定义 case_id→run_id→trace/span 的关联及评分明细格式，OTel 正式接线在 S14。
+
+**验收**：错误不通过、缺证据标 INVALID/INCOMPLETE；read/grep 不读真值；fake 调用树与评分重复提交测试先固定预期。
+
+**问题详情与复现**：[EVAL-01 · 参考答案放进项目副本会泄漏给 Agent](DEFECTS.md#eval-01)。
+
+<a id="s21"></a>
+
+### S21：扩展变异、复验 RAG 并接入平台实验
+
+- [ ] 完成 [S21](../../LANDMARKS.md#s21) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：逐例验证健康原版、变异生效和 L0 后残留；独立复验 RAG。新增 Langfuse/Phoenix 的 dataset/experiment/score 适配，评分先本地落盘再幂等推送。
+
+**交付物**：交付可复现样本与逐项结果、两后端对象映射和 outbox。每个 case 关联 run/trace、规则/配置/评测器指纹；同一评分复用，两端不重复跑模型。
+
+**验收**：等价解/行为/字节分开；fresh/reused 和调参/测试隔离；上传断网/重复/响应丢失不重复逻辑评分，两端汇总可由本地明细复算。
+
+**问题详情与复现**：[EVAL-02 · 逐字参考不等于唯一正确解，变异也可能没有测到 Agent](DEFECTS.md#eval-02)；[EVAL-04 · 平台评分没有来源与幂等关联，会重复计分或混用实验](DEFECTS.md#eval-04)。
+
+<a id="s22"></a>
+
+### S22：实现独立 Judge、人工校准与关联标注
+
+- [ ] 完成 [S22](../../LANDMARKS.md#s22) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：程序结果确定事实后，独立 Judge 审语义风险；原始/最终上下文齐全，缺证据与 Judge 故障分流。Judge 调用走 OTel，结果和人工标注关联原 patch/trace/span。
+
+**交付物**：交付结构化 verdict 和校准样本；人工/程序/Judge 分开命名、版本化，一份结果同步两平台，审最终净 diff 及保留 patch。
+
+**验收**：好/坏/存疑/缺证据/模型故障对照；人工误放/误杀/分歧可复算，Judge 费用完整入账，两端不重复评判。
+
+**问题详情与复现**：[EVAL-03 · Judge 的证据不足与调用失败没有独立出口](DEFECTS.md#eval-03)。
+
+<a id="s23"></a>
+
+### S23：完成平台对比实验、baseline 与消融报告
+
+- [ ] 完成 [S23](../../LANDMARKS.md#s23) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：冻结条件后比较有/无 RAG、有/无 L0、rule-only 和通用 coding agent；每条件独立 run_id。Langfuse/Phoenix 关联同一实验清单、trace 与评分，多次试验记录方差。
+
+**交付物**：交付修复率/覆盖/Judge 风险、成本/耗时、人工介入和失败归因。报告含本地逐项来源和后端实验链接；初始错误为零的削减率为 N/A。
+
+**验收**：本地与两端分母、指标和版本一致；引擎/Judge/导出故障单列；评测全采样，生产采样数据不当完整统计；真实 token 节省与估算分开。
+
+<a id="s24"></a>
+
+### S24：实现进程池批处理、上下文传播与限流
+
+- [ ] 完成 [S24](../../LANDMARKS.md#s24) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：每 worker 启动后新建模型/SQLite/Lance 和 OTel provider/exporter；任务信封注入/提取 W3C traceparent/tracestate。所有 converter/V1/V2/V3/sweep 经同一 Godot 槽位边界。 每 run 独立 checkpoint 文件，worker 重开 SqliteSaver；同一 thread_id 不允许并发恢复。
+
+**交付物**：交付 batch CLI、独立运行目录、跨进程关联和正常吞吐数据；正常退出有界 flush/shutdown，不继承活跃导出线程。
+
+**验收**：1/2/4 worker 结果一致、同名不冲突、进程峰值受限；子进程 span 关联正确且不重复埋点，后端故障不打满 worker；单仓失败不抹掉其余结果。
+
+**问题详情与复现**：[BATCH-01 · 杀掉 worker 后槽位与 Godot 子进程未必自动回收](DEFECTS.md#batch-01)。
+
+<a id="s25"></a>
+
+### S25：验收崩溃恢复、观测降级并完成清理
+
+- [ ] 完成 [S25](../../LANDMARKS.md#s25) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：父进程监督并回收残留进程/槽位，按 S19 对账重排；标记中断 trace，以新 trace 关联恢复。清理旧占位、README/ARCHITECTURE/NEXT_STEP 与失效链接。 重新调度保留原 run_id/thread_id，调用同一 resume 入口，不重建初始图输入。
+
+**交付物**：交付 kill/断网/后端不可用测试、恢复及评分补传说明；清单对应真实证据。后端持久化/保留策略按选定部署说明，不承诺超出本地账本的可靠性。
+
+**验收**：无进程/槽位泄漏，任务不丢、受控补丁不重复，未知模型结果单列；导出有界，评分重试不重复；本地与后端差异可解释；真实引擎/后端验收与模拟测试分别报告。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

@@ -1,57 +1,95 @@
-# `codebase_index` 模块路标 (LANDMARKS)
+# 索引与验证底座：实现路标
 
-> **上级路标**：[根目录 `LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/LANDMARKS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-## 1. 下级路标导航 (Child Landmarks)
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
-本目录包含两个核心子包，其详细修复与完善指导分别位于各自子目录的 `LANDMARKS.md` 中：
-
-- **[`index/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/index/LANDMARKS.md)**：Godot 符号/资源/场景 SQLite 索引器（`codeindex`），含增量构建、FTS5 全文检索、CLI 查询及 `.tscn` 场景语义检查（下辖 [`index/src/codeindex/scene/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/index/src/codeindex/scene/LANDMARKS.md)）。
-- **[`godot_mcp/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/LANDMARKS.md)**：Godot Headless 验证流水线与 MCP 服务（`godot-mcp`），含 `verify`、`verify_filter`、`verify_gate`、`verify_shell` 四阶段验证栈。
-
----
-
-## 2. 模块职责与现状评估
-
-`codebase_index/` 提供两项基础设施：
-1. **符号与场景索引 (`codebase_index/index/`)**：解析 `.gd`、`.tscn`、`.tres`、`project.godot`，写入 SQLite 数据库 `.codeindex.db`，支持符号定义/引用查询、依赖图查询以及 `.tscn` L1–L4 静态一致性校验。
-2. **客观验证闭环 (`codebase_index/godot_mcp/`)**：封装 Godot 4.6 `--headless` CLI 子进程执行，解析 stderr 生成结构化诊断，过滤级联故障与已知假阳性，驱动重试/震荡/熔断状态机，并在需要时自动执行 V3 一次性全量修复重导与快照回滚。
-
-### 已核实的跨包协同与文档过期问题
-
-| 问题编号 | 位置 | 问题描述 | 修复目标 |
-| :--- | :--- | :--- | :--- |
-| **CI-DOC-1** | [`design.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/design.md)、[`NEXT_STEP.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/NEXT_STEP.md) | 仍将 `codeindex/scene/` 标注为“仅骨架 / 待实现”，将 `godot_mcp` 标注为“只有 `run_verify` stub”，与已完成的代码严重脱节 | 更新文档以反映 `scene` 9 个模块与 `godot_mcp` 四层验证栈均已落地的事实 |
-| **CI-CFG-1** | [`config.yaml`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/config.yaml) | `rules_db_path` 当前为相对路径 `../rag/artifacts/rules.db`，当从项目根目录启动 CLI 或 Agent 时解析路径易发生偏移；且未显式列出 `retry_gate` 配置段 | 支持相对于 `config.yaml` 所在目录解析 `rules_db_path`，并补充 `retry_gate` 默认配置段 |
-
----
-
-## 3. 本级目录修改指导
-
-### 3.1 修正 [`config.yaml`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/config.yaml) 默认配置
-
-在 [`codebase_index/config.yaml`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/config.yaml) 中补齐 `retry_gate` 配置段，确保 `godot_mcp` 与 `codeindex` 共享一致的配置文件结构：
+## 共享配置只使用真实字段
 
 ```yaml
-workspace_root: "/Users/yy_catmax/Desktop/pingfan/godot3_to_4_migration_agent/godot_test/godot-3-2d-day-night-cycle-demo"
-db_path: ".codeindex.db"
-rules_db_path: "../rag/artifacts/rules.db"
-godot_bin: "/Applications/Godot.app/Contents/MacOS/Godot"
-
-# 传给 godot 子进程的额外环境变量
-godot_env: {}
-
-# 重试门控与熔断配置
+project_root: /absolute/path/to/project
+index_state_dir: /absolute/path/to/project/.codeindex
+godot_binary: /absolute/path/to/godot
+migration_rules_db: /absolute/path/to/rag/artifacts/rules.db
 retry_gate:
-  max_rounds_per_workspace: 20
-  no_progress_limit: 2
-  repeated_patch_limit: 3
-  infra_breaker_threshold: 3
-  allow_v3_auto_repair: true
+  rounds_limit: 20
+  no_progress_window: 3
+  oscillation_window: 3
+  file_stuck_threshold: 3
+  infra_failure_streak_limit: 3
 ```
 
-### 3.2 同步更新本目录文档
+这里的 20/3 是初始运行阈值，不是调优结论。`oscillation_window` 当前算法只识别固定 A→B→A，不能改成 5 就期待检测更长周期。
 
-完成 [`index/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/index/LANDMARKS.md) 与 [`godot_mcp/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/godot_mcp/LANDMARKS.md) 中的代码修复后：
-1. 在 `codebase_index/` 下创建或更新就地 [`README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/README.md)，概述 `index` 与 `godot_mcp` 的职责边界与进程内调用方式。
-2. 更新 [`NEXT_STEP.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/codebase_index/NEXT_STEP.md)，将已完成的 Step 1–4 标记为已完成。
+index 与 godot_mcp 的 `Config` 是各自独立类型；宿主分别创建，不互相强制 import。索引库真实路径是 `<project>/.codeindex/index.db`，不是 `.codeindex.db`。配置相对路径按 S02 明确为相对于配置文件。
+
+## 边界
+
+索引是符号/引用证据，不能替代引擎验证；引擎解析也不能证明行为正确。场景旁路表与脚本表保持分开。现有 watcher 是 `watchfiles`，符号查询使用普通 SQLite 索引；不为满足旧文字而新增 FTS5 或 watchdog。
+
+## 下级导航
+
+- [符号与依赖索引](index/LANDMARKS.md)
+- [Godot 验证栈](godot_mcp/LANDMARKS.md)
+
+## 本目录执行清单
+
+<a id="s02"></a>
+
+### S02：修中文索引与配置路径
+
+- [ ] 完成 [S02](../LANDMARKS.md#s02) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：只负责共享配置相对路径规则，并为 index/godot_mcp 明确字段边界；UTF-8 修复在 index 子目录展开。
+
+**交付物**：交付不随 CWD 漂移的配置解析。
+
+**验收**：切换 CWD、缺文件、绝对/相对配置及环境覆盖测试。
+
+**问题详情与复现**：[IDX-01 · 中文让符号名和调用关系切片错位](index/DEFECTS.md#idx-01)；[CFG-01 · 规则库相对路径跟着启动目录漂移](DEFECTS.md#cfg-01)。
+
+**具体落点**：[符号与依赖索引](index/LANDMARKS.md#s02)。
+
+<a id="s03"></a>
+
+- [ ] **S03 · 补依赖提取，再做根因排序**：[符号与依赖索引](index/LANDMARKS.md#s03)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s04"></a>
+
+- [ ] **S04 · 修真实规则库接入和场景增量对比**：[场景检查与基线](index/src/codeindex/scene/LANDMARKS.md#s04)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s05"></a>
+
+- [ ] **S05 · 修场景回调归属并接通一次性冻结**：[符号与依赖索引](index/LANDMARKS.md#s05)、[场景检查与基线](index/src/codeindex/scene/LANDMARKS.md#s05)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s09"></a>
+
+- [ ] **S09 · 隔离局部检查、修熔断和阈值接线**：[Godot 验证栈](godot_mcp/LANDMARKS.md#s09)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s10"></a>
+
+- [ ] **S10 · 补验证快照与重导触发范围**：[Godot 验证栈](godot_mcp/LANDMARKS.md#s10)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s11"></a>
+
+- [ ] **S11 · 绑定每次运行的状态、锁和索引同步**：[Godot 验证栈](godot_mcp/LANDMARKS.md#s11)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s25"></a>
+
+### S25：验收崩溃恢复、观测降级并完成清理
+
+- [ ] 完成 [S25](../LANDMARKS.md#s25) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：清理未使用 RedisStateStore 占位与相关测试/导出，校正旧 NEXT_STEP、版本和能力说明；不要删除 StateStore 协议。
+
+**交付物**：交付一致的 index/verify 文档与无失效占位入口。
+
+**验收**：模块回归、导入和导航检查通过。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

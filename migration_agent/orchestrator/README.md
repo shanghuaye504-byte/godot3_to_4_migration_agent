@@ -1,5 +1,5 @@
 # `migration_agent/orchestrator` — L1/L2 LangGraph ReAct 修复编排器
 
-本子模块负责基于 `langgraph` 的智能体修复循环：按脚本依赖拓扑排序的 Error Triage、进程内 7 大工具封装、L1→L2→Rule-Only 三级降级链，以及收尾阶段的全量 `.gd`/`.tscn` `load()` 验证扫描。
+当前只有包骨架，以下均为待实现职责：LangGraph 修复循环、根因分析、七个工具适配、有界模型路由及补充资源验证。
 
-详细实现规范参见：[`LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/orchestrator/LANDMARKS.md)。
+图状态恢复采用原生持久化 checkpointer；Git/SQLite 对账处理图外副作用，不另造图调度器。按 [LANDMARKS](LANDMARKS.md) 的 S18/S19 与[恢复契约](LANDMARKS.md#checkpoint-contract) 实现；问题与复现见 [DEFECTS](DEFECTS.md)。

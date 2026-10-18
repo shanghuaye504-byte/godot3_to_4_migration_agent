@@ -1,71 +1,128 @@
-# `migration_agent` 核心主控包路标 (LANDMARKS)
+# 宿主与命令行：实现路标
 
-> **上级路标**：[根目录 `LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/LANDMARKS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-## 1. 下级路标导航 (Child Landmarks)
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
-`migration_agent/` 是串联已有四大底座（`rag`、`codeindex`、`godot_mcp`、`inline_tools`）完成 Godot 3→4 端到端无人值守迁移的核心主控包。各子模块的详细实现指导分别位于以下子目录路标中：
+## 宿主的最小公共约定
 
-- **[`l0/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/l0/LANDMARKS.md)**：L0 确定性预处理流水线（工作区拷贝与 Git 事务初始化、`--convert-3to4` 执行、两阶段确定性 `rule_codemod`、全库静默陷阱正则预扫描、`codeindex build` 与 `scene-freeze`）。
-- **[`orchestrator/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/orchestrator/LANDMARKS.md)**：L1/L2 LangGraph ReAct 编排器（基于依赖根因的 Error Triage、进程内 7 大工具封装、L1→L2→Rule-Only 三级降级链、收尾全量 `load()` 扫描节点）。
-- **[`trace/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/trace/LANDMARKS.md)**：本地 SQLite 轨迹与审计持久化（替代原计划中的 Redis 状态层，支持断点续跑 `--resume`、跨仓库 LLM 修复缓存与 JSON/Markdown 迁移报告导出）。
-- **[`eval/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/migration_agent/eval/LANDMARKS.md)**：评测与批处理套件（Agent-as-Judge 语义保真度评审、Godot 4→3 反向变异生成器、基于本地进程池 + Godot 进程信号量的多仓库批处理运行器）。
+当前目录及四个子包只有骨架。下面文件均是**待新增**，不是现成 API：`config.py`、`cli.py`、`context.py`；子模块具体落点见下级文档。
 
----
+`MigrationConfig` 统一 source/output/state/artifacts 路径、目标引擎版本及可执行文件、RAG 配置、模型标识、max_rounds/max_tool_steps/max_cost、各执行模式超时与 Godot 槽位上限。宿主字段可自定，但转换成底层 Config 时只能使用真实字段名。
 
-## 2. 顶层 CLI 与统一配置实现指导
+`RunContext` 持 run_id、独立 StateStore、项目 Config、索引连接、TraceStore、预算器和锁。单工作区工具串行；不要通过修改进程全局环境切换正在运行的多个仓库。
 
-除上述四个子目录外，`migration_agent/` 顶层需实现以下两个入口文件：
+## 包与 CLI
 
-| 文件 | 核心职责 |
-| :--- | :--- |
-| `migration_agent/config.py` | 统一加载并校验运行配置（`MigrationConfig`），统一管理 `workspace_root`、`godot_bin`、`rules_db_path`、`rag_config_path`、L1/L2 模型名称、单仓库预算上限（`max_rounds`、`max_cost_usd`）及本地 `trace_db_path` |
-| `migration_agent/cli.py` | 暴露统一命令行入口 `migrate-agent`，支持单仓库迁移（`run`）、多仓库并发批处理（`batch`）、反向变异评测集生成（`mutate`）与独立 Judge 审计（`judge`） |
+根 pyproject 统一管理 `migration_agent` 和 `inline_tools` 包发现，并纳入 path 依赖 codeindex/godot-mcp/rag；build/dev/test 依赖放 dependency-groups，不在本目录再建 pyproject。编排用 LangGraph 时在根声明实际运行依赖及选定模型适配器，接入前按官方版本完成契约测试。
 
----
+统一入口 `migrate-agent`，子命令随阶段逐步开放：run（S18）、run --resume（S19）、mutate（S21）、judge（S22）、batch（S24）。尚未实现的命令返回明确提示，不能返回迁移成功。S14 先支持 --help/config 检查及程序化适配测试。
 
-### 2.1 `migration_agent/config.py` 设计规范
+## 状态与目录
 
-```python
-from dataclasses import dataclass, field
-from pathlib import Path
+运行结果使用 RUNNING/CLEAN/PARTIAL/ESCALATED；运行无效另记录 invalid_reason，不混进模型修复失败率。state/report 放在 Agent 项目之外的受管运行目录；跨仓 fix-cache 使用单独共享路径。源仓库始终不作为修改目标。
 
-@dataclass(frozen=True)
-class MigrationConfig:
-    repo_root: Path
-    godot_bin: Path = Path("/Applications/Godot.app/Contents/MacOS/Godot")
-    rules_db_path: Path = Path("rag/artifacts/rules.db")
-    rag_config_path: Path = Path("rag/retriever/config/retriever.yaml")
-    trace_db_path: Path = Path(".migration_trace.db")
-    # 模型分级与预算控制
-    l1_model: str = "gpt-4o-mini"
-    l2_model: str = "claude-3-7-sonnet-latest"
-    judge_model: str = "gpt-4o"
-    max_rounds: int = 20
-    max_react_steps_per_round: int = 8
-    max_cost_usd: float = 1.50
-    convert_timeout_ms: int = 180_000
-    verify_timeout_ms: int = 60_000
-    enable_llm_cache: bool = True
-```
+## 观测配置随宿主一起落地
 
----
+S14 开始就配置 OpenTelemetry SDK → Collector → Langfuse/Phoenix，不等 Agent 完成再补埋点。新增 observability profile、endpoint、OTLP HTTP 协议、语义版本、采样与导出超时，凭据仅环境引用；RunContext 持 tracer 和 run/span 映射，SQLite 仍是恢复/成本权威。具体职责和反例见 [观测契约](trace/LANDMARKS.md#otel-contract)。
 
-### 2.2 `migration_agent/cli.py` 子命令设计
+## 恢复方案只有一个入口
 
-使用 `argparse` 实现以下 4 个子命令，并在根 `pyproject.toml` 注册 `[project.scripts] migrate-agent = "migration_agent.cli:main"`：
+S18 使用 LangGraph 原生持久化 checkpoint；S19 的 resume.py 只做外部副作用核验，再用原 thread_id 续跑。MigrationConfig 保存 checkpoint 目录及 graph/schema 版本，RunContext 持本进程新建的 saver 连接。根依赖增加 langgraph-checkpoint-sqlite；首版每 run 独立文件、串行执行，不把本地 SQLite 描述成多机共享执行后端。具体分工见 [恢复契约](orchestrator/LANDMARKS.md#checkpoint-contract)。
 
-1. **`migrate-agent run --source <3x_repo> --output <4x_workspace> [--resume] [--rule-only]`**
-   - 调用 `l0.run_l0_pipeline()` 完成工作区准备、官方转换、确定性 codemod、索引构建与基线冻结。
-   - 调用 `orchestrator.run_migration_graph()` 执行 ReAct 修复循环与收尾全量 `load()` 扫描。
-   - 调用 `eval.judge.evaluate_workspace_diffs()` 对所有已提交 Patch 进行语义审计。
-   - 调用 `trace.report.generate_migration_report()` 输出 `<output>/MIGRATION_REPORT.md` 与 `migration_report.json`。
+## 下级导航
 
-2. **`migrate-agent batch --repos-dir <dir> --output-dir <out> --workers 2 --max-godot-procs 2`**
-   - 调用 `eval.batch_runner.run_batch()` 并发迁移多个仓库，并生成汇总对比表 `batch_summary.md`。
+- [确定性预处理](l0/LANDMARKS.md)
+- [单仓编排](orchestrator/LANDMARKS.md)
+- [轨迹、预算与恢复](trace/LANDMARKS.md)
+- [独立评测与批处理](eval/LANDMARKS.md)
 
-3. **`migrate-agent mutate --source <4x_clean_repo> --output <mutated_dir> --count 50`**
-   - 调用 `eval.reverse_mutator.generate_mutations()` 生成带精确 Ground Truth 的反向退化样本集。
+## 本目录执行清单
 
-4. **`migrate-agent judge --workspace <4x_workspace>`**
-   - 对指定工作区中的 Git 历史 Patch 单独运行 Agent-as-Judge 并输出审计报告。
+<a id="s00"></a>
+
+### S00：固定环境、真实接口与观测配置
+
+- [ ] 完成 [S00](../LANDMARKS.md#s00) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：先做现有组件导入与配置/引擎/产物预检，记录版本。宿主可安装 CLI 到 S14 再实现，这里不用提前造占位业务。
+
+**交付物**：交付环境检查结果与真实契约反例。
+
+**验收**：依赖/引擎缺失明确失败，现有 loader 的异 CWD 行为有测试。
+
+<a id="s01"></a>
+
+- [ ] **S01 · 先建最小独立评测器与观测契约测试**：[独立评测与批处理](eval/LANDMARKS.md#s01)、[轨迹、预算与恢复](trace/LANDMARKS.md#s01)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s13"></a>
+
+- [ ] **S13 · 修检索配置、符号提取和 OTel 观测事件**：[轨迹、预算与恢复](trace/LANDMARKS.md#s13)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s14"></a>
+
+### S14：实现宿主、SQLite 账本与 OTel 双后端接线
+
+- [ ] 完成 [S14](../LANDMARKS.md#s14) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：负责根包/CLI/config/context；新增 observability 配置和凭据环境引用，OTel SDK 与 OTLP HTTP exporter 在根声明依赖。后端实验客户端按 eval 依赖组管理，不在子包新建 pyproject。
+
+**交付物**：交付安装/预检、共享 RunContext 和 offline/双后端 profile；TraceStore 与 tracer 注入工具，避免多次初始化 provider。
+
+**验收**：异 CWD、未知键拒绝、版本/endpoint/凭据缺失分类；离线不联网，双后端模式不能把未配置冒充已联通。
+
+**问题详情与复现**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](orchestrator/DEFECTS.md#orc-01)；[TRC-01 · 按 repo_id 保存一行，无法区分试验和多个补丁](trace/DEFECTS.md#trc-01)；[TRC-04 · 只给成功轮次记成本，预算与可观测性不完整](trace/DEFECTS.md#trc-04)；[TRC-05 · 缺少统一调用链，检索、补丁与引擎失败无法关联](trace/DEFECTS.md#trc-05)。
+
+**具体落点**：[单仓编排](orchestrator/LANDMARKS.md#s14)、[轨迹、预算与恢复](trace/LANDMARKS.md#s14)。
+
+<a id="s15"></a>
+
+- [ ] **S15 · 实现隔离 intake 与 L0 事务边界**：[确定性预处理](l0/LANDMARKS.md#s15)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s16"></a>
+
+- [ ] **S16 · 增加小白名单 codemod 和可结案陷阱扫描**：[确定性预处理](l0/LANDMARKS.md#s16)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s17"></a>
+
+- [ ] **S17 · 实现补充资源扫描与完整成功条件**：[单仓编排](orchestrator/LANDMARKS.md#s17)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s18"></a>
+
+- [ ] **S18 · 接通单仓编排、原生 checkpoint 与有界路由**：[单仓编排](orchestrator/LANDMARKS.md#s18)、[轨迹、预算与恢复](trace/LANDMARKS.md#s18)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s19"></a>
+
+- [ ] **S19 · 实现 checkpoint 恢复与外部副作用对账**：[轨迹、预算与恢复](trace/LANDMARKS.md#s19)、[单仓编排](orchestrator/LANDMARKS.md#s19)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s20"></a>
+
+- [ ] **S20 · 增加共享修复缓存**：[轨迹、预算与恢复](trace/LANDMARKS.md#s20)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s21"></a>
+
+- [ ] **S21 · 扩展变异、复验 RAG 并接入平台实验**：[独立评测与批处理](eval/LANDMARKS.md#s21)、[轨迹、预算与恢复](trace/LANDMARKS.md#s21)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s22"></a>
+
+- [ ] **S22 · 实现独立 Judge、人工校准与关联标注**：[独立评测与批处理](eval/LANDMARKS.md#s22)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s23"></a>
+
+- [ ] **S23 · 完成平台对比实验、baseline 与消融报告**：[独立评测与批处理](eval/LANDMARKS.md#s23)、[轨迹、预算与恢复](trace/LANDMARKS.md#s23)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s24"></a>
+
+- [ ] **S24 · 实现进程池批处理、上下文传播与限流**：[独立评测与批处理](eval/LANDMARKS.md#s24)、[轨迹、预算与恢复](trace/LANDMARKS.md#s24)；先完成根队列的前置步骤，验收看负责目录。
+
+<a id="s25"></a>
+
+- [ ] **S25 · 验收崩溃恢复、观测降级并完成清理**：[独立评测与批处理](eval/LANDMARKS.md#s25)、[轨迹、预算与恢复](trace/LANDMARKS.md#s25)；先完成根队列的前置步骤，验收看负责目录。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。

@@ -1,102 +1,89 @@
-# `inline_tools/editandfixguard/` 缺陷修复与完善路标 (LANDMARKS)
+# 受控编辑与守卫：实现路标
 
-> **上级路标**：[`inline_tools/LANDMARKS.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/LANDMARKS.md)  
-> **下级路标**：*(当前为叶子节点，无下级路标文档)*
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
 
-本目录实现了 Agent 的唯一写通道 `edit()` 与写前/写后守卫 `fix_guard`。虽然 `NEXT_STEP.md` 中的 Step 0–10 已全部勾选，但经源码级审查，仍存在 **6 处必须修补的断线与逻辑漏洞**。
+更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
----
+## 实现落点与调用约定
 
-## 一、待修复的 6 项代码缺陷（含精确行号与修改方案）
+现有入口为 `edit.py` 的 `edit(project_root, *, file, kind, hunks=None, content=None, to_commit=None, ...)`；公开包导出在 S06 补。`kind` 为 patch/create/revert。模型用 Hunk 的上下文、删除行、插入行描述修改，不能绕过 precheck 与 git 事务直接写文件。
 
-### 修复 1：在 `__init__.py` 中导出公开 API
-* **问题位置**：[`inline_tools/editandfixguard/__init__.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/__init__.py) 目前仅有注释，未导出任何符号，违反了 [`NEXT_STEP.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/NEXT_STEP.md#L41) 第 41 行的约定。
-* **修改方案**：
-  ```python
-  """唯一写通道 edit 与落盘前守卫 fix_guard。"""
+- 返回 `ok=True` 且 `commit` 非空，才登记一次补丁；没有 `status=COMMITTED` 字段。
+- 宿主注入 `round/root_cause_errors/pointers/baseline_sha/rules_db_path/db_path/sync_fn`。不要让模型选择真实数据库、工作区或回滚下限。
+- G5.1 的声明检查与 API 使用检查分开；无法证明归属的名字只报告风险。`get_name` 作为用户函数是必要反例。
+- `.gd` 检查语法/符号/文本，场景检查不变量加文本风险，其余白名单后缀检查适用的文本风险；create 没有旧文本，不套用无意义的删除比例，但必须检查新文件自身。
+- 回滚候选组时先计算全部 changed paths，重建索引；`git_txn.rollback` 是失败清理，不是审计账本。
 
-  from .anchor import Hunk, apply_hunks
-  from .edit import SCENE_REGRESSION, SYNTAX_BROKEN, edit
-  from .guard import GuardResult, GuardViolation, verdict
-  from .precheck import precheck
+## 测试怎么做
 
-  __all__ = [
-      "Hunk",
-      "apply_hunks",
-      "SCENE_REGRESSION",
-      "SYNTAX_BROKEN",
-      "edit",
-      "GuardResult",
-      "GuardViolation",
-      "verdict",
-      "precheck",
-  ]
-  ```
+测试放本目录 `tests/`。先用临时 Git 仓库构造失败，再修代码；每次写盘测试同时断言返回值、文件字节、HEAD 和 `git status --porcelain`。单测可注入 `sync_fn`，S11 再验证真实索引绑定。运行 `uv run pytest inline_tools/editandfixguard/tests inline_tools/tests -q`；S00 尚未统一环境时参照根文档的依赖说明。
 
----
+## 本目录执行清单
 
-### 修复 2：将判据 5（`check_rename_consistency`）接入 `edit.py`
-* **问题位置**：[`scene_names.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/scene_names.py#L96) 已实现 `check_rename_consistency(project_root, *, renamed, db_path)`，但 [`edit.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/edit.py#L59) 接收了 `db_path: Path | None = None` 后从未在函数体内使用，也从未调用 `check_rename_consistency`。
-* **修改方案**：
-  1. 在 [`symbols.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/symbols.py) 中增加一个纯函数 `detect_renamed_symbols(file: str, old_text: str, new_text: str) -> dict[str, str]`：
-     * 当 `old_text` 与 `new_text` 的 AST error 节点数均为 0 时，提取前后的 `(kind, name)` 集合 `before` 与 `after`。
-     * 对于 `kind in {"class", "func", "signal"}`，计算 `removed_by_kind[k] = {n for (kind, n) in before - after if kind == k}` 与 `added_by_kind[k] = {n for (kind, n) in after - before if kind == k}`。
-     * 若某个 `kind` 下既有被删名字又有新增名字（说明是改名而非纯删除，符合 `NEXT_STEP.md` 第 135 行「`.gd` 上 class/func/signal 改名（不是纯删除）时」的定义），将 `old_name -> next(iter(added_by_kind[k]))` 放入 `renamed` 字典返回。
-  2. 在 [`edit.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/edit.py#L121) 第 121 行之后追加：
-     ```python
-     renamed = symbols.detect_renamed_symbols(res_file, old_text, new_text)
-     if renamed:
-         guard_results.append(
-             scene_names.check_rename_consistency(root, renamed=renamed, db_path=db_path)
-         )
-     ```
+<a id="s06"></a>
 
----
+### S06：接通改名守卫和公开编辑入口
 
-### 修复 3：修复 `edit.py` 中 `_verify_on_disk` 误杀存量带病场景的严重 Bug
-* **问题位置**：[`edit.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/edit.py#L184-L197) 第 193–196 行：
-  ```python
-  elif suffix in _SCENE:
-      from codeindex.scene.rules import check_scene
-      if check_scene(on_disk.decode(), res_file).problems:
-          return SCENE_REGRESSION
-  ```
-* **原因分析**：写前判据 `scene_names.check_scene_invariants(res_file, old_text, new_text)` 比较的是差集 `post - pre`（允许场景存在历史遗留问题，只拦截新增回归）。但 `_verify_on_disk` 只要看到场景有任何存量 `problems`（比如另一个节点还没修好），就会直接返回 `SCENE_REGRESSION` 并触发 `git_txn.rollback`！
-* **修改方案**：给 `_verify_on_disk` 传入 `old_text: str`，对 `_SCENE` 分支调用 `scene_names.check_scene_invariants(res_file, old_text, on_disk.decode("utf-8"))`，仅当 `not inv.ok` 时返回 `SCENE_REGRESSION`。
+- [ ] 完成 [S06](../../LANDMARKS.md#s06) 的本范围任务。
 
----
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
-### 修复 4：补齐 `kind == "create"` 时的 G5.1 反向迁移检查与偷懒检查
-* **问题位置**：[`edit.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/edit.py#L103) 第 103 行写为 `if suffix == _GD and kind != "create":`。
-* **原因分析**：[`symbols.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/symbols.py#L72-L81) 第 72–81 行专门为 `create`（`old_text == ""`）实现了跳过判据 2、只检查 G5.1（防止新建脚本里使用 Godot 3 旧符号）以及检查新文件自身是否有语法错误的逻辑，却被 `edit.py` 的 `kind != "create"` 短路跳过了。
-* **修改方案**：当 `suffix == _GD and kind == "create"` 时，执行：
-  * `symbols.check_symbols(res_file, "", new_text, declared_scope=declared_scope, rules_db_path=rules_db_path)`
-  * 若 `symbols._error_node_count(new_text) > 0`，报 `SYNTAX_REGRESSION`
-  * `guard.check_lazy_fix(udiff, file=res_file)`
+**做什么**：公开导出 edit；检测声明改名并查询场景引用；索引空/坏/过期时可靠回退 grep。
 
----
+**交付物**：交付可调用包入口和 INCONSISTENT_RENAME 警告；不任意配对多改名，不将警告误变成硬拒绝。
 
-### 修复 5：补齐 `.gdshader` / `.godot` / `.cfg` 的通用写前守卫
-* **问题位置**：[`edit.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/edit.py#L103-L124) 只处理了 `suffix == _GD` 和 `suffix in _SCENE`。
-* **修改方案**：对于 `precheck.ALLOWED_SUFFIXES` 中的另外三类文本后缀（`.gdshader`、`.godot`、`.cfg`），当 `kind != "create"` 时，同样运行与 AST 无关的三条通用文本守卫：
-  * `guard.check_blast_radius(...)`
-  * `guard.check_deletion(...)`
-  * `guard.check_lazy_fix(...)`
+**验收**：实际 edit 到 commit 的测试覆盖单/多改名、纯删除及索引回退。
 
----
+**问题详情与复现**：[EDT-01 · 包入口没有导出约定的 edit API](DEFECTS.md#edt-01)；[EDT-02 · 函数改名后场景仍用旧名，编辑流水线没有提醒](DEFECTS.md#edt-02)；[EDT-03 · 索引文件存在就关闭 grep 回退，导致漏报](DEFECTS.md#edt-03)。
 
-### 修复 6：清理 `git_txn.py` 中的临时补丁文件
-* **问题位置**：[`git_txn.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/git_txn.py#L52-L76) 的 `apply_check()` 和 `apply_index()` 使用 `NamedTemporaryFile(..., delete=False)` 后未删除临时文件。
-* **修改方案**：用 `try ... finally: Path(patch_path).unlink(missing_ok=True)` 包裹 `_git(...)` 调用。
+<a id="s07"></a>
 
----
+### S07：统一 create 与场景写后验收
 
-## 二、执行与验收 Checklist
+- [ ] 完成 [S07](../../LANDMARKS.md#s07) 的本范围任务。
 
-- [ ] 完成修复 1–6 的代码改动。
-- [ ] 在 [`tests/test_edit_flow.py`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/tests/test_edit_flow.py) 中新增 3 个端到端测试用例：
-  1. `test_edit_gd_rename_triggers_inconsistent_rename_warn`：修改 `.gd` 函数名且 `.tscn` 仍引用旧名时，`edit()` 返回 `ok=True` 且 `guard["verdict"] == "warn"`，含 `INCONSISTENT_RENAME`。
-  2. `test_edit_scene_with_preexisting_error_succeeds_if_no_new_regression`：编辑带存量 `E_NOT_CONVERTED` 的 `.tscn` 的某处合法属性，验证 `_verify_on_disk` 不会误触发 `SCENE_REGRESSION`。
-  3. `test_create_gd_with_old_symbol_rejected_by_reverse_migration`：`kind="create"` 新建含旧符号的 `.gd` 被 G5.1 拦截。
-- [ ] 更新 [`inline_tools/editandfixguard/README.md`](file:///Users/yy_catmax/.gemini/antigravity/worktrees/godot3_to_4_migration_agent/w-1_md_2_md/inline_tools/editandfixguard/README.md)（删除「当前只有本说明和空 `__init__.py`」的滞后表述）。
-- [ ] 运行 `uv run pytest inline_tools/tests inline_tools/editandfixguard/tests -q` 确保全部通过。
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：新脚本显式验语法；场景写前和写后都只拒绝新增回归。
+
+**交付物**：交付失败不改变字节/HEAD、合法改动只产生目标提交的编辑事务。
+
+**验收**：新建坏脚本失败；存量坏场景的无回归改动成功；新增场景错误回滚。
+
+**问题详情与复现**：[EDT-04 · 写后复核把存量场景错误当作新回归](DEFECTS.md#edt-04)；[EDT-05 · create 绕过语法和反向迁移检查](DEFECTS.md#edt-05)。
+
+<a id="s08"></a>
+
+### S08：补所有文本后缀守卫与适用范围
+
+- [ ] 完成 [S08](../../LANDMARKS.md#s08) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：分清声明消失与旧 API 使用；按 owner/版本判断，覆盖场景/shader/配置通用风险；同时清理临时补丁泄漏。
+
+**交付物**：交付保守的符号适用检查、逐后缀守卫矩阵和完整临时文件清理。
+
+**验收**：同名自定义函数不误拒，真旧 API 有证据；成功/失败/超时均无临时补丁遗留。
+
+**问题详情与复现**：[EDT-06 · 非脚本文件缺通用守卫，场景删除也未覆盖](DEFECTS.md#edt-06)；[EDT-07 · G5.1 只看声明名字，既漏旧 API 又误杀用户函数](DEFECTS.md#edt-07)；[EDT-08 · git apply 临时补丁文件未清理](DEFECTS.md#edt-08)。
+
+<a id="s11"></a>
+
+### S11：绑定每次运行的状态、锁和索引同步
+
+- [ ] 完成 [S11](../../LANDMARKS.md#s11) 的本范围任务。
+
+**先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
+
+**做什么**：注入绑定当前 Config 的 sync_fn；对整组 revert 刷新全部 changed paths；锁与 StateStore 由验证/宿主侧负责。
+
+**交付物**：交付跨工作区不串索引的同步适配，以及 index_stale 恢复策略。
+
+**验收**：双项目、两文件回滚、同步失败和重建测试。
+
+**问题详情与复现**：[EDT-09 · 同步没有绑定当前项目，整轮回滚又只刷新一个文件](DEFECTS.md#edt-09)。
+
+## 完成一项怎么记
+
+在相关 DEFECTS 条目附测试名称/命令、实际结果与版本；只勾本步验收通过的项目。涉及代码的目录同步 README。L3 草稿放本地 DESIGN_NOTES；跨模块有后果的决定落 docs/adr。文档修订完成不等于业务修复完成。
