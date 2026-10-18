@@ -1,6 +1,6 @@
 # 宿主与命令行：实现路标
 
-[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../migration_agent/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -24,11 +24,11 @@
 
 ## 观测配置随宿主一起落地
 
-S14 开始就配置 OpenTelemetry SDK → Collector → Langfuse/Phoenix，不等 Agent 完成再补埋点。新增 observability profile、endpoint、OTLP HTTP 协议、语义版本、采样与导出超时，凭据仅环境引用；RunContext 持 tracer 和 run/span 映射，SQLite 仍是恢复/成本权威。具体职责和反例见 [观测契约](trace/LANDMARKS.md#otel-contract)。
+S14 开始就配置 OpenTelemetry SDK → Collector → Langfuse/Phoenix，不等 Agent 完成再补埋点。新增 observability profile、endpoint、OTLP HTTP 协议、语义版本、采样与导出超时，凭据仅环境引用；RunContext 持 tracer 和 run/span 映射，SQLite 仍是恢复/成本权威。具体职责和反例见 [观测契约](trace/LANDMARKS.md)。
 
 ## 恢复方案只有一个入口
 
-S18 使用 LangGraph 原生持久化 checkpoint；S19 的 resume.py 只做外部副作用核验，再用原 thread_id 续跑。MigrationConfig 保存 checkpoint 目录及 graph/schema 版本，RunContext 持本进程新建的 saver 连接。根依赖增加 langgraph-checkpoint-sqlite；首版每 run 独立文件、串行执行，不把本地 SQLite 描述成多机共享执行后端。具体分工见 [恢复契约](orchestrator/LANDMARKS.md#checkpoint-contract)。
+S18 使用 LangGraph 原生持久化 checkpoint；S19 的 resume.py 只做外部副作用核验，再用原 thread_id 续跑。MigrationConfig 保存 checkpoint 目录及 graph/schema 版本，RunContext 持本进程新建的 saver 连接。根依赖增加 langgraph-checkpoint-sqlite；首版每 run 独立文件、串行执行，不把本地 SQLite 描述成多机共享执行后端。具体分工见 [恢复契约](orchestrator/LANDMARKS.md)。
 
 ## 下级导航
 
@@ -43,7 +43,7 @@ S18 使用 LangGraph 原生持久化 checkpoint；S19 的 resume.py 只做外部
 
 ### S00：固定环境、真实接口与观测配置
 
-- [ ] 完成 [S00](../LANDMARKS.md#s00) 的本范围任务。
+- [x] 完成 [S00](../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -55,17 +55,17 @@ S18 使用 LangGraph 原生持久化 checkpoint；S19 的 resume.py 只做外部
 
 <a id="s01"></a>
 
-- [ ] **S01 · 先建最小独立评测器与观测契约测试**：[独立评测与批处理](eval/LANDMARKS.md#s01)、[轨迹、预算与恢复](trace/LANDMARKS.md#s01)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S01 · 先建最小独立评测器与观测契约测试**：[独立评测与批处理](eval/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s13"></a>
 
-- [ ] **S13 · 修检索配置、符号提取和 OTel 观测事件**：[轨迹、预算与恢复](trace/LANDMARKS.md#s13)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S13 · 修检索配置、符号提取和 OTel 观测事件**：[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s14"></a>
 
 ### S14：实现宿主、SQLite 账本与 OTel 双后端接线
 
-- [ ] 完成 [S14](../LANDMARKS.md#s14) 的本范围任务。
+- [ ] 完成 [S14](../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -75,53 +75,53 @@ S18 使用 LangGraph 原生持久化 checkpoint；S19 的 resume.py 只做外部
 
 **验收**：异 CWD、未知键拒绝、版本/endpoint/凭据缺失分类；离线不联网，双后端模式不能把未配置冒充已联通。
 
-**问题详情与复现**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](orchestrator/DEFECTS.md#orc-01)；[TRC-01 · 按 repo_id 保存一行，无法区分试验和多个补丁](trace/DEFECTS.md#trc-01)；[TRC-04 · 只给成功轮次记成本，预算与可观测性不完整](trace/DEFECTS.md#trc-04)；[TRC-05 · 缺少统一调用链，检索、补丁与引擎失败无法关联](trace/DEFECTS.md#trc-05)。
+**问题详情与复现**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](orchestrator/DEFECTS.md)；[TRC-01 · 按 repo_id 保存一行，无法区分试验和多个补丁](trace/DEFECTS.md)；[TRC-04 · 只给成功轮次记成本，预算与可观测性不完整](trace/DEFECTS.md)；[TRC-05 · 缺少统一调用链，检索、补丁与引擎失败无法关联](trace/DEFECTS.md)。
 
-**具体落点**：[单仓编排](orchestrator/LANDMARKS.md#s14)、[轨迹、预算与恢复](trace/LANDMARKS.md#s14)。
+**具体落点**：[单仓编排](orchestrator/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)。
 
 <a id="s15"></a>
 
-- [ ] **S15 · 实现隔离 intake 与 L0 事务边界**：[确定性预处理](l0/LANDMARKS.md#s15)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S15 · 实现隔离 intake 与 L0 事务边界**：[确定性预处理](l0/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s16"></a>
 
-- [ ] **S16 · 增加小白名单 codemod 和可结案陷阱扫描**：[确定性预处理](l0/LANDMARKS.md#s16)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S16 · 增加小白名单 codemod 和可结案陷阱扫描**：[确定性预处理](l0/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s17"></a>
 
-- [ ] **S17 · 实现补充资源扫描与完整成功条件**：[单仓编排](orchestrator/LANDMARKS.md#s17)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S17 · 实现补充资源扫描与完整成功条件**：[单仓编排](orchestrator/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s18"></a>
 
-- [ ] **S18 · 接通单仓编排、原生 checkpoint 与有界路由**：[单仓编排](orchestrator/LANDMARKS.md#s18)、[轨迹、预算与恢复](trace/LANDMARKS.md#s18)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S18 · 接通单仓编排、原生 checkpoint 与有界路由**：[单仓编排](orchestrator/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s19"></a>
 
-- [ ] **S19 · 实现 checkpoint 恢复与外部副作用对账**：[轨迹、预算与恢复](trace/LANDMARKS.md#s19)、[单仓编排](orchestrator/LANDMARKS.md#s19)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S19 · 实现 checkpoint 恢复与外部副作用对账**：[轨迹、预算与恢复](trace/LANDMARKS.md)、[单仓编排](orchestrator/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s20"></a>
 
-- [ ] **S20 · 增加共享修复缓存**：[轨迹、预算与恢复](trace/LANDMARKS.md#s20)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S20 · 增加共享修复缓存**：[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s21"></a>
 
-- [ ] **S21 · 扩展变异、复验 RAG 并接入平台实验**：[独立评测与批处理](eval/LANDMARKS.md#s21)、[轨迹、预算与恢复](trace/LANDMARKS.md#s21)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S21 · 扩展变异、复验 RAG 并接入平台实验**：[独立评测与批处理](eval/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s22"></a>
 
-- [ ] **S22 · 实现独立 Judge、人工校准与关联标注**：[独立评测与批处理](eval/LANDMARKS.md#s22)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S22 · 实现独立 Judge、人工校准与关联标注**：[独立评测与批处理](eval/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s23"></a>
 
-- [ ] **S23 · 完成平台对比实验、baseline 与消融报告**：[独立评测与批处理](eval/LANDMARKS.md#s23)、[轨迹、预算与恢复](trace/LANDMARKS.md#s23)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S23 · 完成平台对比实验、baseline 与消融报告**：[独立评测与批处理](eval/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s24"></a>
 
-- [ ] **S24 · 实现进程池批处理、上下文传播与限流**：[独立评测与批处理](eval/LANDMARKS.md#s24)、[轨迹、预算与恢复](trace/LANDMARKS.md#s24)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S24 · 实现进程池批处理、上下文传播与限流**：[独立评测与批处理](eval/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s25"></a>
 
-- [ ] **S25 · 验收崩溃恢复、观测降级并完成清理**：[独立评测与批处理](eval/LANDMARKS.md#s25)、[轨迹、预算与恢复](trace/LANDMARKS.md#s25)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S25 · 验收崩溃恢复、观测降级并完成清理**：[独立评测与批处理](eval/LANDMARKS.md)、[轨迹、预算与恢复](trace/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 ## 完成一项怎么记
 

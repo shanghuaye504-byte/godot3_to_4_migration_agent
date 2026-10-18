@@ -1,6 +1,6 @@
 # 知识库构建：实现路标
 
-[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../build/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -18,7 +18,7 @@ A 层真实入口为 `build_all.sh`；B 层为 `chunk_and_embed.py`（内部 chu
 
 ### S12：修 RAG 输入路径并清理失效入口
 
-- [ ] 完成 [S12](../../LANDMARKS.md#s12) 的本范围任务。
+- [ ] 完成 [S12](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -28,7 +28,7 @@ A 层真实入口为 `build_all.sh`；B 层为 `chunk_and_embed.py`（内部 chu
 
 **验收**：8 份散文被锁定，修改输入使指纹变化；缺预期产物 fail；--skip-embed 不联网。
 
-**问题详情与复现**：[RAG-01 · 散文写入与读取路径不一致，测试靠 skip 避开](DEFECTS.md#rag-01)；[RAG-05 · 旧构建和评测命令仍是占位壳](DEFECTS.md#rag-05)。
+**问题详情与复现**：[RAG-01 · 散文写入与读取路径不一致，测试靠 skip 避开](../build/DEFECTS.md)；[RAG-05 · 旧构建和评测命令仍是占位壳](../build/DEFECTS.md)。
 
 ## 完成一项怎么记
 

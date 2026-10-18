@@ -1,6 +1,6 @@
 # Godot 验证栈：实现路标
 
-[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../godot_mcp/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -26,7 +26,7 @@
 
 ## 宿主恢复接线
 
-现有 InMemoryStateStore 是进程内实现，不自带跨进程恢复。S11 先隔离每 run；S18 将完整 Gate 状态与图 checkpoint 对接，S19 校验重入回执避免重复累计历史。底层 Gate 不另引入全局 checkpoint/saver，运行句柄仍由宿主注入，详见 [恢复契约](../../migration_agent/orchestrator/LANDMARKS.md#checkpoint-contract)。
+现有 InMemoryStateStore 是进程内实现，不自带跨进程恢复。S11 先隔离每 run；S18 将完整 Gate 状态与图 checkpoint 对接，S19 校验重入回执避免重复累计历史。底层 Gate 不另引入全局 checkpoint/saver，运行句柄仍由宿主注入，详见 [恢复契约](../../migration_agent/orchestrator/LANDMARKS.md)。
 
 ## 本目录执行清单
 
@@ -34,7 +34,7 @@
 
 ### S09：隔离局部检查、修熔断和阈值接线
 
-- [ ] 完成 [S09](../../LANDMARKS.md#s09) 的本范围任务。
+- [ ] 完成 [S09](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -44,13 +44,13 @@
 
 **验收**：全库 A→局部空→全库 A 不假震荡；真全库循环会停；OPEN 后 spawn=0；自定义阈值生效。
 
-**问题详情与复现**：[VER-01 · 局部检查污染全库历史，造成假震荡](DEFECTS.md#ver-01)；[VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](DEFECTS.md#ver-02)；[VER-03 · retry_gate YAML 没接到默认工具入口](DEFECTS.md#ver-03)。
+**问题详情与复现**：[VER-01 · 局部检查污染全库历史，造成假震荡](../godot_mcp/DEFECTS.md)；[VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](../godot_mcp/DEFECTS.md)；[VER-03 · retry_gate YAML 没接到默认工具入口](../godot_mcp/DEFECTS.md)。
 
 <a id="s10"></a>
 
 ### S10：补验证快照与重导触发范围
 
-- [ ] 完成 [S10](../../LANDMARKS.md#s10) 的本范围任务。
+- [ ] 完成 [S10](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -60,13 +60,13 @@
 
 **验收**：逐后缀 diff、UID 两端与 class 声明变体；用注入 spawn 验证 V3 次数，再补真实引擎检查。
 
-**问题详情与复现**：[VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](DEFECTS.md#ver-04)；[VER-05 · class_name 与重复 UID 的重导触发有盲区](DEFECTS.md#ver-05)。
+**问题详情与复现**：[VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](../godot_mcp/DEFECTS.md)；[VER-05 · class_name 与重复 UID 的重导触发有盲区](../godot_mcp/DEFECTS.md)。
 
 <a id="s11"></a>
 
 ### S11：绑定每次运行的状态、锁和索引同步
 
-- [ ] 完成 [S11](../../LANDMARKS.md#s11) 的本范围任务。
+- [ ] 完成 [S11](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -76,7 +76,7 @@
 
 **验收**：顺序复用 worker 不串状态，重复接管被拒，不发生锁自死。
 
-**问题详情与复现**：[VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](DEFECTS.md#ver-06)。
+**问题详情与复现**：[VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](../godot_mcp/DEFECTS.md)。
 
 ## 完成一项怎么记
 

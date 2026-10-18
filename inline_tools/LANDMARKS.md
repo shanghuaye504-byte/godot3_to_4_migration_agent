@@ -1,6 +1,6 @@
 # 原生工具：实现路标
 
-[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../inline_tools/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -24,25 +24,25 @@
 
 <a id="s06"></a>
 
-- [ ] **S06 · 接通改名守卫和公开编辑入口**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s06)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S06 · 接通改名守卫和公开编辑入口**：[受控编辑与守卫](editandfixguard/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s07"></a>
 
-- [ ] **S07 · 统一 create 与场景写后验收**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s07)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S07 · 统一 create 与场景写后验收**：[受控编辑与守卫](editandfixguard/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s08"></a>
 
-- [ ] **S08 · 补所有文本后缀守卫与适用范围**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s08)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S08 · 补所有文本后缀守卫与适用范围**：[受控编辑与守卫](editandfixguard/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s11"></a>
 
-- [ ] **S11 · 绑定每次运行的状态、锁和索引同步**：[受控编辑与守卫](editandfixguard/LANDMARKS.md#s11)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S11 · 绑定每次运行的状态、锁和索引同步**：[受控编辑与守卫](editandfixguard/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s25"></a>
 
 ### S25：验收崩溃恢复、观测降级并完成清理
 
-- [ ] 完成 [S25](../LANDMARKS.md#s25) 的本范围任务。
+- [ ] 完成 [S25](../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 

@@ -1,6 +1,6 @@
 # 符号与依赖索引：问题与复现
 
-[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../DEFECTS.md) · [本级路标](LANDMARKS.md)
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../DEFECTS.md) · [本级路标](../index/LANDMARKS.md)
 
 按执行顺序排列。**已复现/源码确认**指已有代码证据；**规划风险**指组件尚未实现，复现描述是先要写下的失败测试。所有代码修复仍未完成，不能把新文档当作修复结果。
 
@@ -10,10 +10,10 @@
 
 ## 本范围问题索引
 
-- [ ] S04 · [SCN-01 · 真实规则库查错表，旧类型检查被静默跳过](src/codeindex/scene/DEFECTS.md#scn-01)
-- [ ] S04 · [SCN-02 · 只检查一个场景，却宣布其他场景已修复](src/codeindex/scene/DEFECTS.md#scn-02)
-- [ ] S05 · [SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](src/codeindex/scene/DEFECTS.md#scn-03)
-- [ ] S05 · [SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](src/codeindex/scene/DEFECTS.md#scn-04)
+- [ ] S04 · [SCN-01 · 真实规则库查错表，旧类型检查被静默跳过](src/codeindex/scene/DEFECTS.md)
+- [ ] S04 · [SCN-02 · 只检查一个场景，却宣布其他场景已修复](src/codeindex/scene/DEFECTS.md)
+- [ ] S05 · [SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](src/codeindex/scene/DEFECTS.md)
+- [ ] S05 · [SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](src/codeindex/scene/DEFECTS.md)
 
 ## 本级负责的问题
 
@@ -23,7 +23,7 @@
 
 ### IDX-01：中文让符号名和调用关系切片错位
 
-**顺序 / 状态**：[S02](../../LANDMARKS.md#s02)；已复现；代码待修。
+**顺序 / 状态**：[S02](../../LANDMARKS.md)；已复现；代码待修。
 
 **范围与原因**：Tree-sitter 给 UTF-8 字节偏移，GdscriptParser 却用它切 Python 字符串。中文出现在节点前面后，后续名字都会错位。影响索引、守卫和根因排序。
 
@@ -41,7 +41,7 @@
 
 ### IDX-02：现有依赖边不足以排序根因脚本
 
-**顺序 / 状态**：[S03](../../LANDMARKS.md#s03)；已复现；能力待补。
+**顺序 / 状态**：[S03](../../LANDMARKS.md)；已复现；能力待补。
 
 **范围与原因**：根因排序需要 A.gd 依赖 B.gd 的文件边。当前顶层 preload 未提取，函数内 preload 只记录函数名，路径 extends 也可能丢失。
 

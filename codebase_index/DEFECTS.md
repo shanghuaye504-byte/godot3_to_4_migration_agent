@@ -1,6 +1,6 @@
 # 索引与验证底座：问题与复现
 
-[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../DEFECTS.md) · [本级路标](LANDMARKS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../DEFECTS.md) · [本级路标](../codebase_index/LANDMARKS.md)
 
 按执行顺序排列。**已复现/源码确认**指已有代码证据；**规划风险**指组件尚未实现，复现描述是先要写下的失败测试。所有代码修复仍未完成，不能把新文档当作修复结果。
 
@@ -11,18 +11,18 @@
 
 ## 本范围问题索引
 
-- [ ] S02 · [IDX-01 · 中文让符号名和调用关系切片错位](index/DEFECTS.md#idx-01)
-- [ ] S03 · [IDX-02 · 现有依赖边不足以排序根因脚本](index/DEFECTS.md#idx-02)
-- [ ] S04 · [SCN-01 · 真实规则库查错表，旧类型检查被静默跳过](index/src/codeindex/scene/DEFECTS.md#scn-01)
-- [ ] S04 · [SCN-02 · 只检查一个场景，却宣布其他场景已修复](index/src/codeindex/scene/DEFECTS.md#scn-02)
-- [ ] S05 · [SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](index/src/codeindex/scene/DEFECTS.md#scn-03)
-- [ ] S05 · [SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](index/src/codeindex/scene/DEFECTS.md#scn-04)
-- [ ] S09 · [VER-01 · 局部检查污染全库历史，造成假震荡](godot_mcp/DEFECTS.md#ver-01)
-- [ ] S09 · [VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](godot_mcp/DEFECTS.md#ver-02)
-- [ ] S09 · [VER-03 · retry_gate YAML 没接到默认工具入口](godot_mcp/DEFECTS.md#ver-03)
-- [ ] S10 · [VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](godot_mcp/DEFECTS.md#ver-04)
-- [ ] S10 · [VER-05 · class_name 与重复 UID 的重导触发有盲区](godot_mcp/DEFECTS.md#ver-05)
-- [ ] S11 · [VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](godot_mcp/DEFECTS.md#ver-06)
+- [ ] S02 · [IDX-01 · 中文让符号名和调用关系切片错位](index/DEFECTS.md)
+- [ ] S03 · [IDX-02 · 现有依赖边不足以排序根因脚本](index/DEFECTS.md)
+- [ ] S04 · [SCN-01 · 真实规则库查错表，旧类型检查被静默跳过](index/src/codeindex/scene/DEFECTS.md)
+- [ ] S04 · [SCN-02 · 只检查一个场景，却宣布其他场景已修复](index/src/codeindex/scene/DEFECTS.md)
+- [ ] S05 · [SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](index/src/codeindex/scene/DEFECTS.md)
+- [ ] S05 · [SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](index/src/codeindex/scene/DEFECTS.md)
+- [ ] S09 · [VER-01 · 局部检查污染全库历史，造成假震荡](godot_mcp/DEFECTS.md)
+- [ ] S09 · [VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](godot_mcp/DEFECTS.md)
+- [ ] S09 · [VER-03 · retry_gate YAML 没接到默认工具入口](godot_mcp/DEFECTS.md)
+- [ ] S10 · [VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](godot_mcp/DEFECTS.md)
+- [ ] S10 · [VER-05 · class_name 与重复 UID 的重导触发有盲区](godot_mcp/DEFECTS.md)
+- [ ] S11 · [VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](godot_mcp/DEFECTS.md)
 
 ## 本级负责的问题
 
@@ -32,7 +32,7 @@
 
 ### CFG-01：规则库相对路径跟着启动目录漂移
 
-**顺序 / 状态**：[S02](../LANDMARKS.md#s02)；源码确认；代码待修。
+**顺序 / 状态**：[S02](../LANDMARKS.md)；源码确认；代码待修。
 
 **范围与原因**：index 配置把 migration_rules_db 的相对路径直接 resolve，基准是进程 CWD；同一份配置从不同目录启动可能打开不同规则库。
 

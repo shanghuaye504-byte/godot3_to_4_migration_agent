@@ -7,10 +7,12 @@ dependencies = [
   "tree-sitter>=0.23",
   "tree-sitter-language-pack>=1.9",
   "codeindex",
+  "rag",
 ]
 
 [tool.uv.sources]
 codeindex = { path = "codebase_index/index" }
+rag = { path = "rag" }
 
 [dependency-groups]
 # 本地开发/测试工具，不进运行时也不进 build 产线
@@ -19,5 +21,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-# pytest 从仓库根运行时，collect inline_tools 下的测试
+# pytest 从仓库根运行时，collect inline_tools 下的测试。
+# 虚拟根项目不打包 inline_tools / migration_agent，靠 pythonpath 导入。
 testpaths = ["inline_tools/tests", "inline_tools/editandfixguard/tests"]
+pythonpath = ["."]

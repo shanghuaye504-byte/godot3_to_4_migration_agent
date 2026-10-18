@@ -4,6 +4,17 @@
 
 按 [LANDMARKS](LANDMARKS.md) 执行，问题见 [DEFECTS](DEFECTS.md)。恢复统一采用 LangGraph 原生 checkpoint 管图状态、Git/业务 SQLite 核对外部操作、父进程监督批处理；[具体契约](orchestrator/LANDMARKS.md#checkpoint-contract) 与 [ADR-0001](../docs/adr/0001-langgraph-checkpoints-and-external-effects.md) 保持一致。
 
+## 环境预检
+
+S00 的预检在仓库根的 uv 环境里运行，不在本目录另建虚拟环境。示例配置是 [env.preflight.example.yaml](env.preflight.example.yaml)。`GODOT_BINARY` 未设置时使用 `/usr/local/bin/godot4`。
+
+```bash
+uv run python -c "from migration_agent.preflight import run_preflight; print(run_preflight('migration_agent/env.preflight.example.yaml'))"
+uv run pytest migration_agent/tests/test_s00_preflight.py -q
+```
+
+预检核对 Python、tree-sitter、Godot、规则库与语料指纹，并检查观测配置的格式。`offline` 不要求后端在线；`dual` 只校验地址，不连接 Langfuse 或 Phoenix。命令行 `migrate-agent` 和 OpenTelemetry SDK 留到 S14。
+
 ## 子模块概览
 
 - [l0](l0/README.md)：受控预处理、转换、索引和一次性基线冻结。

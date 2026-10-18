@@ -1,6 +1,6 @@
 # 单仓编排：实现路标
 
-[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../orchestrator/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -40,7 +40,7 @@ sweep 只补 V1/V3 未证明部分：固定 --headless --path ... --script ...�
 
 ## 调用链与结果一起验收
 
-所有节点与工具通过 RunContext 的 OTel tracer 关联 run/round/attempt/call，失败、拒绝、回滚和缓存命中同样可见；不在各工具初始化一套 provider。报告链接 Langfuse/Phoenix trace，并保留本地证据与导出状态；平台暂时不可用不改变成功判据。S18 的端到端测试同时检查业务结果和调用树，见 [观测契约](../trace/LANDMARKS.md#otel-contract)。
+所有节点与工具通过 RunContext 的 OTel tracer 关联 run/round/attempt/call，失败、拒绝、回滚和缓存命中同样可见；不在各工具初始化一套 provider。报告链接 Langfuse/Phoenix trace，并保留本地证据与导出状态；平台暂时不可用不改变成功判据。S18 的端到端测试同时检查业务结果和调用树，见 [观测契约](../trace/LANDMARKS.md)。
 
 <a id="checkpoint-contract"></a>
 
@@ -88,7 +88,7 @@ checkpoint 保存不意味着外部代码回退：正常恢复用最新快照；
 
 ### S14：实现宿主、SQLite 账本与 OTel 双后端接线
 
-- [ ] 完成 [S14](../../LANDMARKS.md#s14) 的本范围任务。
+- [ ] 完成 [S14](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -98,13 +98,13 @@ checkpoint 保存不意味着外部代码回退：正常恢复用最新快照；
 
 **验收**：七个工具独立调用、字段映射、路径隔离、提交登记及错误返回。
 
-**问题详情与复现**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](DEFECTS.md#orc-01)。
+**问题详情与复现**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](../orchestrator/DEFECTS.md)。
 
 <a id="s17"></a>
 
 ### S17：实现补充资源扫描与完整成功条件
 
-- [ ] 完成 [S17](../../LANDMARKS.md#s17) 的本范围任务。
+- [ ] 完成 [S17](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -114,13 +114,13 @@ checkpoint 保存不意味着外部代码回退：正常恢复用最新快照；
 
 **验收**：先用 S01 好/坏/缺证据矩阵；然后真实引擎验证孤立坏资源、干净对照、崩溃续查。
 
-**问题详情与复现**：[ORC-03 · 动态资源扫描带 check-only，循环不会执行](DEFECTS.md#orc-03)；[ORC-02 · 根因为空或 CLEAN 不等于验证完整](DEFECTS.md#orc-02)。
+**问题详情与复现**：[ORC-03 · 动态资源扫描带 check-only，循环不会执行](../orchestrator/DEFECTS.md)；[ORC-02 · 根因为空或 CLEAN 不等于验证完整](../orchestrator/DEFECTS.md)。
 
 <a id="s18"></a>
 
 ### S18：接通单仓编排、原生 checkpoint 与有界路由
 
-- [ ] 完成 [S18](../../LANDMARKS.md#s18) 的本范围任务。
+- [ ] 完成 [S18](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -130,13 +130,13 @@ checkpoint 保存不意味着外部代码回退：正常恢复用最新快照；
 
 **验收**：假模型闭环、有限重试/循环/预算出口；用全新进程重开同一 checkpoint 恢复提案和待执行节点；验证缓存/失败 span、持久化序列化和 run 隔离。不将此步等同于完整 kill 恢复验收。
 
-**问题详情与复现**：[ORC-04 · 新增诊断就回滚，会把真正进展当作恶化](DEFECTS.md#orc-04)；[ORC-05 · 图状态恢复未指定原生 checkpointer，容易与审计账本重复实现](DEFECTS.md#orc-05)。
+**问题详情与复现**：[ORC-04 · 新增诊断就回滚，会把真正进展当作恶化](../orchestrator/DEFECTS.md)；[ORC-05 · 图状态恢复未指定原生 checkpointer，容易与审计账本重复实现](../orchestrator/DEFECTS.md)。
 
 <a id="s19"></a>
 
 ### S19：实现 checkpoint 恢复与外部副作用对账
 
-- [ ] 完成 [S19](../../LANDMARKS.md#s19) 的本范围任务。
+- [ ] 完成 [S19](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 

@@ -1,6 +1,6 @@
 # 符号与依赖索引：实现路标
 
-[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../index/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -32,7 +32,7 @@ S05 新增 `run_scene_freeze(conn, project_root, *, rules_db_path, baseline_sha,
 
 ### S02：修中文索引与配置路径
 
-- [ ] 完成 [S02](../../LANDMARKS.md#s02) 的本范围任务。
+- [ ] 完成 [S02](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -42,13 +42,13 @@ S05 新增 `run_scene_freeze(conn, project_root, *, rules_db_path, baseline_sha,
 
 **验收**：中文注释/字符串/标识符和 attribute-call 全覆盖。
 
-**问题详情与复现**：[IDX-01 · 中文让符号名和调用关系切片错位](DEFECTS.md#idx-01)。
+**问题详情与复现**：[IDX-01 · 中文让符号名和调用关系切片错位](../index/DEFECTS.md)。
 
 <a id="s03"></a>
 
 ### S03：补依赖提取，再做根因排序
 
-- [ ] 完成 [S03](../../LANDMARKS.md#s03) 的本范围任务。
+- [ ] 完成 [S03](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -58,17 +58,17 @@ S05 新增 `run_scene_freeze(conn, project_root, *, rules_db_path, baseline_sha,
 
 **验收**：链式、经无报错中间节点、循环、未知目标和中文脚本均有反例；根因优先，未知不伪装已解析。
 
-**问题详情与复现**：[IDX-02 · 现有依赖边不足以排序根因脚本](DEFECTS.md#idx-02)。
+**问题详情与复现**：[IDX-02 · 现有依赖边不足以排序根因脚本](../index/DEFECTS.md)。
 
 <a id="s04"></a>
 
-- [ ] **S04 · 修真实规则库接入和场景增量对比**：[场景检查与基线](src/codeindex/scene/LANDMARKS.md#s04)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S04 · 修真实规则库接入和场景增量对比**：[场景检查与基线](src/codeindex/scene/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s05"></a>
 
 ### S05：修场景回调归属并接通一次性冻结
 
-- [ ] 完成 [S05](../../LANDMARKS.md#s05) 的本范围任务。
+- [ ] 完成 [S05](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -78,9 +78,9 @@ S05 新增 `run_scene_freeze(conn, project_root, *, rules_db_path, baseline_sha,
 
 **验收**：根/子节点、跨脚本同名、多个场景；重复与中断冻结不洗掉原有证据。
 
-**问题详情与复现**：[SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](src/codeindex/scene/DEFECTS.md#scn-03)；[SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](src/codeindex/scene/DEFECTS.md#scn-04)。
+**问题详情与复现**：[SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](src/codeindex/scene/DEFECTS.md)；[SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](src/codeindex/scene/DEFECTS.md)。
 
-**具体落点**：[场景检查与基线](src/codeindex/scene/LANDMARKS.md#s05)。
+**具体落点**：[场景检查与基线](src/codeindex/scene/LANDMARKS.md)。
 
 ## 完成一项怎么记
 

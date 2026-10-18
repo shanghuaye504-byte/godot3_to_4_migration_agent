@@ -22,13 +22,13 @@
 
 按顺序执行：**S01** 固定 span/评分契约，**S13** 补检索缓存事件，**S14** 接通 OTel 与真实双后端，**S18** 验收失败调用链，**S19** 关联恢复前后 trace，**S21–S23** 接入数据集/实验/评分并做消融，**S24–S25** 验收跨进程和崩溃。OTLP 传 trace，评分用显式 SDK/API 幂等上传，不让两个平台各跑一次 Judge。
 
-展开看 [OTel 实现与验收契约](migration_agent/trace/LANDMARKS.md#otel-contract)；对应问题 [TRC-05](migration_agent/trace/DEFECTS.md#trc-05)、[TRC-06](migration_agent/trace/DEFECTS.md#trc-06)、[EVAL-04](migration_agent/eval/DEFECTS.md#eval-04)。当前均为待实现规划，尚无平台联调或效果数字。
+展开看 [OTel 实现与验收契约](migration_agent/trace/LANDMARKS.md)；对应问题 [TRC-05](migration_agent/trace/DEFECTS.md)、[TRC-06](migration_agent/trace/DEFECTS.md)、[EVAL-04](migration_agent/eval/DEFECTS.md)。当前均为待实现规划，尚无平台联调或效果数字。
 
 ## 故障恢复的唯一方案
 
 采用 **LangGraph 原生持久化 checkpoint + 外部副作用对账**。S18 接 SqliteSaver、thread_id=run_id 和同步落盘；S19 核对 Git/业务 SQLite/索引后续跑；S24/S25 由父进程清理和重排 worker。图的执行位置与状态由框架恢复，补丁/回滚/成本由外部账本核验，OTel 只做观测。不能把两类 SQLite 表当一套原子事务，也不能声称 checkpoint 会自动回滚代码或使模型调用恰好一次。
 
-实现细节见 [恢复契约](migration_agent/orchestrator/LANDMARKS.md#checkpoint-contract)，架构决定见 [ADR-0001](docs/adr/0001-langgraph-checkpoints-and-external-effects.md)。当前控制流、checkpointer 与完整恢复尚未实现，完成后再使用简历中的完成措辞。
+实现细节见 [恢复契约](migration_agent/orchestrator/LANDMARKS.md)，架构决定见 [ADR-0001](docs/adr/0001-langgraph-checkpoints-and-external-effects.md)。当前控制流、checkpointer 与完整恢复尚未实现，完成后再使用简历中的完成措辞。
 
 ## 文中几个常用词
 
@@ -62,13 +62,13 @@ flowchart LR
 
 ### S00：固定环境、真实接口与观测配置
 
-- [ ] **实现/修复**：固定 Python/依赖、目标 Godot、规则/语料指纹与 OTel 语义约定版本。检查 OTLP HTTP、Collector 和 Langfuse/Phoenix endpoint 的配置格式；凭据只引用环境变量。先补真实 API 契约，不接模型。
-- [ ] **交付**：交付环境与接口检查；记录四组测试结果。观测 profile 区分 offline/双后端，缺引擎或缺后端部署均写待验收，不伪造可用。
-- [ ] **测试门**：异 CWD 冒烟；未知键、缺引擎、错误协议/endpoint 明确失败；离线单测不要求后端在线。
+- [x] **实现/修复**：固定 Python/依赖、目标 Godot、规则/语料指纹与 OTel 语义约定版本。检查 OTLP HTTP、Collector 和 Langfuse/Phoenix endpoint 的配置格式；凭据只引用环境变量。先补真实 API 契约，不接模型。
+- [x] **交付**：交付环境与接口检查；记录四组测试结果。观测 profile 区分 offline/双后端，缺引擎或缺后端部署均写待验收，不伪造可用。
+- [x] **测试门**：异 CWD 冒烟；未知键、缺引擎、错误协议/endpoint 明确失败；离线单测不要求后端在线。
 
-**展开指导**：[宿主与命令行](migration_agent/LANDMARKS.md#s00)。
+**展开指导**：[宿主与命令行](migration_agent/LANDMARKS.md)。
 
-**对应问题**：[DOC-01 · 旧规划把不存在的接口当作可复用能力](DEFECTS.md#doc-01)。
+**对应问题**：[DOC-01 · 旧规划把不存在的接口当作可复用能力](DEFECTS.md)。
 
 <a id="s01"></a>
 
@@ -78,9 +78,9 @@ flowchart LR
 - [ ] **交付**：交付正确/错误/等价替代对照，隐藏答案位于 Agent 工作区外。定义 case_id→run_id→trace/span 的关联及评分明细格式，OTel 正式接线在 S14。
 - [ ] **测试门**：错误不通过、缺证据标 INVALID/INCOMPLETE；read/grep 不读真值；fake 调用树与评分重复提交测试先固定预期。
 
-**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md#s01)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s01)。
+**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[EVAL-01 · 参考答案放进项目副本会泄漏给 Agent](migration_agent/eval/DEFECTS.md#eval-01)。
+**对应问题**：[EVAL-01 · 参考答案放进项目副本会泄漏给 Agent](migration_agent/eval/DEFECTS.md)。
 
 <a id="s02"></a>
 
@@ -90,9 +90,9 @@ flowchart LR
 - [ ] **交付**：交付 parser 切片修复和确定的路径规则；改动目录 README 同步。
 - [ ] **测试门**：中文注释/字符串/标识符正确；同配置不同 CWD 得到同规则库。
 
-**展开指导**：[索引与验证底座](codebase_index/LANDMARKS.md#s02)、[符号与依赖索引](codebase_index/index/LANDMARKS.md#s02)。
+**展开指导**：[索引与验证底座](codebase_index/LANDMARKS.md)、[符号与依赖索引](codebase_index/index/LANDMARKS.md)。
 
-**对应问题**：[IDX-01 · 中文让符号名和调用关系切片错位](codebase_index/index/DEFECTS.md#idx-01)；[CFG-01 · 规则库相对路径跟着启动目录漂移](codebase_index/DEFECTS.md#cfg-01)。
+**对应问题**：[IDX-01 · 中文让符号名和调用关系切片错位](codebase_index/index/DEFECTS.md)；[CFG-01 · 规则库相对路径跟着启动目录漂移](codebase_index/DEFECTS.md)。
 
 <a id="s03"></a>
 
@@ -102,9 +102,9 @@ flowchart LR
 - [ ] **交付**：交付依赖查询 API；循环先聚成组，再按被依赖关系排序；同分时使用稳定路径排序。
 - [ ] **测试门**：链式、经无报错中间节点、循环、未知目标和中文脚本均有反例；根因优先，未知不伪装已解析。
 
-**展开指导**：[符号与依赖索引](codebase_index/index/LANDMARKS.md#s03)。
+**展开指导**：[符号与依赖索引](codebase_index/index/LANDMARKS.md)。
 
-**对应问题**：[IDX-02 · 现有依赖边不足以排序根因脚本](codebase_index/index/DEFECTS.md#idx-02)。
+**对应问题**：[IDX-02 · 现有依赖边不足以排序根因脚本](codebase_index/index/DEFECTS.md)。
 
 <a id="s04"></a>
 
@@ -114,9 +114,9 @@ flowchart LR
 - [ ] **交付**：交付规则库兼容读取和实际已检查范围传递；保留规则不可用的覆盖标记。
 - [ ] **测试门**：旧引擎类型可检出；只查 a 不会宣称 b 已修；合法新类型不被误报。
 
-**展开指导**：[场景检查与基线](codebase_index/index/src/codeindex/scene/LANDMARKS.md#s04)。
+**展开指导**：[场景检查与基线](codebase_index/index/src/codeindex/scene/LANDMARKS.md)。
 
-**对应问题**：[SCN-01 · 真实规则库查错表，旧类型检查被静默跳过](codebase_index/index/src/codeindex/scene/DEFECTS.md#scn-01)；[SCN-02 · 只检查一个场景，却宣布其他场景已修复](codebase_index/index/src/codeindex/scene/DEFECTS.md#scn-02)。
+**对应问题**：[SCN-01 · 真实规则库查错表，旧类型检查被静默跳过](codebase_index/index/src/codeindex/scene/DEFECTS.md)；[SCN-02 · 只检查一个场景，却宣布其他场景已修复](codebase_index/index/src/codeindex/scene/DEFECTS.md)。
 
 <a id="s05"></a>
 
@@ -126,9 +126,9 @@ flowchart LR
 - [ ] **交付**：交付单事务冻结与重复冻结拒绝。空问题基线也有标记，恢复不重新冻结。
 - [ ] **测试门**：根/子节点、跨脚本同名、多个场景；重复与中断冻结不洗掉原有证据。
 
-**展开指导**：[符号与依赖索引](codebase_index/index/LANDMARKS.md#s05)、[场景检查与基线](codebase_index/index/src/codeindex/scene/LANDMARKS.md#s05)。
+**展开指导**：[符号与依赖索引](codebase_index/index/LANDMARKS.md)、[场景检查与基线](codebase_index/index/src/codeindex/scene/LANDMARKS.md)。
 
-**对应问题**：[SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](codebase_index/index/src/codeindex/scene/DEFECTS.md#scn-03)；[SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](codebase_index/index/src/codeindex/scene/DEFECTS.md#scn-04)。
+**对应问题**：[SCN-03 · 同名回调跨脚本误报，并且只报第一个引用](codebase_index/index/src/codeindex/scene/DEFECTS.md)；[SCN-04 · 基线有底层函数，却没有安全的生产冻结入口](codebase_index/index/src/codeindex/scene/DEFECTS.md)。
 
 <a id="s06"></a>
 
@@ -138,9 +138,9 @@ flowchart LR
 - [ ] **交付**：交付可调用包入口和 INCONSISTENT_RENAME 警告；不任意配对多改名，不将警告误变成硬拒绝。
 - [ ] **测试门**：实际 edit 到 commit 的测试覆盖单/多改名、纯删除及索引回退。
 
-**展开指导**：[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md#s06)。
+**展开指导**：[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md)。
 
-**对应问题**：[EDT-01 · 包入口没有导出约定的 edit API](inline_tools/editandfixguard/DEFECTS.md#edt-01)；[EDT-02 · 函数改名后场景仍用旧名，编辑流水线没有提醒](inline_tools/editandfixguard/DEFECTS.md#edt-02)；[EDT-03 · 索引文件存在就关闭 grep 回退，导致漏报](inline_tools/editandfixguard/DEFECTS.md#edt-03)。
+**对应问题**：[EDT-01 · 包入口没有导出约定的 edit API](inline_tools/editandfixguard/DEFECTS.md)；[EDT-02 · 函数改名后场景仍用旧名，编辑流水线没有提醒](inline_tools/editandfixguard/DEFECTS.md)；[EDT-03 · 索引文件存在就关闭 grep 回退，导致漏报](inline_tools/editandfixguard/DEFECTS.md)。
 
 <a id="s07"></a>
 
@@ -150,9 +150,9 @@ flowchart LR
 - [ ] **交付**：交付失败不改变字节/HEAD、合法改动只产生目标提交的编辑事务。
 - [ ] **测试门**：新建坏脚本失败；存量坏场景的无回归改动成功；新增场景错误回滚。
 
-**展开指导**：[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md#s07)。
+**展开指导**：[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md)。
 
-**对应问题**：[EDT-04 · 写后复核把存量场景错误当作新回归](inline_tools/editandfixguard/DEFECTS.md#edt-04)；[EDT-05 · create 绕过语法和反向迁移检查](inline_tools/editandfixguard/DEFECTS.md#edt-05)。
+**对应问题**：[EDT-04 · 写后复核把存量场景错误当作新回归](inline_tools/editandfixguard/DEFECTS.md)；[EDT-05 · create 绕过语法和反向迁移检查](inline_tools/editandfixguard/DEFECTS.md)。
 
 <a id="s08"></a>
 
@@ -162,9 +162,9 @@ flowchart LR
 - [ ] **交付**：交付保守的符号适用检查、逐后缀守卫矩阵和完整临时文件清理。
 - [ ] **测试门**：同名自定义函数不误拒，真旧 API 有证据；成功/失败/超时均无临时补丁遗留。
 
-**展开指导**：[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md#s08)。
+**展开指导**：[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md)。
 
-**对应问题**：[EDT-06 · 非脚本文件缺通用守卫，场景删除也未覆盖](inline_tools/editandfixguard/DEFECTS.md#edt-06)；[EDT-07 · G5.1 只看声明名字，既漏旧 API 又误杀用户函数](inline_tools/editandfixguard/DEFECTS.md#edt-07)；[EDT-08 · git apply 临时补丁文件未清理](inline_tools/editandfixguard/DEFECTS.md#edt-08)。
+**对应问题**：[EDT-06 · 非脚本文件缺通用守卫，场景删除也未覆盖](inline_tools/editandfixguard/DEFECTS.md)；[EDT-07 · G5.1 只看声明名字，既漏旧 API 又误杀用户函数](inline_tools/editandfixguard/DEFECTS.md)；[EDT-08 · git apply 临时补丁文件未清理](inline_tools/editandfixguard/DEFECTS.md)。
 
 <a id="s09"></a>
 
@@ -174,9 +174,9 @@ flowchart LR
 - [ ] **交付**：交付稳定的 VerifyGateResult；继续使用真实 decision 枚举，明确重置策略。
 - [ ] **测试门**：全库 A→局部空→全库 A 不假震荡；真全库循环会停；OPEN 后 spawn=0；自定义阈值生效。
 
-**展开指导**：[Godot 验证栈](codebase_index/godot_mcp/LANDMARKS.md#s09)。
+**展开指导**：[Godot 验证栈](codebase_index/godot_mcp/LANDMARKS.md)。
 
-**对应问题**：[VER-01 · 局部检查污染全库历史，造成假震荡](codebase_index/godot_mcp/DEFECTS.md#ver-01)；[VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](codebase_index/godot_mcp/DEFECTS.md#ver-02)；[VER-03 · retry_gate YAML 没接到默认工具入口](codebase_index/godot_mcp/DEFECTS.md#ver-03)。
+**对应问题**：[VER-01 · 局部检查污染全库历史，造成假震荡](codebase_index/godot_mcp/DEFECTS.md)；[VER-02 · 熔断已 OPEN，下一次健康输出又允许继续](codebase_index/godot_mcp/DEFECTS.md)；[VER-03 · retry_gate YAML 没接到默认工具入口](codebase_index/godot_mcp/DEFECTS.md)。
 
 <a id="s10"></a>
 
@@ -186,9 +186,9 @@ flowchart LR
 - [ ] **交付**：交付差异可见性及按需 V3 触发。快照仍只作观察，不充当文件恢复协议。
 - [ ] **测试门**：逐后缀 diff、UID 两端与 class 声明变体；用注入 spawn 验证 V3 次数，再补真实引擎检查。
 
-**展开指导**：[Godot 验证栈](codebase_index/godot_mcp/LANDMARKS.md#s10)。
+**展开指导**：[Godot 验证栈](codebase_index/godot_mcp/LANDMARKS.md)。
 
-**对应问题**：[VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](codebase_index/godot_mcp/DEFECTS.md#ver-04)；[VER-05 · class_name 与重复 UID 的重导触发有盲区](codebase_index/godot_mcp/DEFECTS.md#ver-05)。
+**对应问题**：[VER-04 · 快照漏场景/项目配置，相关修改无法驱动重导](codebase_index/godot_mcp/DEFECTS.md)；[VER-05 · class_name 与重复 UID 的重导触发有盲区](codebase_index/godot_mcp/DEFECTS.md)。
 
 <a id="s11"></a>
 
@@ -198,9 +198,9 @@ flowchart LR
 - [ ] **交付**：交付可被宿主复用的运行上下文边界；避免重复持同一非重入 flock。
 - [ ] **测试门**：两个项目不串库/串轮次；并发接管被拒；多文件回滚后源码与索引一致。
 
-**展开指导**：[Godot 验证栈](codebase_index/godot_mcp/LANDMARKS.md#s11)、[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md#s11)。
+**展开指导**：[Godot 验证栈](codebase_index/godot_mcp/LANDMARKS.md)、[受控编辑与守卫](inline_tools/editandfixguard/LANDMARKS.md)。
 
-**对应问题**：[VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](codebase_index/godot_mcp/DEFECTS.md#ver-06)；[EDT-09 · 同步没有绑定当前项目，整轮回滚又只刷新一个文件](inline_tools/editandfixguard/DEFECTS.md#edt-09)。
+**对应问题**：[VER-06 · 全局单槽状态和锁范围不适合多次仓库运行](codebase_index/godot_mcp/DEFECTS.md)；[EDT-09 · 同步没有绑定当前项目，整轮回滚又只刷新一个文件](inline_tools/editandfixguard/DEFECTS.md)。
 
 <a id="s12"></a>
 
@@ -210,9 +210,9 @@ flowchart LR
 - [ ] **交付**：交付不靠 skip 的产物检查；构建测试使用临时输出，不覆盖已冻结语料。
 - [ ] **测试门**：8 份散文被锁定，修改输入使指纹变化；缺预期产物 fail；--skip-embed 不联网。
 
-**展开指导**：[知识库构建](rag/build/LANDMARKS.md#s12)。
+**展开指导**：[知识库构建](rag/build/LANDMARKS.md)。
 
-**对应问题**：[RAG-01 · 散文写入与读取路径不一致，测试靠 skip 避开](rag/build/DEFECTS.md#rag-01)；[RAG-05 · 旧构建和评测命令仍是占位壳](rag/build/DEFECTS.md#rag-05)。
+**对应问题**：[RAG-01 · 散文写入与读取路径不一致，测试靠 skip 避开](rag/build/DEFECTS.md)；[RAG-05 · 旧构建和评测命令仍是占位壳](rag/build/DEFECTS.md)。
 
 <a id="s13"></a>
 
@@ -222,9 +222,9 @@ flowchart LR
 - [ ] **交付**：交付命中/未命中均可关联的检索事件；只记录必要候选 ID、版本、排序与耗时，不将真值送进检索输入。
 - [ ] **测试门**：两次调用、一次缓存命中可观测；observer 异常不改变检索结果；宿主与库不重复记账；规则/语料可打开。
 
-**展开指导**：[检索运行时](rag/retriever/LANDMARKS.md#s13)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s13)。
+**展开指导**：[检索运行时](rag/retriever/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[RAG-02 · 错误配置键被忽略，调参看似成功实则未生效](rag/retriever/DEFECTS.md#rag-02)；[RAG-03 · 报错符号提取不足，精确检索被跳过](rag/retriever/DEFECTS.md#rag-03)；[RAG-06 · 缓存命中不触发观测钩子，调用账本少一段](rag/retriever/DEFECTS.md#rag-06)。
+**对应问题**：[RAG-02 · 错误配置键被忽略，调参看似成功实则未生效](rag/retriever/DEFECTS.md)；[RAG-03 · 报错符号提取不足，精确检索被跳过](rag/retriever/DEFECTS.md)；[RAG-06 · 缓存命中不触发观测钩子，调用账本少一段](rag/retriever/DEFECTS.md)。
 
 <a id="s14"></a>
 
@@ -234,9 +234,9 @@ flowchart LR
 - [ ] **交付**：交付 TraceStore、budget、telemetry/observer 适配器、版本化语义映射和可选部署配置。Langfuse 看模型/成本/实验，Phoenix 看检索/调用分析；SQLite 管恢复和完整账本。
 - [ ] **测试门**：异 CWD、双 run、多 attempt、预算不足零调用；内存 exporter/假 OTLP 接收器测调用树、缓存、拒绝、脱敏与断网。再用 fake 业务做真实双后端联调，凭 trace_id 查询一致；部署不可用则保留待验收。
 
-**展开指导**：[宿主与命令行](migration_agent/LANDMARKS.md#s14)、[单仓编排](migration_agent/orchestrator/LANDMARKS.md#s14)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s14)。
+**展开指导**：[宿主与命令行](migration_agent/LANDMARKS.md)、[单仓编排](migration_agent/orchestrator/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](migration_agent/orchestrator/DEFECTS.md#orc-01)；[TRC-01 · 按 repo_id 保存一行，无法区分试验和多个补丁](migration_agent/trace/DEFECTS.md#trc-01)；[TRC-04 · 只给成功轮次记成本，预算与可观测性不完整](migration_agent/trace/DEFECTS.md#trc-04)；[TRC-05 · 缺少统一调用链，检索、补丁与引擎失败无法关联](migration_agent/trace/DEFECTS.md#trc-05)。
+**对应问题**：[ORC-01 · 宿主若照旧签名封装，工具无法完成一次调用](migration_agent/orchestrator/DEFECTS.md)；[TRC-01 · 按 repo_id 保存一行，无法区分试验和多个补丁](migration_agent/trace/DEFECTS.md)；[TRC-04 · 只给成功轮次记成本，预算与可观测性不完整](migration_agent/trace/DEFECTS.md)；[TRC-05 · 缺少统一调用链，检索、补丁与引擎失败无法关联](migration_agent/trace/DEFECTS.md)。
 
 <a id="s15"></a>
 
@@ -246,9 +246,9 @@ flowchart LR
 - [ ] **交付**：交付 run_l0_pipeline 初版及超时/不支持类型/已有目标的明确出口；转换执行器单独封装，不引用不存在的 run_subprocess。
 - [ ] **测试门**：源不变、转换新增文件入提交、缓存不弄脏树、失败不标完成、二次启动非 resume 被拒。
 
-**展开指导**：[确定性预处理](migration_agent/l0/LANDMARKS.md#s15)。
+**展开指导**：[确定性预处理](migration_agent/l0/LANDMARKS.md)。
 
-**对应问题**：[L0-03 · 接管工作区会带脏产物，转换提交还可能漏新增文件](migration_agent/l0/DEFECTS.md#l0-03)。
+**对应问题**：[L0-03 · 接管工作区会带脏产物，转换提交还可能漏新增文件](migration_agent/l0/DEFECTS.md)。
 
 <a id="s16"></a>
 
@@ -258,9 +258,9 @@ flowchart LR
 - [ ] **交付**：交付 dry-run 清单、逐规则替换证据与 StaticTrapFinding；初版超大/未解析文件升级人工，不承诺机械修完。
 - [ ] **测试门**：安全改名正例加同名用户符号反例；场景四类 type 槽位；合法 shader 不误报；无修改算子不计收益。
 
-**展开指导**：[确定性预处理](migration_agent/l0/LANDMARKS.md#s16)。
+**展开指导**：[确定性预处理](migration_agent/l0/LANDMARKS.md)。
 
-**对应问题**：[L0-01 · 把文字置信标签按数值筛选，选中了错误规则](migration_agent/l0/DEFECTS.md#l0-01)；[L0-02 · AST 找到同名节点，不代表它属于引擎 API](migration_agent/l0/DEFECTS.md#l0-02)；[L0-04 · 静态陷阱误报合法语法，且没有消项机制](migration_agent/l0/DEFECTS.md#l0-04)。
+**对应问题**：[L0-01 · 把文字置信标签按数值筛选，选中了错误规则](migration_agent/l0/DEFECTS.md)；[L0-02 · AST 找到同名节点，不代表它属于引擎 API](migration_agent/l0/DEFECTS.md)；[L0-04 · 静态陷阱误报合法语法，且没有消项机制](migration_agent/l0/DEFECTS.md)。
 
 <a id="s17"></a>
 
@@ -270,9 +270,9 @@ flowchart LR
 - [ ] **交付**：交付 load_sweep、完整资源清单、每项哨兵/超时日志与成功谓词；没有运行证据就标不完整。
 - [ ] **测试门**：先用 S01 好/坏/缺证据矩阵；然后真实引擎验证孤立坏资源、干净对照、崩溃续查。
 
-**展开指导**：[单仓编排](migration_agent/orchestrator/LANDMARKS.md#s17)。
+**展开指导**：[单仓编排](migration_agent/orchestrator/LANDMARKS.md)。
 
-**对应问题**：[ORC-03 · 动态资源扫描带 check-only，循环不会执行](migration_agent/orchestrator/DEFECTS.md#orc-03)；[ORC-02 · 根因为空或 CLEAN 不等于验证完整](migration_agent/orchestrator/DEFECTS.md#orc-02)。
+**对应问题**：[ORC-03 · 动态资源扫描带 check-only，循环不会执行](migration_agent/orchestrator/DEFECTS.md)；[ORC-02 · 根因为空或 CLEAN 不等于验证完整](migration_agent/orchestrator/DEFECTS.md)。
 
 <a id="s18"></a>
 
@@ -282,9 +282,9 @@ flowchart LR
 - [ ] **交付**：交付 graph/state/prompts、checkpoint 工厂及单仓报告；图执行位置/提案/消息/完整 Gate 状态由 checkpoint 恢复，业务 SQLite 只保留审计、成本和副作用回执。
 - [ ] **测试门**：假模型闭环、有限重试/循环/预算出口；用全新进程重开同一 checkpoint 恢复提案和待执行节点；验证缓存/失败 span、持久化序列化和 run 隔离。不将此步等同于完整 kill 恢复验收。
 
-**展开指导**：[单仓编排](migration_agent/orchestrator/LANDMARKS.md#s18)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s18)。
+**展开指导**：[单仓编排](migration_agent/orchestrator/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[ORC-04 · 新增诊断就回滚，会把真正进展当作恶化](migration_agent/orchestrator/DEFECTS.md#orc-04)；[ORC-05 · 图状态恢复未指定原生 checkpointer，容易与审计账本重复实现](migration_agent/orchestrator/DEFECTS.md#orc-05)。
+**对应问题**：[ORC-04 · 新增诊断就回滚，会把真正进展当作恶化](migration_agent/orchestrator/DEFECTS.md)；[ORC-05 · 图状态恢复未指定原生 checkpointer，容易与审计账本重复实现](migration_agent/orchestrator/DEFECTS.md)。
 
 <a id="s19"></a>
 
@@ -294,9 +294,9 @@ flowchart LR
 - [ ] **交付**：交付 resume 对账器，不自建第二套图调度器；checkpoint 管图状态，Git/SQLite 管代码回执与完整账本。已完成 L0/冻结不重做；模型请求结果不明时保留未知费用，不宣称所有外部调用恰好一次。
 - [ ] **测试门**：apply/commit/verify/下一 checkpoint 写入前四类中断；回执已存而图结果未存时安全返回旧回执，不重复受控补丁；Gate 历史/预算不重置，未知脏树或版本不匹配拒绝；新旧 OTel trace 可关联。
 
-**展开指导**：[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s19)、[单仓编排](migration_agent/orchestrator/LANDMARKS.md#s19)。
+**展开指导**：[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)、[单仓编排](migration_agent/orchestrator/LANDMARKS.md)。
 
-**对应问题**：[TRC-02 · Git、副作用账本与图 checkpoint 之间有崩溃窗口](migration_agent/trace/DEFECTS.md#trc-02)；[TRC-06 · 观测导出与恢复混用会丢账，进程切换还会断链](migration_agent/trace/DEFECTS.md#trc-06)。
+**对应问题**：[TRC-02 · Git、副作用账本与图 checkpoint 之间有崩溃窗口](migration_agent/trace/DEFECTS.md)；[TRC-06 · 观测导出与恢复混用会丢账，进程切换还会断链](migration_agent/trace/DEFECTS.md)。
 
 <a id="s20"></a>
 
@@ -306,9 +306,9 @@ flowchart LR
 - [ ] **交付**：交付带版本/上下文指纹的缓存；命中仍走守卫/验证；跨仓命中率与实际节省调用可重算。
 - [ ] **测试门**：不同版本/owner 不碰撞；坏候选不重复应用；并发写不丢记录。
 
-**展开指导**：[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s20)。
+**展开指导**：[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[TRC-03 · 每仓本地缓存不能跨仓复用，短 key 又可能复用错修复](migration_agent/trace/DEFECTS.md#trc-03)。
+**对应问题**：[TRC-03 · 每仓本地缓存不能跨仓复用，短 key 又可能复用错修复](migration_agent/trace/DEFECTS.md)。
 
 <a id="s21"></a>
 
@@ -318,9 +318,9 @@ flowchart LR
 - [ ] **交付**：交付可复现样本与逐项结果、两后端对象映射和 outbox。每个 case 关联 run/trace、规则/配置/评测器指纹；同一评分复用，两端不重复跑模型。
 - [ ] **测试门**：等价解/行为/字节分开；fresh/reused 和调参/测试隔离；上传断网/重复/响应丢失不重复逻辑评分，两端汇总可由本地明细复算。
 
-**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md#s21)、[检索质量评测](rag/eval/LANDMARKS.md#s21)、[检索运行时](rag/retriever/LANDMARKS.md#s21)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s21)。
+**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md)、[检索质量评测](rag/eval/LANDMARKS.md)、[检索运行时](rag/retriever/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[EVAL-02 · 逐字参考不等于唯一正确解，变异也可能没有测到 Agent](migration_agent/eval/DEFECTS.md#eval-02)；[RAG-04 · 历史复用和指标命名容易把旧结果说成新实测](rag/eval/DEFECTS.md#rag-04)；[EVAL-04 · 平台评分没有来源与幂等关联，会重复计分或混用实验](migration_agent/eval/DEFECTS.md#eval-04)。
+**对应问题**：[EVAL-02 · 逐字参考不等于唯一正确解，变异也可能没有测到 Agent](migration_agent/eval/DEFECTS.md)；[RAG-04 · 历史复用和指标命名容易把旧结果说成新实测](rag/eval/DEFECTS.md)；[EVAL-04 · 平台评分没有来源与幂等关联，会重复计分或混用实验](migration_agent/eval/DEFECTS.md)。
 
 <a id="s22"></a>
 
@@ -330,9 +330,9 @@ flowchart LR
 - [ ] **交付**：交付结构化 verdict 和校准样本；人工/程序/Judge 分开命名、版本化，一份结果同步两平台，审最终净 diff 及保留 patch。
 - [ ] **测试门**：好/坏/存疑/缺证据/模型故障对照；人工误放/误杀/分歧可复算，Judge 费用完整入账，两端不重复评判。
 
-**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md#s22)。
+**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md)。
 
-**对应问题**：[EVAL-03 · Judge 的证据不足与调用失败没有独立出口](migration_agent/eval/DEFECTS.md#eval-03)。
+**对应问题**：[EVAL-03 · Judge 的证据不足与调用失败没有独立出口](migration_agent/eval/DEFECTS.md)。
 
 <a id="s23"></a>
 
@@ -342,7 +342,7 @@ flowchart LR
 - [ ] **交付**：交付修复率/覆盖/Judge 风险、成本/耗时、人工介入和失败归因。报告含本地逐项来源和后端实验链接；初始错误为零的削减率为 N/A。
 - [ ] **测试门**：本地与两端分母、指标和版本一致；引擎/Judge/导出故障单列；评测全采样，生产采样数据不当完整统计；真实 token 节省与估算分开。
 
-**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md#s23)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s23)。
+**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
 <a id="s24"></a>
 
@@ -352,9 +352,9 @@ flowchart LR
 - [ ] **交付**：交付 batch CLI、独立运行目录、跨进程关联和正常吞吐数据；正常退出有界 flush/shutdown，不继承活跃导出线程。
 - [ ] **测试门**：1/2/4 worker 结果一致、同名不冲突、进程峰值受限；子进程 span 关联正确且不重复埋点，后端故障不打满 worker；单仓失败不抹掉其余结果。
 
-**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md#s24)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s24)。
+**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
-**对应问题**：[BATCH-01 · 杀掉 worker 后槽位与 Godot 子进程未必自动回收](migration_agent/eval/DEFECTS.md#batch-01)。
+**对应问题**：[BATCH-01 · 杀掉 worker 后槽位与 Godot 子进程未必自动回收](migration_agent/eval/DEFECTS.md)。
 
 <a id="s25"></a>
 
@@ -364,7 +364,7 @@ flowchart LR
 - [ ] **交付**：交付 kill/断网/后端不可用测试、恢复及评分补传说明；清单对应真实证据。后端持久化/保留策略按选定部署说明，不承诺超出本地账本的可靠性。
 - [ ] **测试门**：无进程/槽位泄漏，任务不丢、受控补丁不重复，未知模型结果单列；导出有界，评分重试不重复；本地与后端差异可解释；真实引擎/后端验收与模拟测试分别报告。
 
-**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md#s25)、[原生工具](inline_tools/LANDMARKS.md#s25)、[索引与验证底座](codebase_index/LANDMARKS.md#s25)、[迁移知识库](rag/LANDMARKS.md#s25)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md#s25)。
+**展开指导**：[独立评测与批处理](migration_agent/eval/LANDMARKS.md)、[原生工具](inline_tools/LANDMARKS.md)、[索引与验证底座](codebase_index/LANDMARKS.md)、[迁移知识库](rag/LANDMARKS.md)、[轨迹、预算与恢复](migration_agent/trace/LANDMARKS.md)。
 
 ## 现有能力的真实接口
 

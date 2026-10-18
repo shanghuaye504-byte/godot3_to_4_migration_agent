@@ -1,6 +1,6 @@
 # 索引与验证底座：实现路标
 
-[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../LANDMARKS.md) · [全项目问题总账](../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../codebase_index/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -38,7 +38,7 @@ index 与 godot_mcp 的 `Config` 是各自独立类型；宿主分别创建，�
 
 ### S02：修中文索引与配置路径
 
-- [ ] 完成 [S02](../LANDMARKS.md#s02) 的本范围任务。
+- [ ] 完成 [S02](../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -48,39 +48,39 @@ index 与 godot_mcp 的 `Config` 是各自独立类型；宿主分别创建，�
 
 **验收**：切换 CWD、缺文件、绝对/相对配置及环境覆盖测试。
 
-**问题详情与复现**：[IDX-01 · 中文让符号名和调用关系切片错位](index/DEFECTS.md#idx-01)；[CFG-01 · 规则库相对路径跟着启动目录漂移](DEFECTS.md#cfg-01)。
+**问题详情与复现**：[IDX-01 · 中文让符号名和调用关系切片错位](index/DEFECTS.md)；[CFG-01 · 规则库相对路径跟着启动目录漂移](../codebase_index/DEFECTS.md)。
 
-**具体落点**：[符号与依赖索引](index/LANDMARKS.md#s02)。
+**具体落点**：[符号与依赖索引](index/LANDMARKS.md)。
 
 <a id="s03"></a>
 
-- [ ] **S03 · 补依赖提取，再做根因排序**：[符号与依赖索引](index/LANDMARKS.md#s03)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S03 · 补依赖提取，再做根因排序**：[符号与依赖索引](index/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s04"></a>
 
-- [ ] **S04 · 修真实规则库接入和场景增量对比**：[场景检查与基线](index/src/codeindex/scene/LANDMARKS.md#s04)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S04 · 修真实规则库接入和场景增量对比**：[场景检查与基线](index/src/codeindex/scene/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s05"></a>
 
-- [ ] **S05 · 修场景回调归属并接通一次性冻结**：[符号与依赖索引](index/LANDMARKS.md#s05)、[场景检查与基线](index/src/codeindex/scene/LANDMARKS.md#s05)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S05 · 修场景回调归属并接通一次性冻结**：[符号与依赖索引](index/LANDMARKS.md)、[场景检查与基线](index/src/codeindex/scene/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s09"></a>
 
-- [ ] **S09 · 隔离局部检查、修熔断和阈值接线**：[Godot 验证栈](godot_mcp/LANDMARKS.md#s09)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S09 · 隔离局部检查、修熔断和阈值接线**：[Godot 验证栈](godot_mcp/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s10"></a>
 
-- [ ] **S10 · 补验证快照与重导触发范围**：[Godot 验证栈](godot_mcp/LANDMARKS.md#s10)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S10 · 补验证快照与重导触发范围**：[Godot 验证栈](godot_mcp/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s11"></a>
 
-- [ ] **S11 · 绑定每次运行的状态、锁和索引同步**：[Godot 验证栈](godot_mcp/LANDMARKS.md#s11)；先完成根队列的前置步骤，验收看负责目录。
+- [ ] **S11 · 绑定每次运行的状态、锁和索引同步**：[Godot 验证栈](godot_mcp/LANDMARKS.md)；先完成根队列的前置步骤，验收看负责目录。
 
 <a id="s25"></a>
 
 ### S25：验收崩溃恢复、观测降级并完成清理
 
-- [ ] 完成 [S25](../LANDMARKS.md#s25) 的本范围任务。
+- [ ] 完成 [S25](../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 

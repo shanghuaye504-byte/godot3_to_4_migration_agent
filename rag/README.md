@@ -179,7 +179,7 @@ tier_a_manual/*.yaml            → yaml.safe_load           ─┘
 
 ## 开发环境：用 uv 管理这个包
 
-`rag/` 是一个独立的 uv 项目（`rag/pyproject.toml` + `rag/uv.lock`），和仓库根目录、`workspace_index/` 各自管自己的依赖，不共享一个虚拟环境——原因见上面「设计结论」那一节:`build/` 和 `retriever/` 的依赖轻重差太多，不能装在一起。
+`rag/` 是一个独立的 uv 项目（`rag/pyproject.toml` + `rag/uv.lock`）。构建组和检索测试仍用这个环境。根环境通过 path 依赖安装本包的运行时部分，从而可以 `import rag`，不会因此装上 build 组里的 `docutils` 或 `gitpython`。两边不共用同一个虚拟环境。原因见上面「设计结论」那一节：`build/` 和 `retriever/` 的依赖轻重差太多，不能装在一起。
 
 ### 包名和目录的对应关系
 

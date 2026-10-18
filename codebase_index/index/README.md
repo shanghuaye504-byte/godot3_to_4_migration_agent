@@ -87,7 +87,7 @@ codeindex find-symbol take_damage --json   # 两者结果应一致
 ### 第 0 步：环境能 import
 
 1. `cd index && uv sync --all-groups`（解释器由 `.python-version` 钉在 3.11，不要用 conda 的 3.13）。
-   GDScript grammar 没有独立 PyPI 包，`pyproject.toml` 用 `tree-sitter-language-pack` 提供 gdscript/csharp/cpp 三种 Language。
+   GDScript grammar 没有独立 PyPI 包，`pyproject.toml` 用 `tree-sitter-language-pack` 提供 gdscript/csharp/cpp 三种 Language。版本钉在 `1.20.0`，与仓库根 lock 相同。
 2. 从 `../config.example.yaml` 复制一份到 `../config.yaml`，把 `project_root` / `index_state_dir` 改成一个真实的小 Godot 项目（或临时空目录）。后续 `config.py` 测的就是读这份文件。
 3. 确认 `uv run python -c "import codeindex"` 能过。此时各模块里的 `...` 还不会炸，因为没人调用它们。
 

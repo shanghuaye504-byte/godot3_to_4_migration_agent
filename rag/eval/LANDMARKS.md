@@ -1,6 +1,6 @@
 # 检索质量评测：实现路标
 
-[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](DEFECTS.md)
+[全项目执行顺序](../../LANDMARKS.md) · [全项目问题总账](../../DEFECTS.md) · [上级文档](../LANDMARKS.md) · [本级问题](../eval/DEFECTS.md)
 
 更新：2026-10-17。以当前代码为现状；下文未勾选项均为待修复/待开发。**按根目录 S00→S25 执行，到本目录时再展开；本级编号不重新从 1 开始。**
 
@@ -16,7 +16,7 @@ BM25/vector/hybrid、identity/重排的比较使用相同冻结集合和预算�
 
 ## 将已有分数连接到调用链
 
-历史报告是本地可复算证据，不能仅因接入平台就改写成新实验。S21 将同一 query/item 的 GT 覆盖率和 MRR、返回 ID、配置/语料指纹、fresh/reused 来源交给宿主评测适配器，关联 Langfuse/Phoenix 的实验和 trace/span。隐藏参考不进入 Agent 工作区或普通 span；平台评分与本地 JSONL 应逐项一致，详见 [观测契约](../../migration_agent/trace/LANDMARKS.md#otel-contract)。
+历史报告是本地可复算证据，不能仅因接入平台就改写成新实验。S21 将同一 query/item 的 GT 覆盖率和 MRR、返回 ID、配置/语料指纹、fresh/reused 来源交给宿主评测适配器，关联 Langfuse/Phoenix 的实验和 trace/span。隐藏参考不进入 Agent 工作区或普通 span；平台评分与本地 JSONL 应逐项一致，详见 [观测契约](../../migration_agent/trace/LANDMARKS.md)。
 
 ## 本目录执行清单
 
@@ -24,7 +24,7 @@ BM25/vector/hybrid、identity/重排的比较使用相同冻结集合和预算�
 
 ### S21：扩展变异、复验 RAG 并接入平台实验
 
-- [ ] 完成 [S21](../../LANDMARKS.md#s21) 的本范围任务。
+- [ ] 完成 [S21](../../LANDMARKS.md) 的本范围任务。
 
 **先决条件**：根队列中本步之前的验收门已通过；新增/缺陷测试先写，再改实现。
 
@@ -34,7 +34,7 @@ BM25/vector/hybrid、identity/重排的比较使用相同冻结集合和预算�
 
 **验收**：复用指向原 run；版本不匹配不拼接；本地与平台的 GT 覆盖/MRR 一致，重复上传不重复评分。
 
-**问题详情与复现**：[RAG-04 · 历史复用和指标命名容易把旧结果说成新实测](DEFECTS.md#rag-04)。
+**问题详情与复现**：[RAG-04 · 历史复用和指标命名容易把旧结果说成新实测](../eval/DEFECTS.md)。
 
 ## 完成一项怎么记
 
